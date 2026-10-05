@@ -6,13 +6,9 @@ import '../../theme/washi.dart';
 import '../records/clock.dart';
 import '../scoring/scoring_providers.dart';
 import 'year_review.dart';
-import 'year_review_screen.dart';
+import 'year_review_list_screen.dart';
 
-void _openReview(BuildContext context, int year) => Navigator.of(
-  context,
-).push(MaterialPageRoute<void>(builder: (_) => YearReviewScreen(year: year)));
-
-/// 修行タブの「〇〇年の振り返り」。記録が1件も無いうちは出さない。
+/// 修行タブの「年の振り返り」。年の一覧を開く。記録が1件も無いうちは出さない。
 class YearReviewEntry extends ConsumerWidget {
   const YearReviewEntry({super.key});
 
@@ -20,12 +16,11 @@ class YearReviewEntry extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (ref.watch(scoredVisitsProvider).isEmpty) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context);
-    final year = ref.watch(currentTimeProvider).year;
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(l10n.reviewEntry(year)),
+      title: Text(l10n.reviewListTitle),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => _openReview(context, year),
+      onTap: () => openYearReview(context),
     );
   }
 }
@@ -63,7 +58,7 @@ class _YearReviewInviteCardState extends ConsumerState<YearReviewInviteCard> {
           ),
           margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
           child: InkWell(
-            onTap: () => _openReview(context, year),
+            onTap: () => openYearReview(context, year: year),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 44, 10),
               child: Column(

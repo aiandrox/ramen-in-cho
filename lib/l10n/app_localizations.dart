@@ -2194,6 +2194,12 @@ abstract class AppLocalizations {
   /// **'まだ会得した秘伝はありません'**
   String get questSpotNone;
 
+  /// No description provided for @reviewListTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'年の振り返り'**
+  String get reviewListTitle;
+
   /// No description provided for @reviewEntry.
   ///
   /// In ja, this message translates to:
@@ -2241,12 +2247,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'この年の記録はありません'**
   String get reviewCoverEmpty;
-
-  /// No description provided for @reviewYearOption.
-  ///
-  /// In ja, this message translates to:
-  /// **'{year}年'**
-  String reviewYearOption(int year);
 
   /// No description provided for @reviewCountsTitle.
   ///

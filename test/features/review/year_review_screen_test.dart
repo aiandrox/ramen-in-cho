@@ -8,6 +8,7 @@ import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/review/year_review_entry.dart';
+import 'package:ramen_in_cho/features/review/year_review_list_screen.dart';
 import 'package:ramen_in_cho/features/review/year_review_screen.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
 import 'package:ramen_in_cho/features/words/words.dart';
@@ -91,14 +92,10 @@ void main() {
     expect(find.text(ja.shareButton), findsOneWidget);
   });
 
-  testWidgets('表紙で記録のある別の年に切り替えられる', (tester) async {
+  testWidgets('表紙には年の切り替えを出さない', (tester) async {
     await pump(tester, const YearReviewScreen(year: 2026));
 
-    await tester.tap(find.text(ja.reviewYearOption(2025)));
-    await tester.pumpAndSettle();
-
-    expect(find.text(ja.reviewEntry(2025)), findsOneWidget);
-    expect(find.text(ja.reviewCoverEra('令和', '七')), findsOneWidget);
+    expect(find.byType(ChoiceChip), findsNothing);
   });
 
   testWidgets('記録の無い年は表紙だけ', (tester) async {
@@ -109,16 +106,43 @@ void main() {
     expect(find.text(ja.reviewCoverEmpty), findsOneWidget);
   });
 
-  testWidgets('修行タブの入口は、今年の振り返りを開く', (tester) async {
+  testWidgets('修行タブの入口は年の一覧を開き、選んだ年をめくって、戻ると一覧に戻る', (tester) async {
     await pump(
       tester,
       Scaffold(body: ListView(children: const [YearReviewEntry()])),
     );
 
-    await tester.tap(find.text(ja.reviewEntry(2026)));
+    await tester.tap(find.text(ja.reviewListTitle));
     await tester.pumpAndSettle();
 
-    expect(find.text(ja.reviewCoverYear(2026)), findsWidgets);
+    // 記録のある年だけを新しい順に、杯数・軒数・修行点を添えて並べる。
+    final years = find.descendant(
+      of: find.byType(YearReviewListScreen),
+      matching: find.byType(ListTile),
+    );
+    expect(years, findsNWidgets(2));
+    expect(
+      find.descendant(
+        of: years.first,
+        matching: find.text(ja.reviewEntry(2026)),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text(ja.reviewEntry(2025)), findsOneWidget);
+    expect(find.textContaining('1杯・1軒・'), findsNWidgets(2));
+
+    await tester.tap(find.text(ja.reviewEntry(2025)));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.reviewCoverEra('令和', '七')), findsOneWidget);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(YearReviewScreen), findsNothing);
+    expect(find.byType(YearReviewListScreen), findsOneWidget);
+
+    await tester.tap(find.text(ja.reviewEntry(2026)));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.reviewCoverEra('令和', '八')), findsOneWidget);
   });
 
   testWidgets('記録が無いうちは、修行タブに入口を出さない', (tester) async {
@@ -149,6 +173,18 @@ void main() {
       await pump(tester, card(), now: DateTime(2027, 1, 31));
 
       expect(find.text(ja.reviewInvite(2026)), findsOneWidget);
+    });
+
+    testWidgets('案内からはその年をめくり、戻ると年の一覧に戻る', (tester) async {
+      await pump(tester, card(), now: DateTime(2026, 12, 1));
+
+      await tester.tap(find.text(ja.reviewInvite(2026)));
+      await tester.pumpAndSettle();
+      expect(find.text(ja.reviewCoverEra('令和', '八')), findsOneWidget);
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(YearReviewListScreen), findsOneWidget);
     });
 
     testWidgets('12月・1月のほかには出さない', (tester) async {
