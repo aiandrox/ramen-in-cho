@@ -64,7 +64,12 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.backupTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          16 + MediaQuery.viewPaddingOf(context).bottom,
+        ),
         children: [
           Text(l10n.backupDescription, style: textTheme.bodyLarge),
           const SizedBox(height: 24),

@@ -19,7 +19,12 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsSection)),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          8,
+          16,
+          8 + MediaQuery.viewPaddingOf(context).bottom,
+        ),
         children: [
           for (final (title, screen) in [
             (l10n.backupTitle, const BackupScreen()),
