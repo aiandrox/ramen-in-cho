@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/inkan/inkan.dart';
 import 'package:ramen_in_cho/features/journal/journal.dart';
 import 'package:ramen_in_cho/features/journal/journal_phrases.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
@@ -45,13 +46,13 @@ void main() {
       ],
     );
 
-    expect(lines.first, '9月1日、願を掛けた店。きっかけは「同僚に聞いた」。');
+    expect(lines.first, '九月一日、願を掛けた店。きっかけは「同僚に聞いた」。');
     expect(lines, contains('前回は「売り切れ」に阻まれ、撤退した。'));
     expect(lines.any((l) => l.contains('45分')), isTrue);
     final bowlLine = lines.firstWhere((l) => l.contains('修行点'));
     final points = RegExp(r'修行点 (\d+)').firstMatch(bowlLine)![1]!;
     expect(dramaticBowl.fill({'一杯': '醤油の一杯', '点': points}), contains(bowlLine));
-    expect(lines.last, '32日越しの願成就。');
+    expect(lines.last, '三十二日越しの願成就。');
   });
 
   test('初めての店は何軒目の道場かを添える', () {
@@ -62,7 +63,7 @@ void main() {
     final first = buildEntry(shop: shop, eatenAt: day(2, 1));
     final lines = journalOf([other, first]);
 
-    expect(lines.first, contains('2軒目'));
+    expect(lines.first, contains('二軒目'));
     expect(lines.first, isNot(contains('願')));
   });
 
@@ -78,7 +79,7 @@ void main() {
     bool hasYearLine(int n) => buildJournal(
       scored[n - 1],
       scored,
-    ).any(yearClosing.fill({'杯': n}).contains);
+    ).any(yearClosing.fill({'杯': proseNumber(n)}).contains);
 
     expect(hasYearLine(1), isFalse);
     expect(hasYearLine(10), isTrue);
@@ -100,8 +101,8 @@ void main() {
       buildEntry(shop: shop, eatenAt: day(1, 4)),
     ]);
 
-    expect(lines.first, contains('2度目'));
-    expect(lines, contains('2度の撤退を越えて、ここまで来た。'));
+    expect(lines.first, contains('二度目'));
+    expect(lines, contains('二度の撤退を越えて、ここまで来た。'));
     expect(retryClosing.fill(), contains(lines.last));
   });
 
@@ -259,8 +260,8 @@ void main() {
           ),
       ]);
 
-      expect(lines, contains('通算10杯目の節目。'));
-      expect(lines, contains('10日連続の麺修行。'));
+      expect(lines, contains('通算十杯目の節目。'));
+      expect(lines, contains('十日連続の麺修行。'));
     });
 
     test('同じ日の2杯目と、年明け最初の一杯を書く', () {
@@ -277,7 +278,7 @@ void main() {
 
       // 2杯目なので「年明け最初」とは言わない。
       expect(lines, isNot(contains('年明け最初の一杯。')));
-      expect(lines, contains('本日2杯目。'));
+      expect(lines, contains('本日二杯目。'));
     });
 
     test('その店に1年以上あいたら「〇年ぶりの再会」、5度目は「常連の域」', () {
@@ -285,7 +286,7 @@ void main() {
         buildEntry(shop: shop, eatenAt: DateTime(2024, 5, 1, 12)),
         buildEntry(shop: shop, eatenAt: DateTime(2026, 5, 2, 12)),
       ]);
-      expect(again, contains('2年ぶりの再会。'));
+      expect(again, contains('二年ぶりの再会。'));
 
       final regular = journalOf([
         for (var w = 0; w < 5; w++)

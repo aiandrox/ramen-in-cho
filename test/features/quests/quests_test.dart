@@ -29,8 +29,8 @@ void main() {
     );
     expect(quests.where((q) => q.kind == QuestKind.spot).map((q) => q.title), [
       'はじめての着丼',
-      '60分の試練',
-      '90分の死闘',
+      '六十分の試練',
+      '九十分の死闘',
       '一日二杯',
       '三度目の正直',
       '系統の探究',

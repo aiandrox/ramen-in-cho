@@ -1,3 +1,4 @@
+import '../inkan/inkan.dart';
 import '../scoring/ranks.dart';
 
 /// [key]から決まった1つを選ぶ。同じ記録・同じ週には、いつも同じ言葉が出る。
@@ -59,7 +60,7 @@ String retreatConsolation(String memo, String visitId) =>
 
 /// 何年か前の今日の1杯に添える一文。
 String memoryWhisper(String visitId, int yearsAgo) {
-  final years = yearsAgo == 1 ? '一年' : '$yearsAgo年';
+  final years = '${proseNumber(yearsAgo)}年';
   return pickWord('$visitId#$yearsAgo', [
     'あの日の味を覚えていますか。',
     'あの一杯から、もう$years。',

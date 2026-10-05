@@ -24,6 +24,17 @@ void main() {
     });
   });
 
+  test('proseNumber は1〜99と切りのよい百・千を漢数字に、それ以外は数字にする', () {
+    expect(proseNumber(1), '一');
+    expect(proseNumber(99), '九十九');
+    expect(proseNumber(100), '百');
+    expect(proseNumber(300), '三百');
+    expect(proseNumber(1000), '千');
+    expect(proseNumber(101), '101');
+    expect(proseNumber(137), '137');
+    expect(proseNumber(0), '0');
+  });
+
   group('inkanShapeFor', () {
     ScoredVisit scoredWith({
       VisitResult result = VisitResult.eaten,

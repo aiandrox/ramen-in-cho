@@ -51,7 +51,7 @@ void main() {
       for (var i = 0; i < 50; i++) memoryWhisper('v$i', 3),
     };
     expect(lines, contains('あの一杯から、もう一年。'));
-    expect(lines, contains('あの一杯から、もう3年。'));
+    expect(lines, contains('あの一杯から、もう三年。'));
   });
 
   test('通知の本文は週ごとに変わり、同じ日なら同じ', () {

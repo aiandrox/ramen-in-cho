@@ -88,9 +88,9 @@ void main() {
     expect(find.text(ja.questAchieved), findsOneWidget);
     expect(find.text('はじめての着丼'), findsOneWidget);
     expect(find.text(ja.questLevelUp), findsNWidgets(3));
-    expect(find.text(ja.questLevelReached('行列の覇者', 1)), findsOneWidget);
-    expect(find.text(ja.questLevelReached('限定ハンター', 1)), findsOneWidget);
-    expect(find.text(ja.questLevelReached('大物討伐', 1)), findsOneWidget);
+    expect(find.text(ja.questLevelReached('行列の覇者', '一')), findsOneWidget);
+    expect(find.text(ja.questLevelReached('限定ハンター', '一')), findsOneWidget);
+    expect(find.text(ja.questLevelReached('大物討伐', '一')), findsOneWidget);
 
     // 連続記録のお知らせのため、記録したときに通知の許可を尋ねる。
     expect(notifications.permissionRequests, 1);
@@ -179,7 +179,7 @@ void main() {
     );
 
     expect(find.text(ja.wishFulfilled), findsOneWidget);
-    expect(find.text(ja.wishFulfilledAfter(29)), findsOneWidget);
+    expect(find.text(ja.wishFulfilledAfter('二十九')), findsOneWidget);
     expect(find.text(ja.wishTriggerLine('同僚に聞いた')), findsOneWidget);
   });
 

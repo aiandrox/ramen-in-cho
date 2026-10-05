@@ -616,7 +616,7 @@ class _AchievementsPage extends StatelessWidget {
               title: Text(reached.quest.title),
               trailing: reached.quest.kind == QuestKind.standing
                   ? Text(
-                      l10n.questLevel(reached.level),
+                      l10n.questLevel(kanjiNumber(reached.level)),
                       style: textTheme.bodyMedium,
                     )
                   : null,

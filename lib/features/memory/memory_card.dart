@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../inkan/inkan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi.dart';
 import '../records/clock.dart';
@@ -63,7 +64,7 @@ class _MemoryCardState extends ConsumerState<MemoryCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.memoryYearsAgo(memory.yearsAgo),
+                      l10n.memoryYearsAgo(proseNumber(memory.yearsAgo)),
                       style: const TextStyle(
                         fontFamily: Washi.brush,
                         fontSize: 16,

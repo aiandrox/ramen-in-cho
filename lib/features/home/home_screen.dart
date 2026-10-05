@@ -135,7 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final l10n = AppLocalizations.of(context);
       notifications.scheduleStreakReminder(
         at: remindAt,
-        title: l10n.streakReminderTitle(streak.weeks),
+        title: l10n.streakReminderTitle(proseNumber(streak.weeks)),
         body: streakReminderBody(remindAt),
       );
     }, fireImmediately: true);

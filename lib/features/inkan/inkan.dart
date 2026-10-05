@@ -29,6 +29,16 @@ String kanjiNumber(int value) {
       '${ones == 0 ? '' : _kanjiDigits[ones]}';
 }
 
+/// 文の中の数。1〜99と、切りのよい百・千は漢数字、それ以外（137 など）は読みやすいようアラビア数字。
+String proseNumber(int value) {
+  if (value >= 1 && value < 100) return kanjiNumber(value);
+  if (value > 0 && value < 1000 && value % 100 == 0) {
+    return '${value == 100 ? '' : _kanjiDigits[value ~/ 100]}百';
+  }
+  if (value == 1000) return '千';
+  return '$value';
+}
+
 enum Era { heisei, reiwa }
 
 /// 和暦の元号と年（元年が1）。令和より前は平成とする（記録は2000年以降のため）。

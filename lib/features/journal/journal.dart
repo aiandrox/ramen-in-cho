@@ -1,3 +1,4 @@
+import '../inkan/inkan.dart';
 import '../map/journey.dart';
 import '../records/models.dart';
 import '../scoring/points.dart';
@@ -51,10 +52,10 @@ List<String> buildJournal(
     lines.add(pick(firstRetreatOpening.fill()));
   } else if (eatenBefore == 0 && retreats.isEmpty) {
     final shops = _shopNumber(target, all);
-    lines.add(pick(firstVisitOpening.fill({'軒': shops})));
+    lines.add(pick(firstVisitOpening.fill({'軒': proseNumber(shops)})));
   } else if (eatenBefore > 0) {
     final times = eatenBefore + 1;
-    lines.add(pick(repeatOpening.fill({'度': times})));
+    lines.add(pick(repeatOpening.fill({'度': proseNumber(times)})));
   }
 
   // 節目・間隔・特別な日（当てはまるものを2つまで）。
@@ -87,7 +88,9 @@ List<String> buildJournal(
       retreatedOnceBefore.fill({'理由': _reason(retreats.single)}).single,
     );
   } else if (retreats.length > 1) {
-    lines.add(retreatedManyBefore.fill({'回': retreats.length}).single);
+    lines.add(
+      retreatedManyBefore.fill({'回': proseNumber(retreats.length)}).single,
+    );
   }
 
   if (visit.result == VisitResult.retreated) {
@@ -141,7 +144,7 @@ List<String> buildJournal(
     lines.add(
       days == 0
           ? wishSameDayClosing.fill().single
-          : wishClosing.fill({'日': days}).single,
+          : wishClosing.fill({'日': proseNumber(days)}).single,
     );
   } else if (target.isRetrySuccess) {
     lines.add(pick(retryClosing.fill()));
@@ -150,7 +153,7 @@ List<String> buildJournal(
     // 毎回出ると単調なので、10杯ごとの節目のほかは3杯に1杯ほどだけ添える。
     if (count % 10 == 0 ||
         (count > 1 && _Picker('${visit.id}#year').oneIn(3))) {
-      lines.add(pick(yearClosing.fill({'杯': count})));
+      lines.add(pick(yearClosing.fill({'杯': proseNumber(count)})));
     }
   }
   return lines;
@@ -214,8 +217,8 @@ String _reason(Visit retreat) {
 }
 
 String _monthDay(DateTime date, DateTime now) => date.year == now.year
-    ? '${date.month}月${date.day}日'
-    : '${date.year}年${date.month}月${date.day}日';
+    ? '${kanjiNumber(date.month)}月${kanjiNumber(date.day)}日'
+    : '${date.year}年${kanjiNumber(date.month)}月${kanjiNumber(date.day)}日';
 
 /// 食べたことのある店の数を、この1杯までで数える。
 int _shopNumber(ScoredVisit target, List<ScoredVisit> all) => {
@@ -259,11 +262,15 @@ List<String> _moments(
     moments.add(firstOfYearMoment.fill().single);
   }
   if (milestoneBowls.contains(upTo.length)) {
-    moments.add(milestoneMoment.fill({'杯': upTo.length}).single);
+    moments.add(milestoneMoment.fill({'杯': proseNumber(upTo.length)}).single);
   }
-  if (sameDay >= 2) moments.add(sameDayMoment.fill({'杯': sameDay}).single);
+  if (sameDay >= 2) {
+    moments.add(sameDayMoment.fill({'杯': proseNumber(sameDay)}).single);
+  }
   final streak = _dayStreak(upTo, at);
-  if (streak >= 3) moments.add(streakMoment.fill({'日': streak}).single);
+  if (streak >= 3) {
+    moments.add(streakMoment.fill({'日': proseNumber(streak)}).single);
+  }
   // 撤退した日も、その店に行った日として数える。
   final lastHere = all
       .map((e) => e.visit)
@@ -273,7 +280,7 @@ List<String> _moments(
   if (lastHere != null) {
     final gap = _dateOnly(at).difference(_dateOnly(lastHere)).inDays;
     if (gap >= 365) {
-      moments.add(yearsApartMoment.fill({'年': gap ~/ 365}).single);
+      moments.add(yearsApartMoment.fill({'年': proseNumber(gap ~/ 365)}).single);
     } else if (gap >= 90) {
       moments.add(longGapMoment.fill().single);
     }
