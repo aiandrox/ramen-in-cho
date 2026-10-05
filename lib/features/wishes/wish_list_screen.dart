@@ -107,10 +107,17 @@ class WishListScreen extends ConsumerWidget {
                   ),
           ],
         ),
-        // 真ん中の判子（記録）と取り違えないよう、丸ではなくしおりの形にする。
-        floatingActionButton: ShioriFab(
-          tooltip: l10n.wishAddTitle,
-          onPressed: () => _addByName(context, ref),
+        // 真ん中の判子（記録）と取り違えないよう、丸ではなく絵馬の形にする。
+        // 判子が下のタブから上へはみ出す分だけ持ち上げ、右端に余白をとる。
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(
+            right: 4,
+            bottom: RecordSealButton.overhang,
+          ),
+          child: EmaFab(
+            tooltip: l10n.wishAddTitle,
+            onPressed: () => _addByName(context, ref),
+          ),
         ),
       ),
     );

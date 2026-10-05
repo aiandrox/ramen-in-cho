@@ -128,14 +128,14 @@ Widget _panel({required bool night}) {
         const SizedBox(width: 8),
         RecordSealButton(glyph: '着', tooltip: '着丼したら押す', onPressed: _noop),
         const SizedBox(width: 8),
-        ShioriFab(tooltip: '願を足す', onPressed: _noop),
-        const SizedBox(width: 16),
+        EmaFab(tooltip: '願を足す', onPressed: _noop),
+        const SizedBox(width: 10),
         SealFab(
           tooltip: '探す',
           onPressed: _noop,
           child: const Icon(Icons.search),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 10),
         SealFab(
           tooltip: '現在地',
           sumi: true,
