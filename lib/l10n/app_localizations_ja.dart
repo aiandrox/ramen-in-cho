@@ -1270,7 +1270,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get inkanStyleJiro => '二郎';
 
   @override
-  String get inkanStyleTsukemen => '沾麺';
+  String get inkanStyleTsukemen => 'つけ麺';
+
+  @override
+  String get inkanStyleTsukemenKana => 'つけ';
+
+  @override
+  String get inkanStyleTsukemenMain => '麺';
 
   @override
   String get inkanStyleShirunashi => '汁無';

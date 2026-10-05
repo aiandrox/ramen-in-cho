@@ -2281,8 +2281,20 @@ abstract class AppLocalizations {
   /// No description provided for @inkanStyleTsukemen.
   ///
   /// In ja, this message translates to:
-  /// **'沾麺'**
+  /// **'つけ麺'**
   String get inkanStyleTsukemen;
+
+  /// No description provided for @inkanStyleTsukemenKana.
+  ///
+  /// In ja, this message translates to:
+  /// **'つけ'**
+  String get inkanStyleTsukemenKana;
+
+  /// No description provided for @inkanStyleTsukemenMain.
+  ///
+  /// In ja, this message translates to:
+  /// **'麺'**
+  String get inkanStyleTsukemenMain;
 
   /// No description provided for @inkanStyleShirunashi.
   ///

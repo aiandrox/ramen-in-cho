@@ -96,20 +96,46 @@ class InkanStamp extends StatelessWidget {
             ),
           ),
         // 円の真ん中がいちばん広いので、系統名はほかより幅を広くとる。
-        _fit(
-          size * 0.7,
-          Text(
-            center,
-            maxLines: 1,
-            style: TextStyle(
-              fontFamily: Washi.brush,
-              fontSize: size * 0.34,
-              color: knockout == null ? color : null,
-              foreground: knockout,
-              height: 1.0,
+        if (!isRetreat && visit.style == RamenStyle.tsukemen)
+          // かなと漢字を同じ大きさで並べると釣り合わないので、「つけ」を小さく冠に載せる。
+          Column(
+            children: [
+              Text(
+                l10n.inkanStyleTsukemenKana,
+                maxLines: 1,
+                style: small.copyWith(fontSize: size * 0.13, height: 0.8),
+              ),
+              _fit(
+                size * 0.7,
+                Text(
+                  l10n.inkanStyleTsukemenMain,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontFamily: Washi.brush,
+                    fontSize: size * 0.33,
+                    color: knockout == null ? color : null,
+                    foreground: knockout,
+                    height: 0.95,
+                  ),
+                ),
+              ),
+            ],
+          )
+        else
+          _fit(
+            size * 0.7,
+            Text(
+              center,
+              maxLines: 1,
+              style: TextStyle(
+                fontFamily: Washi.brush,
+                fontSize: size * 0.34,
+                color: knockout == null ? color : null,
+                foreground: knockout,
+                height: 1.0,
+              ),
             ),
           ),
-        ),
         // 丸い印は下ほど狭いので、日付の幅を角印より狭くする。
         _fit(
           size * (shape == InkanShape.square ? 0.6 : 0.5),
