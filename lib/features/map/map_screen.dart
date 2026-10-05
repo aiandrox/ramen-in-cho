@@ -26,6 +26,7 @@ import 'journey.dart';
 import '../shop_search/yahoo_local.dart';
 import 'shop_pins.dart';
 import '../../theme/washi_buttons.dart';
+import '../../theme/washi_sheet.dart';
 
 /// 地図の画像は OpenStreetMap のタイルサーバーから取る。送るのは表示範囲だけ（issue #8）。
 const _tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -194,9 +195,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   void _showExpeditions(List<Expedition> list) {
     final l10n = AppLocalizations.of(context);
-    showModalBottomSheet<void>(
+    showWashiSheet<void>(
       context: context,
-      showDragHandle: true,
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
@@ -543,9 +543,8 @@ class _UnvisitedPin extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final here = this.here;
     return GestureDetector(
-      onTap: () => showModalBottomSheet<void>(
+      onTap: () => showWashiSheet<void>(
         context: context,
-        showDragHandle: true,
         builder: (context) => SafeArea(
           child: Container(
             width: double.infinity,
@@ -613,9 +612,8 @@ class _Pin extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final rank = pin.rank;
     return GestureDetector(
-      onTap: () => showModalBottomSheet<void>(
+      onTap: () => showWashiSheet<void>(
         context: context,
-        showDragHandle: true,
         builder: (_) => _PinDetails(pin: pin),
       ),
       child: Semantics(
@@ -739,9 +737,8 @@ class _WishPin extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     return GestureDetector(
-      onTap: () => showModalBottomSheet<void>(
+      onTap: () => showWashiSheet<void>(
         context: context,
-        showDragHandle: true,
         builder: (context) => SafeArea(
           child: Container(
             width: double.infinity,

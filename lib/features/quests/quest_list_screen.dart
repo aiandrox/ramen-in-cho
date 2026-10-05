@@ -8,6 +8,7 @@ import '../visit_detail/visit_detail_screen.dart';
 import 'quest_seal.dart';
 import 'quests.dart';
 import '../../theme/washi_buttons.dart';
+import '../../theme/washi_sheet.dart';
 
 /// 型と秘伝の一覧。修行タブの中に並べる。
 class QuestSections extends ConsumerWidget {
@@ -51,13 +52,7 @@ class QuestSections extends ConsumerWidget {
             ),
           )
         else
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final progress in achieved) _SpotSeal(progress: progress),
-            ],
-          ),
+          _SpotGrid(achieved: achieved),
       ],
     );
   }
@@ -142,23 +137,55 @@ class _QuestCard extends StatelessWidget {
   }
 }
 
+/// 秘伝の印を、横幅いっぱいに同じ幅でそろえて並べる（右に余白を残さない）。
+class _SpotGrid extends StatelessWidget {
+  const _SpotGrid({required this.achieved});
+
+  final List<QuestProgress> achieved;
+
+  static const _minWidth = 96.0;
+  static const _spacing = 8.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final columns = ((width + _spacing) / (_minWidth + _spacing))
+            .floor()
+            .clamp(1, 99);
+        // 小数の誤差で最後の1つが次の行に落ちないよう、ごくわずかに詰める。
+        final itemWidth = (width - _spacing * (columns - 1)) / columns - 0.01;
+        return Wrap(
+          spacing: _spacing,
+          runSpacing: _spacing,
+          children: [
+            for (final progress in achieved)
+              _SpotSeal(progress: progress, width: itemWidth),
+          ],
+        );
+      },
+    );
+  }
+}
+
 /// 会得した秘伝の印。タップすると、どの店で会得したかを見られる。
 class _SpotSeal extends StatelessWidget {
-  const _SpotSeal({required this.progress});
+  const _SpotSeal({required this.progress, required this.width});
 
   final QuestProgress progress;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     final quest = progress.quest;
     return InkWell(
-      onTap: () => showModalBottomSheet<void>(
+      onTap: () => showWashiSheet<void>(
         context: context,
-        showDragHandle: true,
         builder: (_) => _SpotDetails(progress: progress),
       ),
       child: SizedBox(
-        width: 96,
+        width: width,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(

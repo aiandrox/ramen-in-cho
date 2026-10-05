@@ -10,16 +10,16 @@ import 'openpoi_client.dart';
 import 'ramen_in_cho_api.dart';
 import 'yahoo_local.dart';
 import 'yahoo_local_client.dart';
+import '../../theme/washi_sheet.dart';
 
 /// 店名で全国の店を探し、選んだ店を返す。やめたらnull。
 Future<FoundShop?> showShopNameSearch(
   BuildContext context, {
   required String initialName,
   GeoPoint? near,
-}) => showModalBottomSheet<FoundShop>(
+}) => showWashiSheet<FoundShop>(
   context: context,
   isScrollControlled: true,
-  showDragHandle: true,
   builder: (_) => _ShopNameSearchSheet(initialName: initialName, near: near),
 );
 
