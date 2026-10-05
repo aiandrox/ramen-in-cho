@@ -2841,6 +2841,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'設定を開く'**
   String get locationOpenSettings;
+
+  /// No description provided for @notificationSettings.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知'**
+  String get notificationSettings;
+
+  /// No description provided for @notificationSettingsNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'スマホの設定で、麺印帳の通知を切り替えます'**
+  String get notificationSettingsNote;
 }
 
 class _AppLocalizationsDelegate
