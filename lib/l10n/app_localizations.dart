@@ -662,7 +662,7 @@ abstract class AppLocalizations {
   ///
   /// In ja, this message translates to:
   /// **'{weeks}週連続の記録が途切れそう'**
-  String streakReminderTitle(int weeks);
+  String streakReminderTitle(String weeks);
 
   /// No description provided for @checkinCancel.
   ///
@@ -998,7 +998,7 @@ abstract class AppLocalizations {
   ///
   /// In ja, this message translates to:
   /// **'{level}段'**
-  String questLevel(int level);
+  String questLevel(String level);
 
   /// No description provided for @questMaxLevel.
   ///
@@ -1034,7 +1034,7 @@ abstract class AppLocalizations {
   ///
   /// In ja, this message translates to:
   /// **'{title} {level}段'**
-  String questLevelReached(String title, int level);
+  String questLevelReached(String title, String level);
 
   /// No description provided for @questAchieved.
   ///
@@ -1291,7 +1291,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishFulfillPrompt.
   ///
   /// In ja, this message translates to:
-  /// **'{name} の願を、この1杯で叶えたことにしますか？'**
+  /// **'{name} の願を、この一杯で叶えたことにしますか？'**
   String wishFulfillPrompt(String name);
 
   /// No description provided for @wishFulfillButton.
@@ -1310,7 +1310,7 @@ abstract class AppLocalizations {
   ///
   /// In ja, this message translates to:
   /// **'願を掛けてから {days}日、ついに着丼'**
-  String wishFulfilledAfter(int days);
+  String wishFulfilledAfter(String days);
 
   /// No description provided for @wishFulfilledSameDay.
   ///
@@ -1448,7 +1448,7 @@ abstract class AppLocalizations {
   ///
   /// In ja, this message translates to:
   /// **'同じ地域で{bowls}杯食べると拠点ができます'**
-  String homeBaseNone(int bowls);
+  String homeBaseNone(String bowls);
 
   /// No description provided for @homeBaseSealChar.
   ///
@@ -1471,8 +1471,8 @@ abstract class AppLocalizations {
   /// No description provided for @memoryYearsAgo.
   ///
   /// In ja, this message translates to:
-  /// **'{years, plural, =1{一年前の今日} other{{years}年前の今日}}'**
-  String memoryYearsAgo(int years);
+  /// **'{years}年前の今日'**
+  String memoryYearsAgo(String years);
 
   /// No description provided for @memoryLine.
   ///
@@ -1663,7 +1663,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupDescription.
   ///
   /// In ja, this message translates to:
-  /// **'記録と写真を1つのファイル（zip）にまとめて書き出します。機種変更のときは、新しいスマホでこのファイルを読み込んでください。'**
+  /// **'記録と写真を一つのファイル（zip）にまとめて書き出します。機種変更のときは、新しいスマホでこのファイルを読み込んでください。'**
   String get backupDescription;
 
   /// No description provided for @backupExport.
@@ -1741,7 +1741,7 @@ abstract class AppLocalizations {
   /// No description provided for @bestHighestPoints.
   ///
   /// In ja, this message translates to:
-  /// **'1杯の最高の修行点'**
+  /// **'一杯の最高の修行点'**
   String get bestHighestPoints;
 
   /// No description provided for @bestMostRetreats.
@@ -2095,7 +2095,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthyLifeRevealNote.
   ///
   /// In ja, this message translates to:
-  /// **'7日続けて着丼した'**
+  /// **'七日続けて着丼した'**
   String get healthyLifeRevealNote;
 
   /// No description provided for @shugyorokuTitle.

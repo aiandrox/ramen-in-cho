@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../inkan/inkan.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/ink_wear.dart';
 import '../../theme/washi.dart';
@@ -132,7 +133,7 @@ class QuestSeal extends StatelessWidget {
           ? l10n.questLocked
           : isSpot
           ? l10n.questCleared
-          : l10n.questLevel(level),
+          : l10n.questLevel(kanjiNumber(level)),
       child: ExcludeSemantics(
         child: Transform.rotate(
           angle: (locked ? 0 : -6) * math.pi / 180,

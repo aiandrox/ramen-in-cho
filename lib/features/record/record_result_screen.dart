@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../inkan/inkan.dart';
 import '../../l10n/app_localizations.dart';
 import '../notifications/notification_service.dart';
 import '../quests/quest_seal.dart';
@@ -334,7 +335,10 @@ class _QuestAchievedBanner extends StatelessWidget {
                   Text(
                     isSpot
                         ? quest.title
-                        : l10n.questLevelReached(quest.title, levelUp.level),
+                        : l10n.questLevelReached(
+                            quest.title,
+                            kanjiNumber(levelUp.level),
+                          ),
                     style: textTheme.titleMedium?.copyWith(
                       color: colors.onSecondaryContainer,
                     ),
@@ -378,7 +382,7 @@ class _WishFulfilledBanner extends StatelessWidget {
             Text(
               days == 0
                   ? l10n.wishFulfilledSameDay
-                  : l10n.wishFulfilledAfter(days),
+                  : l10n.wishFulfilledAfter(proseNumber(days)),
               style: textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),

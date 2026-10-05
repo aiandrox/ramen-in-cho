@@ -40,7 +40,7 @@ void main() {
     ]);
     expect(months.first.entries.first.journal.join(), contains('撤退'));
     // 前の年の記録も数えるので、2026年1月20日の1杯は「2度目」。
-    expect(months.first.entries.last.journal.first, contains('2'));
+    expect(months.first.entries.last.journal.first, contains('二'));
   });
 
   testWidgets('修行録は年を選べ、月の章と1杯ごとの道中記を出す', (tester) async {

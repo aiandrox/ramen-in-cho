@@ -199,7 +199,7 @@ void main() {
     expect(find.text(ja.journalTitle), findsOneWidget);
     expect(
       repeatOpening
-          .fill({'度': 2})
+          .fill({'度': '二'})
           .any((line) => find.text(line).evaluate().isNotEmpty),
       isTrue,
     );

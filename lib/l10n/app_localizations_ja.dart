@@ -310,7 +310,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get streakAtRisk => '今週はまだ';
 
   @override
-  String streakReminderTitle(int weeks) {
+  String streakReminderTitle(String weeks) {
     return '$weeks週連続の記録が途切れそう';
   }
 
@@ -510,7 +510,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String questLevel(int level) {
+  String questLevel(String level) {
     return '$level段';
   }
 
@@ -534,7 +534,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get questLevelUp => '型 昇段！';
 
   @override
-  String questLevelReached(String title, int level) {
+  String questLevelReached(String title, String level) {
     return '$title $level段';
   }
 
@@ -689,7 +689,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String wishFulfillPrompt(String name) {
-    return '$name の願を、この1杯で叶えたことにしますか？';
+    return '$name の願を、この一杯で叶えたことにしますか？';
   }
 
   @override
@@ -699,7 +699,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopWished => '願掛け中';
 
   @override
-  String wishFulfilledAfter(int days) {
+  String wishFulfilledAfter(String days) {
     return '願を掛けてから $days日、ついに着丼';
   }
 
@@ -778,7 +778,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String homeBaseNone(int bowls) {
+  String homeBaseNone(String bowls) {
     return '同じ地域で$bowls杯食べると拠点ができます';
   }
 
@@ -796,14 +796,8 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String memoryYearsAgo(int years) {
-    String _temp0 = intl.Intl.pluralLogic(
-      years,
-      locale: localeName,
-      other: '$years年前の今日',
-      one: '一年前の今日',
-    );
-    return '$_temp0';
+  String memoryYearsAgo(String years) {
+    return '$years年前の今日';
   }
 
   @override
@@ -916,7 +910,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get backupDescription =>
-      '記録と写真を1つのファイル（zip）にまとめて書き出します。機種変更のときは、新しいスマホでこのファイルを読み込んでください。';
+      '記録と写真を一つのファイル（zip）にまとめて書き出します。機種変更のときは、新しいスマホでこのファイルを読み込んでください。';
 
   @override
   String get backupExport => '書き出す';
@@ -958,7 +952,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bestLongestWait => '最長の待ち時間';
 
   @override
-  String get bestHighestPoints => '1杯の最高の修行点';
+  String get bestHighestPoints => '一杯の最高の修行点';
 
   @override
   String get bestMostRetreats => 'いちばん手ごわい店';
@@ -1168,7 +1162,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get healthyLifeRevealNote => '7日続けて着丼した';
+  String get healthyLifeRevealNote => '七日続けて着丼した';
 
   @override
   String get shugyorokuTitle => '修行録';

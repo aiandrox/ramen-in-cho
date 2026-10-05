@@ -93,7 +93,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text(ja.memoryYearsAgo(1)), findsOneWidget);
+    expect(find.text(ja.memoryYearsAgo('一')), findsOneWidget);
     expect(find.text(ja.memoryLine('はやし田')), findsOneWidget);
     expect(find.text(ja.memoryNotSince), findsOneWidget);
     expect(find.text(memoryWhisper(entry.visit.id, 1)), findsOneWidget);

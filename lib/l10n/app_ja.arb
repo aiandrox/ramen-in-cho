@@ -137,7 +137,7 @@
   "streakReminderTitle": "{weeks}週連続の記録が途切れそう",
   "@streakReminderTitle": {
     "placeholders": {
-      "weeks": {"type": "int"}
+      "weeks": {"type": "String"}
     }
   },
   "checkinCancel": "取り消す",
@@ -259,7 +259,7 @@
   "questLevel": "{level}段",
   "@questLevel": {
     "placeholders": {
-      "level": {"type": "int"}
+      "level": {"type": "String"}
     }
   },
   "questMaxLevel": "極み",
@@ -284,7 +284,7 @@
   "@questLevelReached": {
     "placeholders": {
       "title": {"type": "String"},
-      "level": {"type": "int"}
+      "level": {"type": "String"}
     }
   },
   "questAchieved": "秘伝会得！",
@@ -352,12 +352,12 @@
   "wishDeleteConfirm": "{name} の願を消しますか？",
   "@wishDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
   "wishFulfilled": "願成就",
-  "wishFulfillPrompt": "{name} の願を、この1杯で叶えたことにしますか？",
+  "wishFulfillPrompt": "{name} の願を、この一杯で叶えたことにしますか？",
   "@wishFulfillPrompt": {"placeholders": {"name": {"type": "String"}}},
   "wishFulfillButton": "叶えた",
   "shopWished": "願掛け中",
   "wishFulfilledAfter": "願を掛けてから {days}日、ついに着丼",
-  "@wishFulfilledAfter": {"placeholders": {"days": {"type": "int"}}},
+  "@wishFulfilledAfter": {"placeholders": {"days": {"type": "String"}}},
   "wishFulfilledSameDay": "願を掛けたその日に着丼",
   "mapWished": "願掛け中の店",
   "mapWishedLabel": "願掛け中の店 {name}",
@@ -385,14 +385,14 @@
   "homeBaseLine": "今の拠点: {shop}のあたり（{bowls}杯）",
   "@homeBaseLine": {"placeholders": {"shop": {"type": "String"}, "bowls": {"type": "int"}}},
   "homeBaseNone": "同じ地域で{bowls}杯食べると拠点ができます",
-  "@homeBaseNone": {"placeholders": {"bowls": {"type": "int"}}},
+  "@homeBaseNone": {"placeholders": {"bowls": {"type": "String"}}},
   "homeBaseSealChar": "拠",
   "homeBasePinLabel": "今の拠点（{shop}のあたり）",
   "@homeBasePinLabel": {"placeholders": {"shop": {"type": "String"}}},
   "journeyExpeditionName": "{month}月{day}日の遠征（{shop}）",
   "@journeyExpeditionName": {"placeholders": {"month": {"type": "int"}, "day": {"type": "int"}, "shop": {"type": "String"}}},
-  "memoryYearsAgo": "{years, plural, =1{一年前の今日} other{{years}年前の今日}}",
-  "@memoryYearsAgo": {"placeholders": {"years": {"type": "int"}}},
+  "memoryYearsAgo": "{years}年前の今日",
+  "@memoryYearsAgo": {"placeholders": {"years": {"type": "String"}}},
   "memoryLine": "{shop}で着丼していました",
   "@memoryLine": {"placeholders": {"shop": {"type": "String"}}},
   "memoryNotSince": "あれから一度も行っていません。久しぶりにどうですか",
@@ -434,7 +434,7 @@
   },
   "creditsAppHeading": "アプリで使っている部品",
   "creditsAppLicenses": "部品とフォントのライセンスを見る",
-  "backupDescription": "記録と写真を1つのファイル（zip）にまとめて書き出します。機種変更のときは、新しいスマホでこのファイルを読み込んでください。",
+  "backupDescription": "記録と写真を一つのファイル（zip）にまとめて書き出します。機種変更のときは、新しいスマホでこのファイルを読み込んでください。",
   "backupExport": "書き出す",
   "backupExportNote": "書き出したファイルは、「ファイル」アプリやクラウド、メールなどに保存してください",
   "backupImport": "読み込む",
@@ -453,7 +453,7 @@
   "backupFileType": "バックアップ（zip）",
   "statsBests": "自己ベスト",
   "bestLongestWait": "最長の待ち時間",
-  "bestHighestPoints": "1杯の最高の修行点",
+  "bestHighestPoints": "一杯の最高の修行点",
   "bestMostRetreats": "いちばん手ごわい店",
   "minutes": "{minutes}分",
   "@minutes": {
@@ -590,7 +590,7 @@
   "healthyLifeTitle": "毎日ラーメン健康生活",
   "healthyLifeBest": "最高 {days}日連続",
   "@healthyLifeBest": {"placeholders": {"days": {"type": "int"}}},
-  "healthyLifeRevealNote": "7日続けて着丼した",
+  "healthyLifeRevealNote": "七日続けて着丼した",
   "shugyorokuTitle": "修行録",
   "shugyorokuOpen": "これまでの一杯を、物語で読み返す",
   "shugyorokuEmpty": "最初の一杯から、修行録が始まります",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../inkan/inkan.dart';
 import '../../l10n/app_localizations.dart';
 import '../scoring/scoring_providers.dart';
 import 'journey.dart';
@@ -28,7 +29,7 @@ class HomeBaseLine extends ConsumerWidget {
           Expanded(
             child: Text(
               base == null
-                  ? l10n.homeBaseNone(homeBaseBowls)
+                  ? l10n.homeBaseNone(proseNumber(homeBaseBowls))
                   : l10n.homeBaseLine(base.shop.name, base.bowls),
               style: textTheme.bodySmall,
             ),
