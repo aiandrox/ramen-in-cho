@@ -649,6 +649,12 @@ class RecordSealButton extends StatelessWidget {
 
   static const size = 72.0;
 
+  /// 下のタブの上端から下げる分。
+  static const drop = 36.0;
+
+  /// 下のタブの上にはみ出す高さ。タブの画面の下端に置くものは、この分だけ上げる。
+  static const overhang = (size - drop) / 2;
+
   final String glyph;
   final String tooltip;
   final VoidCallback onPressed;
