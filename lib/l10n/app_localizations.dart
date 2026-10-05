@@ -1441,14 +1441,14 @@ abstract class AppLocalizations {
   /// No description provided for @homeBaseLine.
   ///
   /// In ja, this message translates to:
-  /// **'今の拠点: {shop}のあたり（{bowls}杯）'**
-  String homeBaseLine(String shop, int bowls);
+  /// **'今の拠点: {name}'**
+  String homeBaseLine(String name);
 
   /// No description provided for @homeBaseNone.
   ///
   /// In ja, this message translates to:
-  /// **'同じ地域で{bowls}杯食べると拠点ができます'**
-  String homeBaseNone(String bowls);
+  /// **'拠点を決めると、遠くの一杯が「遠征」になります'**
+  String get homeBaseNone;
 
   /// No description provided for @homeBaseSealChar.
   ///
@@ -1459,8 +1459,158 @@ abstract class AppLocalizations {
   /// No description provided for @homeBasePinLabel.
   ///
   /// In ja, this message translates to:
-  /// **'今の拠点（{shop}のあたり）'**
-  String homeBasePinLabel(String shop);
+  /// **'今の拠点（{name}）'**
+  String homeBasePinLabel(String name);
+
+  /// No description provided for @homeBaseTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点'**
+  String get homeBaseTitle;
+
+  /// No description provided for @homeBaseNotSet.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ決めていません'**
+  String get homeBaseNotSet;
+
+  /// No description provided for @homeBaseIntro.
+  ///
+  /// In ja, this message translates to:
+  /// **'ふだん暮らしている駅か街を拠点にします。拠点から80km以上離れた店で食べると「遠征」になります。拠点を変えても、変えた日から後の記録にだけ効きます。'**
+  String get homeBaseIntro;
+
+  /// No description provided for @homeBaseSearchHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'駅や市町村の名前（例: 横浜駅、厚木市）'**
+  String get homeBaseSearchHint;
+
+  /// No description provided for @homeBaseSearch.
+  ///
+  /// In ja, this message translates to:
+  /// **'探す'**
+  String get homeBaseSearch;
+
+  /// No description provided for @homeBaseSearchNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'名前はそのまま入れてください（「本厚木」と「厚木」は別の駅です）'**
+  String get homeBaseSearchNote;
+
+  /// No description provided for @homeBaseUseHere.
+  ///
+  /// In ja, this message translates to:
+  /// **'現在地にする'**
+  String get homeBaseUseHere;
+
+  /// No description provided for @homeBaseHereNameTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'この場所の呼び名'**
+  String get homeBaseHereNameTitle;
+
+  /// No description provided for @homeBaseHereNameDefault.
+  ///
+  /// In ja, this message translates to:
+  /// **'現在地のあたり'**
+  String get homeBaseHereNameDefault;
+
+  /// No description provided for @homeBaseDecide.
+  ///
+  /// In ja, this message translates to:
+  /// **'決める'**
+  String get homeBaseDecide;
+
+  /// No description provided for @homeBaseNotFound.
+  ///
+  /// In ja, this message translates to:
+  /// **'見つかりませんでした。名前を変えて探すか、現在地にしてください'**
+  String get homeBaseNotFound;
+
+  /// No description provided for @homeBaseSearchFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信できませんでした。電波のよいところで探すか、現在地にしてください'**
+  String get homeBaseSearchFailed;
+
+  /// No description provided for @homeBaseHereFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'現在地がわかりませんでした'**
+  String get homeBaseHereFailed;
+
+  /// No description provided for @homeBaseSaveFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点を保存できませんでした'**
+  String get homeBaseSaveFailed;
+
+  /// No description provided for @homeBaseSaved.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点を{name}にしました'**
+  String homeBaseSaved(String name);
+
+  /// No description provided for @homeBaseKindStation.
+  ///
+  /// In ja, this message translates to:
+  /// **'駅'**
+  String get homeBaseKindStation;
+
+  /// No description provided for @homeBaseKindCity.
+  ///
+  /// In ja, this message translates to:
+  /// **'市'**
+  String get homeBaseKindCity;
+
+  /// No description provided for @homeBaseKindTown.
+  ///
+  /// In ja, this message translates to:
+  /// **'町'**
+  String get homeBaseKindTown;
+
+  /// No description provided for @homeBaseKindVillage.
+  ///
+  /// In ja, this message translates to:
+  /// **'村'**
+  String get homeBaseKindVillage;
+
+  /// No description provided for @homeBaseKindSuburb.
+  ///
+  /// In ja, this message translates to:
+  /// **'地区'**
+  String get homeBaseKindSuburb;
+
+  /// No description provided for @homeBaseDistance.
+  ///
+  /// In ja, this message translates to:
+  /// **'ここから約{km}km'**
+  String homeBaseDistance(int km);
+
+  /// No description provided for @homeBaseHistoryTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'これまでの拠点'**
+  String get homeBaseHistoryTitle;
+
+  /// No description provided for @homeBaseHistoryFrom.
+  ///
+  /// In ja, this message translates to:
+  /// **'{date}から'**
+  String homeBaseHistoryFrom(String date);
+
+  /// No description provided for @homeBaseHidenGained.
+  ///
+  /// In ja, this message translates to:
+  /// **'秘伝「拠点を構える」を会得！\n修行タブの「型と秘伝」で見られます'**
+  String get homeBaseHidenGained;
+
+  /// No description provided for @homeBaseHidenOk.
+  ///
+  /// In ja, this message translates to:
+  /// **'閉じる'**
+  String get homeBaseHidenOk;
 
   /// No description provided for @journeyExpeditionName.
   ///
@@ -2374,6 +2524,12 @@ abstract class AppLocalizations {
   /// **'その一杯を見る'**
   String get questSpotOpenShop;
 
+  /// No description provided for @questSpotAchievedHomeBase.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name}に拠点を構えて会得'**
+  String questSpotAchievedHomeBase(String name);
+
   /// No description provided for @onboardingClose.
   ///
   /// In ja, this message translates to:
@@ -2548,10 +2704,40 @@ abstract class AppLocalizations {
   /// **'其の四　願掛'**
   String get onboardingWishChapter;
 
+  /// No description provided for @onboardingHomeBaseChapter.
+  ///
+  /// In ja, this message translates to:
+  /// **'其の五　拠点'**
+  String get onboardingHomeBaseChapter;
+
+  /// No description provided for @onboardingHomeBaseTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点を構える'**
+  String get onboardingHomeBaseTitle;
+
+  /// No description provided for @onboardingHomeBaseBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'ふだん暮らす駅か街を、修行の拠点と定める。\n\n拠点から80km以上離れた店で食べた一杯は「遠征」となり、修行点が上乗せされる。拠点はあとから設定で変えられ、変えた日から後の一杯にだけ効く。'**
+  String get onboardingHomeBaseBody;
+
+  /// No description provided for @onboardingHomeBaseButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点を決める'**
+  String get onboardingHomeBaseButton;
+
+  /// No description provided for @onboardingHomeBaseLater.
+  ///
+  /// In ja, this message translates to:
+  /// **'あとで決める'**
+  String get onboardingHomeBaseLater;
+
   /// No description provided for @onboardingFinishChapter.
   ///
   /// In ja, this message translates to:
-  /// **'其の五　精進'**
+  /// **'其の六　精進'**
   String get onboardingFinishChapter;
 }
 

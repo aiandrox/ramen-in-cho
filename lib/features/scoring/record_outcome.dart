@@ -46,15 +46,20 @@ RecordOutcome? computeRecordOutcome(
   List<VisitWithShop> all,
   String visitId, {
   List<Wish> wishes = const [],
+  List<HomeBaseSetting> homeBases = const [],
 }) {
-  final scoredAll = scoreVisits(all, wishes: wishes);
+  final scoredAll = scoreVisits(all, wishes: wishes, homeBases: homeBases);
   final scored = scoredAll.where((e) => e.visit.id == visitId).firstOrNull;
   if (scored == null) return null;
   final others = [
     for (final entry in all)
       if (entry.visit.id != visitId) entry,
   ];
-  final scoredOthers = scoreVisits(others, wishes: wishes);
+  final scoredOthers = scoreVisits(
+    others,
+    wishes: wishes,
+    homeBases: homeBases,
+  );
   return RecordOutcome(
     scored: scored,
     totalBefore: totalPoints(scoredOthers),
@@ -62,8 +67,8 @@ RecordOutcome? computeRecordOutcome(
     rankBefore: currentRank(scoredOthers),
     rankAfter: currentRank(scoredAll),
     questLevelUps: newlyAchievedLevels(
-      before: evaluateQuests(scoredOthers),
-      after: evaluateQuests(scoredAll),
+      before: evaluateQuests(scoredOthers, homeBases: homeBases),
+      after: evaluateQuests(scoredAll, homeBases: homeBases),
     ),
     bestDailyStreakBefore: bestDailyStreak(scoredOthers),
     bestDailyStreakAfter: bestDailyStreak(scoredAll),

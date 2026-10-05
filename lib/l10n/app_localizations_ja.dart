@@ -773,22 +773,102 @@ class AppLocalizationsJa extends AppLocalizations {
   String get journeyExpeditionsNone => '拠点から80km以上離れた店で食べた日が、遠征として並びます';
 
   @override
-  String homeBaseLine(String shop, int bowls) {
-    return '今の拠点: $shopのあたり（$bowls杯）';
+  String homeBaseLine(String name) {
+    return '今の拠点: $name';
   }
 
   @override
-  String homeBaseNone(String bowls) {
-    return '同じ地域で$bowls杯食べると拠点ができます';
-  }
+  String get homeBaseNone => '拠点を決めると、遠くの一杯が「遠征」になります';
 
   @override
   String get homeBaseSealChar => '拠';
 
   @override
-  String homeBasePinLabel(String shop) {
-    return '今の拠点（$shopのあたり）';
+  String homeBasePinLabel(String name) {
+    return '今の拠点（$name）';
   }
+
+  @override
+  String get homeBaseTitle => '拠点';
+
+  @override
+  String get homeBaseNotSet => 'まだ決めていません';
+
+  @override
+  String get homeBaseIntro =>
+      'ふだん暮らしている駅か街を拠点にします。拠点から80km以上離れた店で食べると「遠征」になります。拠点を変えても、変えた日から後の記録にだけ効きます。';
+
+  @override
+  String get homeBaseSearchHint => '駅や市町村の名前（例: 横浜駅、厚木市）';
+
+  @override
+  String get homeBaseSearch => '探す';
+
+  @override
+  String get homeBaseSearchNote => '名前はそのまま入れてください（「本厚木」と「厚木」は別の駅です）';
+
+  @override
+  String get homeBaseUseHere => '現在地にする';
+
+  @override
+  String get homeBaseHereNameTitle => 'この場所の呼び名';
+
+  @override
+  String get homeBaseHereNameDefault => '現在地のあたり';
+
+  @override
+  String get homeBaseDecide => '決める';
+
+  @override
+  String get homeBaseNotFound => '見つかりませんでした。名前を変えて探すか、現在地にしてください';
+
+  @override
+  String get homeBaseSearchFailed => '通信できませんでした。電波のよいところで探すか、現在地にしてください';
+
+  @override
+  String get homeBaseHereFailed => '現在地がわかりませんでした';
+
+  @override
+  String get homeBaseSaveFailed => '拠点を保存できませんでした';
+
+  @override
+  String homeBaseSaved(String name) {
+    return '拠点を$nameにしました';
+  }
+
+  @override
+  String get homeBaseKindStation => '駅';
+
+  @override
+  String get homeBaseKindCity => '市';
+
+  @override
+  String get homeBaseKindTown => '町';
+
+  @override
+  String get homeBaseKindVillage => '村';
+
+  @override
+  String get homeBaseKindSuburb => '地区';
+
+  @override
+  String homeBaseDistance(int km) {
+    return 'ここから約${km}km';
+  }
+
+  @override
+  String get homeBaseHistoryTitle => 'これまでの拠点';
+
+  @override
+  String homeBaseHistoryFrom(String date) {
+    return '$dateから';
+  }
+
+  @override
+  String get homeBaseHidenGained => '秘伝「拠点を構える」を会得！\n修行タブの「型と秘伝」で見られます';
+
+  @override
+  String get homeBaseHidenOk => '閉じる';
 
   @override
   String journeyExpeditionName(int month, int day, String shop) {
@@ -1335,6 +1415,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get questSpotOpenShop => 'その一杯を見る';
 
   @override
+  String questSpotAchievedHomeBase(String name) {
+    return '$nameに拠点を構えて会得';
+  }
+
+  @override
   String get onboardingClose => '案内を閉じる';
 
   @override
@@ -1427,5 +1512,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingWishChapter => '其の四　願掛';
 
   @override
-  String get onboardingFinishChapter => '其の五　精進';
+  String get onboardingHomeBaseChapter => '其の五　拠点';
+
+  @override
+  String get onboardingHomeBaseTitle => '拠点を構える';
+
+  @override
+  String get onboardingHomeBaseBody =>
+      'ふだん暮らす駅か街を、修行の拠点と定める。\n\n拠点から80km以上離れた店で食べた一杯は「遠征」となり、修行点が上乗せされる。拠点はあとから設定で変えられ、変えた日から後の一杯にだけ効く。';
+
+  @override
+  String get onboardingHomeBaseButton => '拠点を決める';
+
+  @override
+  String get onboardingHomeBaseLater => 'あとで決める';
+
+  @override
+  String get onboardingFinishChapter => '其の六　精進';
 }

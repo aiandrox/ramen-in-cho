@@ -267,19 +267,70 @@ void main() {
       expect(totalPoints(scored), 90);
     });
 
-    test('拠点から80km以上離れた店の1杯は遠征になる。拠点ができる前は遠征にならない', () {
-      // 緯度0.01度は約1.1km。
+    group('遠征（利用者が決めた拠点から80km以上）', () {
+      // 緯度0.72度は約80.1km、0.71度は約79.0km。
       final home = buildShop(id: 'home', latitude: 35.0, longitude: 139.0);
-      final far = buildShop(id: 'far', latitude: 35.8, longitude: 139.0);
-      final scored = scoreVisits([
-        buildEntry(shop: far, eatenAt: day(1)),
-        for (var d = 2; d <= 6; d++) buildEntry(shop: home, eatenAt: day(d)),
-        buildEntry(shop: far, eatenAt: day(7)),
-      ]);
+      final far = buildShop(id: 'far', latitude: 35.72, longitude: 139.0);
+      final notFar = buildShop(id: 'notFar', latitude: 35.71, longitude: 139.0);
+      final setAt = DateTime(2026, 1, 3, 12);
+      final base = buildHomeBase(setAt: setAt);
 
-      expect(scored.first.points.expeditionBonus, 0);
-      expect(scored.last.points.expeditionBonus, 20);
-      expect(scored.where((s) => s.points.expeditionBonus > 0), hasLength(1));
+      int bonusAt(
+        DateTime eatenAt, {
+        Shop? shop,
+        List<HomeBaseSetting>? homeBases,
+      }) => scoreVisits([
+        buildEntry(shop: shop ?? far, eatenAt: eatenAt),
+      ], homeBases: homeBases ?? [base]).single.points.expeditionBonus;
+
+      test('拠点を決めていなければ、遠くの店でも遠征にならない', () {
+        final scored = scoreVisits([
+          for (var d = 1; d <= 6; d++) buildEntry(shop: home, eatenAt: day(d)),
+          buildEntry(shop: far, eatenAt: day(7)),
+        ]);
+
+        expect(scored.every((s) => s.points.expeditionBonus == 0), isTrue);
+        expect(scored.every((s) => s.homeBase == null), isTrue);
+      });
+
+      test('拠点を決めた日時ちょうどの1杯から遠征になり、その前の1杯はならない', () {
+        expect(bonusAt(setAt.subtract(const Duration(minutes: 1))), 0);
+        expect(bonusAt(setAt), 20);
+        expect(bonusAt(setAt.add(const Duration(days: 1))), 20);
+      });
+
+      test('80km未満は遠征にならない', () {
+        expect(bonusAt(day(10), shop: notFar), 0);
+      });
+
+      test('拠点を変えると、変えた日から後の1杯だけが新しい拠点で決まる', () {
+        final moved = buildHomeBase(
+          latitude: 35.72,
+          setAt: DateTime(2026, 2, 1),
+        );
+        final bases = [base, moved];
+
+        expect(bonusAt(DateTime(2026, 1, 31, 23), homeBases: bases), 20);
+        expect(bonusAt(DateTime(2026, 2, 1), homeBases: bases), 0);
+        expect(bonusAt(DateTime(2026, 2, 2), shop: home, homeBases: bases), 20);
+      });
+
+      test('遠征の点にも攻略しにくさの倍率がかかる', () {
+        final rareFar = buildShop(
+          id: 'rareFar',
+          latitude: 35.72,
+          longitude: 139.0,
+          hoursConditions: {HoursCondition.fewDays},
+        );
+        final scored = scoreVisits(
+          [buildEntry(shop: rareFar, eatenAt: day(10))],
+          homeBases: [base],
+        ).single;
+
+        // (10 + 初訪問10 + 遠征20) × 1.5 = 60
+        expect(scored.points.total, 60);
+        expect(scored.isExpedition, isTrue);
+      });
     });
 
     test('記録が無ければ累計は0', () {

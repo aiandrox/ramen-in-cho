@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../inkan/inkan.dart';
 import '../../l10n/app_localizations.dart';
+import '../home_base/home_base_repository.dart';
 import '../notifications/notification_service.dart';
 import '../quests/quest_seal.dart';
 import '../quests/quests.dart';
@@ -53,9 +54,18 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
     final wishesState = ref.watch(wishesProvider);
     final wishes =
         wishesState.value ?? (wishesState.hasError ? const <Wish>[] : null);
-    _outcome ??= visits == null || wishes == null
+    final homeBasesState = ref.watch(homeBaseSettingsProvider);
+    final homeBases =
+        homeBasesState.value ??
+        (homeBasesState.hasError ? const <HomeBaseSetting>[] : null);
+    _outcome ??= visits == null || wishes == null || homeBases == null
         ? null
-        : computeRecordOutcome(visits, widget.visitId, wishes: wishes);
+        : computeRecordOutcome(
+            visits,
+            widget.visitId,
+            wishes: wishes,
+            homeBases: homeBases,
+          );
     final outcome = _outcome;
 
     final base = Theme.of(context);

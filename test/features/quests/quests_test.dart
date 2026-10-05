@@ -376,19 +376,38 @@ void main() {
     expect(daijiNumber(11), '11');
   });
 
-  test('拠点を構えるは、同じ地域で5杯食べた記録で達成', () {
-    final shop = buildShop(id: 'home', latitude: 35.0, longitude: 139.0);
-    final entries = [
-      for (var d = 1; d <= 5; d++)
-        buildEntry(shop: shop, eatenAt: DateTime(2026, 9, d, 12)),
-    ];
+  group('拠点を構える', () {
+    QuestProgress progress(List<HomeBaseSetting> homeBases) => evaluateQuests(
+      scoreVisits(_bowls(6)),
+      homeBases: homeBases,
+    ).firstWhere((p) => p.quest.id == 'home_base');
 
-    expect(
-      _progress('home_base', entries.take(4).toList()).isAchieved,
-      isFalse,
-    );
-    final progress = _progress('home_base', entries);
-    expect(progress.isAchieved, isTrue);
-    expect(progress.levelAchievedAt.single, DateTime(2026, 9, 5, 12));
+    test('同じ地域で何杯食べても、拠点を決めるまでは会得しない', () {
+      expect(progress(const []).isAchieved, isFalse);
+      expect(progress(const []).current, 0);
+    });
+
+    test('初めて拠点を決めた日時に会得する。あとで変えても会得の日は変わらない', () {
+      final first = buildHomeBase(name: '横浜駅', setAt: DateTime(2026, 9, 5));
+      final result = progress([
+        buildHomeBase(name: '厚木市', setAt: DateTime(2026, 10, 1)),
+        first,
+      ]);
+
+      expect(result.isAchieved, isTrue);
+      expect(result.levelAchievedAt, [DateTime(2026, 9, 5)]);
+      expect(result.achievedHomeBase?.name, '横浜駅');
+      expect(result.levelAchievedBy, isEmpty);
+    });
+
+    test('記録を保存しても、拠点を構えるは新たな会得にならない', () {
+      final homeBases = [buildHomeBase(setAt: DateTime(2026))];
+      final levelUps = newlyAchievedLevels(
+        before: evaluateQuests(scoreVisits(_bowls(1)), homeBases: homeBases),
+        after: evaluateQuests(scoreVisits(_bowls(2)), homeBases: homeBases),
+      );
+
+      expect(levelUps.map((l) => l.quest.id), isNot(contains('home_base')));
+    });
   });
 }

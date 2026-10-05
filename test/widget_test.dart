@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_controller.dart';
 import 'package:ramen_in_cho/features/map/map_screen.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
@@ -42,6 +43,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(AsyncData(visits)),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
           activeCheckinProvider.overrideWithValue(const AsyncData(null)),
           documentsDirectoryProvider.overrideWithValue(createTempDirectory()),
@@ -168,6 +170,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(const AsyncData([])),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
           activeCheckinProvider.overrideWith((ref) => checkins.stream),
           documentsDirectoryProvider.overrideWithValue(createTempDirectory()),

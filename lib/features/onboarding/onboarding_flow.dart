@@ -1,5 +1,5 @@
-/// 初めて開いたときの案内の段階。最初の一杯を記録して、願を掛けるまで。
-enum OnboardingStep { welcome, record, share, wish, finish }
+/// 初めて開いたときの案内の段階。最初の一杯を記録して、願を掛け、拠点を決めるまで。
+enum OnboardingStep { welcome, record, share, wish, homeBase, finish }
 
 /// 案内の中で起きたこと。
 enum OnboardingEvent {
@@ -15,6 +15,9 @@ enum OnboardingEvent {
   /// 願を掛けた。
   wished,
 
+  /// 拠点を決めた。
+  homeBaseSet,
+
   /// その段階を飛ばした（「あとで」「次へ」）。
   skipped,
 }
@@ -29,6 +32,11 @@ OnboardingStep nextOnboardingStep(OnboardingStep step, OnboardingEvent event) {
     (OnboardingStep.record || OnboardingStep.share, OnboardingEvent.skipped) =>
       OnboardingStep.wish,
     (OnboardingStep.wish, OnboardingEvent.wished || OnboardingEvent.skipped) =>
+      OnboardingStep.homeBase,
+    (
+      OnboardingStep.homeBase,
+      OnboardingEvent.homeBaseSet || OnboardingEvent.skipped,
+    ) =>
       OnboardingStep.finish,
     _ => step,
   };

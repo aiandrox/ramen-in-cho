@@ -1,0 +1,422 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-05T08:45:36Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 266917753,
+  "lat": 34.5715380,
+  "lon": 133.2362383,
+  "tags": {
+    "KSJ2:LIN": "福塩線",
+    "KSJ2:STN": "府中",
+    "name": "府中",
+    "name:en": "Fuchu",
+    "name:ja": "府中",
+    "name:ko": "후추",
+    "note": "National-Land Numerical Information (Railway) 2007, MLIT Japan",
+    "note:ja": "国土数値情報（鉄道データ）平成19年　国土交通省",
+    "public_transport": "station",
+    "railway": "station",
+    "source": "KSJ2",
+    "source_ref": "http://nlftp.mlit.go.jp/ksj/jpgis/datalist/KsjTmplt-N02-v1_1.html",
+    "wikidata": "Q5506963",
+    "wikipedia": "ja:府中駅 (広島県)"
+  }
+},
+{
+  "type": "node",
+  "id": 314132848,
+  "lat": 34.3925750,
+  "lon": 132.5045192,
+  "tags": {
+    "name": "府中町",
+    "name:cs": "Fučú",
+    "name:en": "Fuchu",
+    "name:id": "Fuchu",
+    "name:it": "Fuchū",
+    "name:ja": "府中町",
+    "name:ja-Hira": "ふちゅうちょう",
+    "name:ja-Latn": "Fuchū-chō",
+    "name:ko": "후추초",
+    "name:ru": "Футю",
+    "name:uk": "Футю",
+    "name:zh": "府中町",
+    "name:zh-Hans": "府中町",
+    "name:zh-Hant": "府中町",
+    "place": "town",
+    "population": "51053",
+    "source:population": "Census 2015",
+    "wikidata": "Q1204737",
+    "wikipedia": "ja:府中町"
+  }
+},
+{
+  "type": "node",
+  "id": 621890744,
+  "lat": 35.6693751,
+  "lon": 139.4774094,
+  "tags": {
+    "name": "府中市",
+    "name:ar": "فوتشو، طوكيو",
+    "name:bg": "Фучу",
+    "name:de": "Fuchū",
+    "name:en": "Fuchu",
+    "name:eo": "Fuĉu",
+    "name:es": "Fuchū",
+    "name:et": "Fuchū",
+    "name:fa": "فوچو، توکیو",
+    "name:fi": "Fuchū",
+    "name:fr": "Fuchū",
+    "name:gl": "Fuchū, Tōkyō",
+    "name:id": "Fuchu",
+    "name:it": "Fuchū",
+    "name:ja": "府中市",
+    "name:ja-Hira": "ふちゅうし",
+    "name:ja-Latn": "Fuchū-shi",
+    "name:ko": "후추시",
+    "name:lt": "Fučiū",
+    "name:ms": "Fuchu",
+    "name:mzn": "فوچو، توکیو",
+    "name:nl": "Fuchu",
+    "name:pl": "Fuchū",
+    "name:pt": "Fuchū",
+    "name:ro": "Fuchu, Tokyo",
+    "name:roa-rup": "Fuchū",
+    "name:ru": "Футю",
+    "name:sr": "Фучу",
+    "name:sv": "Fuchu",
+    "name:tg": "Фучу, Токио",
+    "name:th": "ฟูจู",
+    "name:uk": "Футю",
+    "name:yue": "府中市",
+    "name:zh": "府中市",
+    "name:zh-Hant": "府中市",
+    "place": "city",
+    "population": "261991",
+    "source:population": "http://www.toukei.metro.tokyo.jp/jsuikei/js-index.htm",
+    "wikidata": "Q208818",
+    "wikipedia": "en:Fuchū, Tokyo"
+  }
+},
+{
+  "type": "node",
+  "id": 1310431287,
+  "lat": 34.5683141,
+  "lon": 133.2366327,
+  "tags": {
+    "name": "府中市",
+    "name:ar": "فوجو، هيروشيما",
+    "name:cs": "Fučú",
+    "name:de": "Fuchū",
+    "name:en": "Fuchu",
+    "name:es": "Fuchū",
+    "name:eu": "Fuchu",
+    "name:fr": "Fuchū",
+    "name:id": "Fuchu",
+    "name:ja": "府中市",
+    "name:ja-Hira": "ふちゅうし",
+    "name:ja-Latn": "Fuchū-shi",
+    "name:ko": "후추시",
+    "name:pl": "Fuchū",
+    "name:ru": "Футю",
+    "name:uk": "Футю",
+    "name:zh": "府中市",
+    "name:zh-Hant": "府中市",
+    "place": "city",
+    "population": "37655",
+    "source:population": "Census 2020",
+    "start_date": "1954-03-31",
+    "wikidata": "Q686775",
+    "wikipedia": "ja:府中市 (広島県)"
+  }
+},
+{
+  "type": "node",
+  "id": 3639530943,
+  "lat": 25.0087697,
+  "lon": 121.4592803,
+  "tags": {
+    "addr:city": "新北市",
+    "addr:country": "TW",
+    "addr:district": "板橋區",
+    "addr:floor": "B1",
+    "addr:full": "新北市板橋區縣民大道一段193號B1",
+    "addr:housenumber": "193",
+    "addr:postcode": "220",
+    "addr:street": "縣民大道一段",
+    "air_conditioning": "yes",
+    "alt_name": "林家花園",
+    "alt_name:en": "Lin Family Mansion and Garden",
+    "alt_name:nan": "Lîm-ka Hoe-hn̂g",
+    "alt_name:nan-Hant": "林家花園",
+    "alt_name:nan-Latn-pehoeji": "Lîm-ka Hoe-hn̂g",
+    "alt_name:nan-Latn-tailo": "Lîm-ka Hue-hn̂g",
+    "internet_access": "wlan",
+    "name": "府中",
+    "name:en": "Fuzhong",
+    "name:hak": "fuˋ zungˊ",
+    "name:nan": "Hú-tiong",
+    "name:nan-Hant": "府中",
+    "name:nan-Latn-pehoeji": "Hú-tiong",
+    "name:nan-Latn-tailo": "Hú-tiong",
+    "name:zh": "府中",
+    "name:zh-Hans": "府中",
+    "name:zh-Hant": "府中",
+    "name:zh-Latn-pinyin": "fǔ zhōng",
+    "network": "臺北捷運",
+    "network:en": "Taipei Metro",
+    "network:nan": "Tâi-pak Chia̍t-ūn",
+    "network:nan-Hant": "臺北捷運",
+    "network:nan-Latn-pehoeji": "Tâi-pak Chia̍t-ūn",
+    "network:nan-Latn-tailo": "Tâi-pak Tsia̍t-ūn",
+    "network:wikidata": "Q714810",
+    "network:zh": "臺北捷運",
+    "operator": "臺北大眾捷運股份有限公司",
+    "operator:en": "Taipei Rapid Transit Corporation",
+    "operator:nan": "Tâi-pak Tāi-chiòng Chia̍t-ūn Kó͘-hūn Iú-hān Kong-si",
+    "operator:nan-Hant": "臺北大眾捷運股份有限公司",
+    "operator:nan-Latn-pehoeji": "Tâi-pak Tāi-chiòng Chia̍t-ūn Kó͘-hūn Iú-hān Kong-si",
+    "operator:nan-Latn-tailo": "Tâi-pak Tāi-tsiòng Tsia̍t-ūn Kóo-hūn Iú-hān Kong-si",
+    "operator:wikidata": "Q11411921",
+    "operator:zh": "臺北大眾捷運股份有限公司",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "BL06",
+    "station": "subway",
+    "subway": "yes",
+    "wheelchair": "limited",
+    "wikidata": "Q699469",
+    "wikipedia": "zh:府中站 (臺灣)"
+  }
+},
+{
+  "type": "node",
+  "id": 4913524615,
+  "lat": 33.9553650,
+  "lon": 132.7757280,
+  "tags": {
+    "name": "府中",
+    "name:en": "Fuchu",
+    "name:id": "Fuchu",
+    "name:ja": "府中",
+    "name:ja-Hira": "ふちゅう",
+    "place": "quarter",
+    "ref": "382010270000",
+    "source": "街区レベル位置参照情報 国土交通省",
+    "source:date": "2016"
+  }
+},
+{
+  "type": "node",
+  "id": 5649539897,
+  "lat": 37.0469783,
+  "lon": 136.9696225,
+  "tags": {
+    "name": "府中町",
+    "name:en": "Fuchumachi",
+    "name:id": "Fuchumachi",
+    "name:ja": "府中町",
+    "name:ja-Hira": "ふちゅうまち",
+    "place": "quarter"
+  }
+},
+{
+  "type": "node",
+  "id": 6748993483,
+  "lat": 34.2676118,
+  "lon": 135.2327462,
+  "tags": {
+    "name": "府中",
+    "name:en": "Fuchu",
+    "name:id": "Fuchu",
+    "name:ja": "府中",
+    "name:ja-Hira": "ふちゅう",
+    "place": "quarter"
+  }
+},
+{
+  "type": "node",
+  "id": 7157682431,
+  "lat": 35.0130325,
+  "lon": 139.8884064,
+  "tags": {
+    "name": "府中",
+    "name:en": "Fuchu",
+    "name:id": "Fuchu",
+    "name:ja": "府中",
+    "name:ja-Hira": "ふちゅう",
+    "place": "quarter",
+    "source": "ISJ 2018;survey"
+  }
+},
+{
+  "type": "node",
+  "id": 7682981674,
+  "lat": 35.6722190,
+  "lon": 139.4800091,
+  "tags": {
+    "KSJ2:LIN": "京王線",
+    "name": "府中",
+    "name:en": "Fuchu",
+    "name:ja": "府中",
+    "name:ja-Hira": "ふちゅう",
+    "name:ja_rm": "Fuchū",
+    "name:ko": "후추",
+    "name:ru": "Футю",
+    "note": "National-Land Numerical Information (Railway) 2007, MLIT Japan",
+    "note:ja": "国土数値情報（鉄道データ）平成19年 国土交通省",
+    "public_transport": "station",
+    "railway": "station",
+    "ref": "KO24",
+    "source": "KSJ2",
+    "source_ref": "http://nlftp.mlit.go.jp/ksj/jpgis/datalist/KsjTmplt-N02-v1_1.html",
+    "wikidata": "Q4493756",
+    "wikipedia": "ja:府中駅 (東京都)"
+  }
+},
+{
+  "type": "node",
+  "id": 8041362653,
+  "lat": 36.5652887,
+  "lon": 139.7577774,
+  "tags": {
+    "name": "府中町",
+    "place": "quarter",
+    "source": "GSImaps/std"
+  }
+},
+{
+  "type": "node",
+  "id": 8360773469,
+  "lat": 35.3831896,
+  "lon": 136.5270138,
+  "tags": {
+    "name": "府中",
+    "name:en": "Fuchu",
+    "name:id": "Fuchu",
+    "name:ja": "府中",
+    "name:ja-Hira": "ふちゅう",
+    "name:ja-Latn": "Fuchuu",
+    "place": "quarter"
+  }
+},
+{
+  "type": "node",
+  "id": 8706560152,
+  "lat": 34.0742194,
+  "lon": 134.4829358,
+  "tags": {
+    "name": "府中",
+    "name:en": "Kō",
+    "name:ja": "府中",
+    "name:ko": "고",
+    "operator": "四国旅客鉄道",
+    "public_transport": "station",
+    "railway": "station",
+    "wikidata": "Q6455068",
+    "wikipedia": "ja:府中駅 (徳島県)"
+  }
+},
+{
+  "type": "node",
+  "id": 8730323749,
+  "lat": 34.5770395,
+  "lon": 133.2326740,
+  "tags": {
+    "name": "府中町",
+    "name:en": "Fuchucho",
+    "name:id": "Fuchucho",
+    "name:ja": "府中町",
+    "name:ja-Hira": "ふちゅうちょう",
+    "place": "quarter"
+  }
+},
+{
+  "type": "node",
+  "id": 8752306933,
+  "lat": 34.4345220,
+  "lon": 135.4726510,
+  "tags": {
+    "name": "府中町",
+    "name:en": "Fuchucho",
+    "name:id": "Fuchucho",
+    "name:ja": "府中町",
+    "name:ja-Hira": "ふちゅうちょう",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 8882018228,
+  "lat": 34.2862760,
+  "lon": 133.9165900,
+  "tags": {
+    "name": "府中町",
+    "name:en": "Fuchucho",
+    "name:id": "Fuchucho",
+    "name:ja": "府中町",
+    "name:ja-Hira": "ふちゅうちょう",
+    "place": "quarter"
+  }
+},
+{
+  "type": "node",
+  "id": 8959162980,
+  "lat": 35.4945970,
+  "lon": 135.7624880,
+  "tags": {
+    "name": "府中",
+    "name:en": "Fuchu",
+    "name:id": "Fuchu",
+    "name:ja": "府中",
+    "name:ja-Hira": "ふちゅう",
+    "place": "quarter"
+  }
+},
+{
+  "type": "node",
+  "id": 11453821875,
+  "lat": 35.5832471,
+  "lon": 135.1952916,
+  "tags": {
+    "name": "府中",
+    "name:en": "Fuchū",
+    "name:fr": "Fuchū",
+    "name:ja-Hira": "フチュウ",
+    "name:ja-Latn": "Fuchū",
+    "name:ko": "후추",
+    "opening_hours": "Jan-Feb,Dec 08:00-16:30; Mar,Nov 08:00-17:00; Apr-Jun,Sep,Oct 08:00-17:30; Jul 01-19,Aug 21-31 08:00-17:30; Jul 20-Aug 20 08:00-18:00",
+    "operator": "丹後海陸交通",
+    "operator:wikidata": "Q11368524",
+    "public_transport": "station",
+    "railway": "station",
+    "website": "https://www.tankai.jp/",
+    "wikidata": "Q80168395"
+  }
+},
+{
+  "type": "way",
+  "id": 894658459,
+  "center": {
+    "lat": 34.0742455,
+    "lon": 134.4832537
+  },
+  "tags": {
+    "modified": "yes",
+    "name": "府中",
+    "name:en": "Kō",
+    "name:ja": "府中",
+    "name:ko": "고",
+    "operator": "四国旅客鉄道",
+    "public_transport": "station"
+  }
+}
+
+  ]
+}

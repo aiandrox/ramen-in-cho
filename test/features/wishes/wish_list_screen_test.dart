@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
@@ -39,6 +40,7 @@ void main() {
       ProviderScope(
         overrides: [
           wishRepositoryProvider.overrideWithValue(repository),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(AsyncData(wishes)),
           visitsProvider.overrideWithValue(AsyncData([eaten])),
           clockProvider.overrideWithValue(() => DateTime(2026, 10, 3, 18)),
@@ -74,6 +76,7 @@ void main() {
       ProviderScope(
         overrides: [
           wishRepositoryProvider.overrideWithValue(repository),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(
             AsyncData([
               Wish(id: 'b', name: '麺屋藤ろう', createdAt: DateTime(2026, 9, 28)),

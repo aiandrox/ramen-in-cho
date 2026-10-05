@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_controller.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
@@ -44,6 +45,7 @@ void main() {
           // driftの監視はテストの偽の時間の中で止まってしまうため、一覧は固定の値にする。
           visitsProvider.overrideWithValue(const AsyncData([])),
           activeCheckinProvider.overrideWithValue(const AsyncData(null)),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
           documentsDirectoryProvider.overrideWithValue(createTempDirectory()),
           locationServiceProvider.overrideWithValue(

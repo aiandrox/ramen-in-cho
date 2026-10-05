@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/journal/shugyoroku.dart';
 import 'package:ramen_in_cho/features/journal/shugyoroku_screen.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
@@ -51,6 +52,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(AsyncData(entries())),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
         ],
         child: localizedApp(home: const ShugyorokuScreen()),
@@ -73,6 +75,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(const AsyncData([])),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
         ],
         child: localizedApp(home: const ShugyorokuScreen()),

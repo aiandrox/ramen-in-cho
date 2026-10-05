@@ -1,0 +1,172 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-05T08:46:35Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 2115184100,
+  "lat": 35.4429646,
+  "lon": 139.3625125,
+  "tags": {
+    "is_in:prefecture": "神奈川県",
+    "name": "厚木市",
+    "name:ar": "أتسوغي",
+    "name:be": "Ацугі",
+    "name:bg": "Ацуги",
+    "name:ca": "Atsugi",
+    "name:ce": "Ацуги",
+    "name:cs": "Acugi",
+    "name:de": "Atsugi",
+    "name:en": "Atsugi",
+    "name:eo": "Acugi",
+    "name:es": "Atsugi",
+    "name:et": "Atsugi",
+    "name:fa": "آتسوگی",
+    "name:fi": "Atsugi",
+    "name:fr": "Atsugi",
+    "name:ga": "Atsugi",
+    "name:gl": "Atsugi",
+    "name:hy": "Ացուգի",
+    "name:id": "Atsugi",
+    "name:it": "Atsugi",
+    "name:ja": "厚木市",
+    "name:ja-Hira": "あつぎし",
+    "name:ja-Latn": "Atsugi-shi",
+    "name:ko": "아쓰기시",
+    "name:mg": "Atsugi",
+    "name:nb": "Atsugi",
+    "name:nl": "Atsugi",
+    "name:pl": "Atsugi",
+    "name:pt": "Atsugi",
+    "name:ro": "Atsugi",
+    "name:ru": "Ацуги",
+    "name:sk": "Acugi",
+    "name:sr": "Ацуги",
+    "name:sv": "Atsugi",
+    "name:tg": "Атсуги",
+    "name:th": "อัตสึงิ",
+    "name:tl": "Atsugi",
+    "name:tr": "Atsugi",
+    "name:tt": "Ацуги",
+    "name:uk": "Ацуґі",
+    "name:ur": "اتسوگی",
+    "name:uz": "Atsugi",
+    "name:vi": "Atsugi",
+    "name:zh": "厚木市",
+    "name:zh-Hant": "厚木市",
+    "place": "city",
+    "population": "223705",
+    "source": "KSJ2/NO3",
+    "source:population": "Census 2020",
+    "source_ref": "http://wiki.openstreetmap.org/wiki/Import/Catalogue/Japan_KSJ2_Import",
+    "wikidata": "Q389711",
+    "wikipedia": "ja:厚木市",
+    "wikipedia:en": "Atsugi"
+  }
+},
+{
+  "type": "node",
+  "id": 3893393985,
+  "lat": 35.4433977,
+  "lon": 139.3784329,
+  "tags": {
+    "name": "厚木",
+    "name:en": "Atsugi",
+    "name:ja": "厚木",
+    "name:ja-Hira": "あつぎ",
+    "name:ja_rm": "Atsugi",
+    "name:ko": "아쓰기",
+    "name:ru": "Ацуги",
+    "name:zh": "厚木站",
+    "operator": "小田急電鉄;JR東日本",
+    "public_transport": "station",
+    "railway": "station",
+    "source": "KSJ2",
+    "wikidata": "Q994477",
+    "wikipedia": "ja:厚木駅"
+  }
+},
+{
+  "type": "node",
+  "id": 5179976147,
+  "lat": 28.4096726,
+  "lon": 108.6614968,
+  "tags": {
+    "name": "厚木",
+    "name:en": "Houmu",
+    "name:zh": "厚木",
+    "place": "village",
+    "source:name": "GNS"
+  }
+},
+{
+  "type": "node",
+  "id": 5701446050,
+  "lat": 35.4367136,
+  "lon": 139.3716874,
+  "tags": {
+    "name": "厚木",
+    "name:en": "Atsugi",
+    "name:id": "Atsugi",
+    "name:ja": "厚木",
+    "name:ja-Hira": "あつぎ",
+    "place": "neighbourhood",
+    "wikidata": "Q126373508"
+  }
+},
+{
+  "type": "node",
+  "id": 5701446052,
+  "lat": 35.4426077,
+  "lon": 139.3699548,
+  "tags": {
+    "name": "厚木町",
+    "name:en": "Atsugicho",
+    "name:id": "Atsugicho",
+    "name:ja": "厚木町",
+    "name:ja-Hira": "あつぎちょう",
+    "place": "neighbourhood",
+    "wikidata": "Q28685324",
+    "wikipedia": "ja:厚木町 (厚木市)"
+  }
+},
+{
+  "type": "node",
+  "id": 10733922004,
+  "lat": 35.4423147,
+  "lon": 139.3691463,
+  "tags": {
+    "name": "厚木町",
+    "name:en": "Atsugicho",
+    "name:id": "Atsugicho",
+    "name:ja": "厚木町",
+    "name:ja-Hira": "あつぎちょう",
+    "place": "hamlet",
+    "source": "GSImaps/std;survey",
+    "wikidata": "Q28685324",
+    "wikipedia": "ja:厚木町 (厚木市)"
+  }
+},
+{
+  "type": "node",
+  "id": 11967909150,
+  "lat": 35.4497748,
+  "lon": 139.3685088,
+  "tags": {
+    "name": "厚木",
+    "name:en": "Atsugi",
+    "name:id": "Atsugi",
+    "name:ja": "厚木",
+    "name:ja-Hira": "あつぎ",
+    "place": "hamlet",
+    "wikidata": "Q126373508"
+  }
+}
+
+  ]
+}

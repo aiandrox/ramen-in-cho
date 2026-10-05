@@ -11,11 +11,13 @@ class BackupData {
     required this.shops,
     required this.visits,
     this.wishes = const [],
+    this.homeBases = const [],
   });
 
   final List<Shop> shops;
   final List<Visit> visits;
   final List<Wish> wishes;
+  final List<HomeBaseSetting> homeBases;
 }
 
 Map<String, Object?> encodeBackup(
@@ -71,6 +73,16 @@ Map<String, Object?> encodeBackup(
         ],
       },
   ],
+  'homeBases': [
+    for (final base in data.homeBases)
+      {
+        'id': base.id,
+        'name': base.name,
+        'latitude': base.latitude,
+        'longitude': base.longitude,
+        'setAt': base.setAt.toUtc().toIso8601String(),
+      },
+  ],
   'visits': [
     for (final visit in data.visits)
       {
@@ -106,6 +118,11 @@ BackupData decodeBackup(Object? json) {
     // 願掛け帳より前の版のバックアップには無い。
     wishes: [
       for (final wish in _list(root['wishes'] ?? const [])) _decodeWish(wish),
+    ],
+    // 拠点を自分で決めるようになる前の版のバックアップには無い。
+    homeBases: [
+      for (final base in _list(root['homeBases'] ?? const []))
+        _decodeHomeBase(base),
     ],
   );
 }
@@ -160,6 +177,22 @@ Wish _decodeWish(Object? json) {
       for (final name in _list(map['hoursConditions'] ?? const []))
         ?HoursCondition.values.asNameMap()[name],
     },
+  );
+}
+
+HomeBaseSetting _decodeHomeBase(Object? json) {
+  final map = _map(json, '拠点');
+  final latitude = _doubleOrNull(map['latitude']);
+  final longitude = _doubleOrNull(map['longitude']);
+  if (latitude == null || longitude == null) {
+    throw const FormatException('拠点の位置が読めません');
+  }
+  return HomeBaseSetting(
+    id: _string(map['id']),
+    name: _string(map['name']),
+    latitude: latitude,
+    longitude: longitude,
+    setAt: _dateTime(map['setAt']),
   );
 }
 

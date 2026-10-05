@@ -1,4 +1,4 @@
-import '../map/journey.dart';
+import '../home_base/home_base.dart';
 import '../records/models.dart';
 import '../records/wait_time.dart';
 import '../scoring/points.dart';
@@ -185,10 +185,11 @@ const quests = <Quest>[
     id: 'home_base',
     kind: QuestKind.spot,
     title: '拠点を構える',
-    description: '同じ地域（2km以内）で五杯食べて、拠点をつくる',
+    description: '自分の拠点（駅や街）を決める',
     unit: '回',
     thresholds: [1],
-    count: _homeBaseCount,
+    count: _none,
+    byHomeBase: true,
     seal: QuestSealDesign('城', QuestSealShape.castle),
   ),
   Quest(
@@ -335,6 +336,7 @@ class Quest {
     this.seal,
     this.availableFrom,
     this.availableUntil,
+    this.byHomeBase = false,
   });
 
   final String id;
@@ -359,6 +361,9 @@ class Quest {
   final DateTime? availableFrom;
   final DateTime? availableUntil;
 
+  /// 記録ではなく、初めて拠点を決めたことで会得する秘伝か。
+  final bool byHomeBase;
+
   /// [at]に食べた記録を、このクエストで数えるか。
   bool isAvailableAt(DateTime at) =>
       (availableFrom == null || !at.isBefore(availableFrom!)) &&
@@ -368,24 +373,37 @@ class Quest {
 }
 
 class QuestProgress {
-  const QuestProgress({
+  QuestProgress({
     required this.quest,
     required this.current,
     required this.levelAchievedBy,
-  });
+  }) : levelAchievedAt = [
+         for (final entry in levelAchievedBy) entry.visit.eatenAt,
+       ],
+       achievedHomeBase = null;
+
+  /// 拠点を決めて会得した秘伝。
+  QuestProgress.byHomeBase({
+    required this.quest,
+    required HomeBaseSetting? base,
+  }) : current = base == null ? 0 : 1,
+       levelAchievedBy = const [],
+       levelAchievedAt = [?base?.setAt],
+       achievedHomeBase = base;
 
   final Quest quest;
 
   /// 今の数。
   final int current;
 
-  /// 到達したレベルごとの、到達した記録（古い順）。長さが今のレベル。
+  /// 到達したレベルごとの、到達した記録（古い順）。拠点を決めて会得した秘伝では空。
   final List<ScoredVisit> levelAchievedBy;
 
-  /// 到達したレベルごとの、到達した記録の日時（古い順）。
-  List<DateTime> get levelAchievedAt => [
-    for (final entry in levelAchievedBy) entry.visit.eatenAt,
-  ];
+  /// 到達したレベルごとの、到達した日時（古い順）。長さが今のレベル。
+  final List<DateTime> levelAchievedAt;
+
+  /// 拠点を決めて会得したときの、初めて決めた拠点。
+  final HomeBaseSetting? achievedHomeBase;
 
   int get level => levelAchievedAt.length;
 
@@ -407,10 +425,17 @@ class QuestLevelUp {
 }
 
 /// すべてのクエストの達成状況を、定義の順に返す。[scored]は古い順。
+/// [homeBases]は、これまでに決めた拠点（秘伝「拠点を構える」に使う）。
 List<QuestProgress> evaluateQuests(
   List<ScoredVisit> scored, {
+  List<HomeBaseSetting> homeBases = const [],
   List<Quest> definitions = quests,
-}) => [for (final quest in definitions) _evaluate(quest, scored)];
+}) => [
+  for (final quest in definitions)
+    quest.byHomeBase
+        ? QuestProgress.byHomeBase(quest: quest, base: firstHomeBase(homeBases))
+        : _evaluate(quest, scored),
+];
 
 /// [before]から[after]で新しく届いたレベル。1回で2つ上がったら、上のレベルだけを返す。
 List<QuestLevelUp> newlyAchievedLevels({
@@ -523,8 +548,7 @@ int _doubleBowlDays(List<ScoredVisit> scored) {
   return perDay.values.where((n) => n >= 2).length;
 }
 
-int _homeBaseCount(List<ScoredVisit> scored) =>
-    homeBase(scored) == null ? 0 : 1;
+int _none(List<ScoredVisit> scored) => 0;
 
 int _rareShopCount(List<ScoredVisit> scored) => scored
     .where(

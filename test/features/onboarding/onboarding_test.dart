@@ -9,7 +9,7 @@ void main() {
     OnboardingStep next(OnboardingStep step, OnboardingEvent event) =>
         nextOnboardingStep(step, event);
 
-    test('写真から始めると、記録 → 共有 → 願掛け → 終わり', () {
+    test('写真から始めると、記録 → 共有 → 願掛け → 拠点 → 終わり', () {
       var step = next(OnboardingStep.welcome, OnboardingEvent.skipped);
       expect(step, OnboardingStep.record);
       step = next(step, OnboardingEvent.recorded);
@@ -17,6 +17,8 @@ void main() {
       step = next(step, OnboardingEvent.skipped);
       expect(step, OnboardingStep.wish);
       step = next(step, OnboardingEvent.wished);
+      expect(step, OnboardingStep.homeBase);
+      step = next(step, OnboardingEvent.homeBaseSet);
       expect(step, OnboardingStep.finish);
     });
 
@@ -42,6 +44,10 @@ void main() {
       );
       expect(
         next(OnboardingStep.wish, OnboardingEvent.skipped),
+        OnboardingStep.homeBase,
+      );
+      expect(
+        next(OnboardingStep.homeBase, OnboardingEvent.skipped),
         OnboardingStep.finish,
       );
     });
@@ -50,6 +56,10 @@ void main() {
       expect(
         next(OnboardingStep.wish, OnboardingEvent.recorded),
         OnboardingStep.wish,
+      );
+      expect(
+        next(OnboardingStep.homeBase, OnboardingEvent.wished),
+        OnboardingStep.homeBase,
       );
       expect(
         next(OnboardingStep.finish, OnboardingEvent.skipped),
