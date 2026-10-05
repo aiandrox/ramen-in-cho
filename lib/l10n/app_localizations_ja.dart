@@ -224,9 +224,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deleteFailed => '削除できませんでした';
 
   @override
-  String get previousVisit => '前回の記録';
-
-  @override
   String get visitNotFound => '記録が見つかりません';
 
   @override

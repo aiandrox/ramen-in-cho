@@ -11,7 +11,6 @@ import '../records/labels.dart';
 import '../records/models.dart';
 import '../records/photo_storage.dart';
 import '../records/record_repository.dart';
-import '../records/visit_history.dart';
 import '../records/visit_photo.dart';
 import '../records/wait_time.dart';
 import '../inkan/inkan_stamp.dart';
@@ -169,7 +168,6 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
     final visit = entry.visit;
     // 道中記で地名に触れるため、まだなら店の市区町村を調べておく。
     ref.watch(ensureShopAreaProvider(entry.shop.id));
-    final previous = previousVisitAtShop(visits, visit);
     final scored = ref.watch(scoredVisitByIdProvider)[visit.id];
     final shopStamps = [
       for (final stamp in ref.watch(scoredVisitsProvider))
@@ -406,12 +404,6 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                     children: [PointsBreakdownView(scored: scored)],
                   ),
                 ],
-                if (previous != null) ...[
-                  const Divider(height: 32),
-                  SectionTitle(l10n.previousVisit),
-                  const SizedBox(height: 8),
-                  _PreviousVisit(visit: previous.visit),
-                ],
               ],
             ),
           ),
@@ -520,36 +512,11 @@ class _ShopStamps extends StatelessWidget {
             children: [
               for (final stamp in stamps)
                 Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: Material(
-                    color: stamp.visit.id == selectedId
-                        ? Washi.page
-                        : Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        color: stamp.visit.id == selectedId
-                            ? Washi.ai
-                            : Colors.transparent,
-                      ),
-                    ),
-                    child: InkWell(
-                      onTap: () => onSelect(stamp.visit.id),
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Column(
-                          children: [
-                            InkanStamp(scored: stamp, size: 72),
-                            const SizedBox(height: 2),
-                            Text(
-                              formatDate(stamp.visit.eatenAt),
-                              style: textTheme.labelSmall?.copyWith(
-                                color: Washi.inkSoft,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  padding: const EdgeInsets.only(right: 4),
+                  child: _ShopStampChoice(
+                    stamp: stamp,
+                    selected: stamp.visit.id == selectedId,
+                    onTap: () => onSelect(stamp.visit.id),
                   ),
                 ),
             ],
@@ -560,60 +527,75 @@ class _ShopStamps extends StatelessWidget {
   }
 }
 
-class _Stars extends StatelessWidget {
-  const _Stars({required this.rating, this.size = 28});
+/// この道場の印の1つ。いま見ている1杯の印だけを濃く押し、下に藍の筆を引く。ほかの印は薄くする。
+class _ShopStampChoice extends StatelessWidget {
+  const _ShopStampChoice({
+    required this.stamp,
+    required this.selected,
+    required this.onTap,
+  });
 
-  final int rating;
-  final double size;
+  final ScoredVisit stamp;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    final textTheme = Theme.of(context).textTheme;
     return Semantics(
-      label: AppLocalizations.of(context).ratingStar(rating),
-      child: ExcludeSemantics(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var stars = 1; stars <= 5; stars++)
-              Icon(
-                stars <= rating ? Icons.star : Icons.star_border,
-                color: color,
-                size: size,
+      selected: selected,
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(6, 6, 6, 2),
+          child: Column(
+            children: [
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: selected ? 1 : 0.4,
+                child: InkanStamp(scored: stamp, size: 72),
               ),
-          ],
+              const SizedBox(height: 2),
+              Text(
+                formatDate(stamp.visit.eatenAt),
+                style: textTheme.labelSmall?.copyWith(
+                  color: selected ? Washi.ink : Washi.faded,
+                ),
+              ),
+              const SizedBox(height: 2),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: selected ? 1 : 0,
+                child: CustomPaint(
+                  size: const Size(48, 6),
+                  painter: _SelectedStrokePainter(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _PreviousVisit extends StatelessWidget {
-  const _PreviousVisit({required this.visit});
-
-  final Visit visit;
-
+class _SelectedStrokePainter extends CustomPainter {
   @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final rating = visit.rating;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(formatDate(visit.eatenAt), style: textTheme.bodyMedium),
-            const SizedBox(width: 12),
-            if (rating != null) _Stars(rating: rating, size: 18),
-          ],
-        ),
-        if (visit.memo.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(visit.memo, style: textTheme.bodyMedium),
-        ],
-      ],
+  void paint(Canvas canvas, Size size) {
+    brushStroke(
+      canvas,
+      Offset(2, size.height * 0.6),
+      Offset(size.width - 2, size.height * 0.4),
+      3.2,
+      1,
+      Paint()..color = Washi.ai,
     );
   }
+
+  @override
+  bool shouldRepaint(_SelectedStrokePainter oldDelegate) => false;
 }
 
 enum _DetailAction { wish, edit, delete }
