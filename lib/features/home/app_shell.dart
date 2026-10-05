@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../checkin/checkin_banner.dart';
@@ -16,6 +19,7 @@ import '../onboarding/onboarding_flow.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../onboarding/onboarding_store.dart';
 import '../records/record_repository.dart';
+import '../shop_search/location_service.dart';
 import 'app_tab.dart';
 import 'home_screen.dart';
 import 'start_sheet.dart';
@@ -39,13 +43,54 @@ class _AppShellState extends ConsumerState<AppShell> {
   static const _gap = 2;
 
   final _sheetHost = GlobalKey<ShellSheetHostState>();
+  late final StreamSubscription<LocationBlock> _locationBlocks;
+
+  /// 同じ案内を何度も出さないよう、アプリを開いている間は1つの理由につき1回だけにする。
+  final _shownLocationBlocks = <LocationBlock>{};
 
   @override
   void initState() {
     super.initState();
+    _locationBlocks = locationBlocks.stream.listen(_explainLocationBlock);
     if (ref.read(showOnboardingOnLaunchProvider)) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _maybeOnboard());
     }
+  }
+
+  @override
+  void dispose() {
+    _locationBlocks.cancel();
+    super.dispose();
+  }
+
+  Future<void> _explainLocationBlock(LocationBlock block) async {
+    if (!mounted || !_shownLocationBlocks.add(block)) return;
+    final l10n = AppLocalizations.of(context);
+    final open = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.locationBlockedTitle),
+        content: Text(
+          block == LocationBlock.serviceOff
+              ? l10n.locationServiceOffBody
+              : l10n.locationDeniedForeverBody,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.locationOpenSettings),
+          ),
+        ],
+      ),
+    );
+    if (open != true) return;
+    await (block == LocationBlock.serviceOff
+        ? Geolocator.openLocationSettings()
+        : Geolocator.openAppSettings());
   }
 
   Future<void> _maybeOnboard() async {

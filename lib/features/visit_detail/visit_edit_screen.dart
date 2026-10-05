@@ -334,6 +334,7 @@ class _PhotoSection extends StatelessWidget {
       children: [
         if (hasPhoto)
           Stack(
+            clipBehavior: Clip.none,
             children: [
               PastedPhoto(
                 border: 6,
@@ -342,15 +343,16 @@ class _PhotoSection extends StatelessWidget {
                   child: VisitPhoto(photoPath: photoPath, cacheWidth: 800),
                 ),
               ),
+              // 写真の角から少しはみ出させ、写真に重ならず「外す」ものだとわかるようにする。
               Positioned(
-                top: 12,
-                right: 12,
+                top: -10,
+                right: -10,
                 child: IconButton.filled(
                   onPressed: enabled ? onRemove : null,
                   tooltip: l10n.editRemovePhoto,
                   icon: const Icon(Icons.close, size: 20),
                   style: IconButton.styleFrom(
-                    backgroundColor: Washi.ink.withValues(alpha: 0.6),
+                    backgroundColor: Washi.ink,
                     foregroundColor: Washi.page,
                     minimumSize: const Size(36, 36),
                   ),

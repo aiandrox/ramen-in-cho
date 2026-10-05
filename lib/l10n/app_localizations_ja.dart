@@ -1577,4 +1577,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingFinishChapter => '其の六　精進';
+
+  @override
+  String get locationBlockedTitle => '現在地が使えません';
+
+  @override
+  String get locationDeniedForeverBody =>
+      '麺印帳に位置情報の利用が許可されていません。スマホの設定で、麺印帳の位置情報を「アプリの使用中のみ許可」にしてください。';
+
+  @override
+  String get locationServiceOffBody => 'スマホの位置情報がオフになっています。設定で位置情報をオンにしてください。';
+
+  @override
+  String get locationOpenSettings => '設定を開く';
 }
