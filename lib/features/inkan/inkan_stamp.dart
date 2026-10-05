@@ -97,29 +97,40 @@ class InkanStamp extends StatelessWidget {
           ),
         // 円の真ん中がいちばん広いので、系統名はほかより幅を広くとる。
         if (!isRetreat && visit.style == RamenStyle.tsukemen)
-          // かなと漢字を同じ大きさで並べると釣り合わないので、「つけ」を小さく冠に載せる。
-          Column(
-            children: [
-              Text(
-                l10n.inkanStyleTsukemenKana,
-                maxLines: 1,
-                style: small.copyWith(fontSize: size * 0.13, height: 0.8),
-              ),
-              _fit(
-                size * 0.7,
+          // かなと漢字を同じ大きさで並べると釣り合わないので、小さな「つけ」を縦に組んで「麺」の左に添える。
+          _fit(
+            size * 0.7,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final kana in l10n.inkanStyleTsukemenKana.characters)
+                      Text(
+                        kana,
+                        style: small.copyWith(
+                          fontSize: size * 0.14,
+                          height: 0.95,
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(width: size * 0.01),
                 Text(
                   l10n.inkanStyleTsukemenMain,
                   maxLines: 1,
                   style: TextStyle(
                     fontFamily: Washi.brush,
-                    fontSize: size * 0.33,
+                    fontSize: size * 0.34,
                     color: knockout == null ? color : null,
                     foreground: knockout,
-                    height: 0.95,
+                    height: 1.0,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           )
         else
           _fit(

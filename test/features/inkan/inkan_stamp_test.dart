@@ -27,9 +27,10 @@ void main() {
         ),
       );
 
-  testWidgets('つけ麺の印は、小さな「つけ」の下に大きく「麺」と組む', (tester) async {
+  testWidgets('つけ麺の印は、小さな縦の「つけ」を大きな「麺」の左に添える', (tester) async {
     await pumpStamp(tester, RamenStyle.tsukemen);
-    expect(find.text('つけ'), findsOneWidget);
+    expect(find.text('つ'), findsOneWidget);
+    expect(find.text('け'), findsOneWidget);
     expect(find.text('麺'), findsOneWidget);
     expect(find.bySemanticsLabel(RegExp('^つけ麺 ')), findsOneWidget);
   });
@@ -37,6 +38,6 @@ void main() {
   testWidgets('ほかの系統は名前を1行で組む', (tester) async {
     await pumpStamp(tester, RamenStyle.shoyu);
     expect(find.text('醤油'), findsOneWidget);
-    expect(find.text('つけ'), findsNothing);
+    expect(find.text('つ'), findsNothing);
   });
 }
