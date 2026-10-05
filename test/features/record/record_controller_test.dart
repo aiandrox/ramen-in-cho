@@ -390,7 +390,10 @@ void main() {
       HoursCondition.lunchOnly,
       HoursCondition.weekdaysOnly,
     });
-    expect(state().selectedShop!.conditionsFromMap, isTrue);
+    expect(
+      state().selectedShop!.conditionsDraftSource,
+      ConditionsDraftSource.openingHours,
+    );
     await controller().save();
 
     expect(
@@ -398,6 +401,39 @@ void main() {
           .single
           .hoursConditions,
       {HoursCondition.lunchOnly, HoursCondition.weekdaysOnly},
+    );
+  });
+
+  test('手で持つ店の条件は、地図の営業時間より優先して初めての店に入る', () async {
+    overpass.shops = const [
+      FoundShop(
+        osmId: 'node/curated',
+        name: '手で持つ店',
+        location: GeoPoint(35.001, 139.0),
+        openingHours: 'Mo-Fr 11:00-15:00',
+        curatedConditions: {HoursCondition.nightOnly, HoursCondition.irregular},
+      ),
+    ];
+    await controller().start();
+    await controller().takePhoto();
+    await pumpEventQueue();
+    controller().selectShop(state().candidates.single);
+
+    expect(state().hoursConditions, {
+      HoursCondition.nightOnly,
+      HoursCondition.irregular,
+    });
+    expect(
+      state().selectedShop!.conditionsDraftSource,
+      ConditionsDraftSource.curatedShops,
+    );
+    await controller().save();
+
+    expect(
+      (await container.read(recordRepositoryProvider).allShops())
+          .single
+          .hoursConditions,
+      {HoursCondition.nightOnly, HoursCondition.irregular},
     );
   });
 

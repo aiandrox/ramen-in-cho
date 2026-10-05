@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:ramen_in_cho/features/record/record_draft.dart';
 import 'package:ramen_in_cho/features/record/record_state.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
+import 'package:ramen_in_cho/features/shop_search/found_shop.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_candidate.dart';
 
@@ -25,7 +26,7 @@ void main() {
       hoursConditions: {HoursCondition.nightOnly},
       dataSource: ShopSource(licenses: ['CC-BY'], attributions: ['Overture']),
       wishId: 'wish-1',
-      conditionsFromMap: true,
+      conditionsDraftSource: ConditionsDraftSource.openingHours,
     ),
     rating: 5,
     style: RamenStyle.jiro,
@@ -53,7 +54,7 @@ void main() {
     expect(shop.dataSource?.licenses, ['CC-BY']);
     expect(shop.dataSource?.attributions, ['Overture']);
     expect(shop.wishId, 'wish-1');
-    expect(shop.conditionsFromMap, isTrue);
+    expect(shop.conditionsDraftSource, ConditionsDraftSource.openingHours);
     expect(decoded.rating, 5);
     expect(decoded.style, RamenStyle.jiro);
     expect(decoded.isLimited, isTrue);
@@ -61,6 +62,22 @@ void main() {
     expect(decoded.memo, 'ニンニク');
     expect(decoded.manualWaitMinutes, 40);
     expect(jsonEncode(decoded.toJson()), jsonEncode(draft.toJson()));
+  });
+
+  test('条件の下書きの出どころを読み戻す。前の版の「地図から」の印も読める', () {
+    ShopCandidate shopOf(Map<String, Object?> shop) => RecordDraft.fromJson({
+      'selectedShop': {'name': '麺屋テスト', ...shop},
+    })!.selectedShop!;
+
+    expect(
+      shopOf({'conditionsDraftSource': 'curatedShops'}).conditionsDraftSource,
+      ConditionsDraftSource.curatedShops,
+    );
+    expect(
+      shopOf({'conditionsFromMap': true}).conditionsDraftSource,
+      ConditionsDraftSource.openingHours,
+    );
+    expect(shopOf({}).conditionsDraftSource, isNull);
   });
 
   test('読めない項目は空にし、形が違えばnull', () {

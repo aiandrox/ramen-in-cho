@@ -7,9 +7,9 @@ export function buildSeedSql(file: CuratedShopsFile): string {
   const shops = validateCuratedShops(file);
   const rows = shops.map(
     (s) =>
-      `INSERT INTO curated_shops (id, name, address, latitude, longitude, chain, status) VALUES (` +
+      `INSERT INTO curated_shops (id, name, address, latitude, longitude, chain, status, hours_conditions) VALUES (` +
       `${quote(s.id)}, ${quote(s.name)}, ${quote(s.address)}, ${s.latitude}, ${s.longitude}, ` +
-      `${quote(s.chain ?? null)}, ${quote(s.status)});`,
+      `${quote(s.chain ?? null)}, ${quote(s.status)}, ${quote(JSON.stringify(s.hoursConditions))});`,
   );
   return ['DELETE FROM curated_shops;', ...rows, ''].join('\n');
 }

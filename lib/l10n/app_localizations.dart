@@ -1150,6 +1150,18 @@ abstract class AppLocalizations {
   /// **'地図の営業時間では {label}'**
   String mapOpeningHoursConditions(String label);
 
+  /// No description provided for @shopConditionsFromCurated.
+  ///
+  /// In ja, this message translates to:
+  /// **'{label}（麺印帳の店の情報から）'**
+  String shopConditionsFromCurated(String label);
+
+  /// No description provided for @mapCuratedConditions.
+  ///
+  /// In ja, this message translates to:
+  /// **'麺印帳の店の情報では {label}'**
+  String mapCuratedConditions(String label);
+
   /// No description provided for @shopMemoEmpty.
   ///
   /// In ja, this message translates to:

@@ -10,6 +10,7 @@ import 'package:ramen_in_cho/features/record/star_rating.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
+import 'package:ramen_in_cho/features/shop_search/found_shop.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_candidate.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_search_service.dart';
@@ -338,7 +339,7 @@ void main() {
           location: GeoPoint(35.0, 139.0),
           distanceMeters: 40,
           hoursConditions: {HoursCondition.nightOnly},
-          conditionsFromMap: true,
+          conditionsDraftSource: ConditionsDraftSource.openingHours,
         ),
       ],
     );

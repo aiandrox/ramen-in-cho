@@ -604,6 +604,16 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String shopConditionsFromCurated(String label) {
+    return '$label（麺印帳の店の情報から）';
+  }
+
+  @override
+  String mapCuratedConditions(String label) {
+    return '麺印帳の店の情報では $label';
+  }
+
+  @override
   String get shopMemoEmpty => 'まだありません';
 
   @override

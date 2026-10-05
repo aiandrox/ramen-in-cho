@@ -21,6 +21,7 @@ const mita: CuratedShop = {
   longitude: 139.741516,
   chain: 'jiro',
   status: 'open',
+  hoursConditions: [],
 };
 
 /** 呼ばれた URL を覚え、ホストごとに決めた答えを返す fetch。 */

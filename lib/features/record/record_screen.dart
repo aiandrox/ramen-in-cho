@@ -13,6 +13,7 @@ import '../records/labels.dart';
 import '../records/models.dart';
 import '../records/visit_details_form.dart';
 import '../shop/hours_condition_chips.dart';
+import '../shop_search/found_shop.dart';
 import '../shop_search/shop_candidate.dart';
 import '../shop_search/shop_search_service.dart';
 import '../shop_search/shop_name_search_sheet.dart';
@@ -266,12 +267,15 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
             subtitle: Text(
               state.hoursConditions.isEmpty
                   ? l10n.shopConditionsEmpty
-                  : state.chosenHoursConditions == null &&
-                        (state.selectedShop?.conditionsFromMap ?? false)
-                  ? l10n.shopConditionsFromMap(
-                      hoursConditionsLabel(l10n, state.hoursConditions),
-                    )
-                  : hoursConditionsLabel(l10n, state.hoursConditions),
+                  : switch (state.chosenHoursConditions == null
+                        ? state.selectedShop?.conditionsDraftSource
+                        : null) {
+                      ConditionsDraftSource.openingHours =>
+                        l10n.shopConditionsFromMap,
+                      ConditionsDraftSource.curatedShops =>
+                        l10n.shopConditionsFromCurated,
+                      null => (String label) => label,
+                    }(hoursConditionsLabel(l10n, state.hoursConditions)),
             ),
             children: [
               Align(
@@ -593,6 +597,8 @@ class _ShopSection extends ConsumerWidget {
                     name: found.name,
                     location: found.location,
                     dataSource: found.dataSource,
+                    hoursConditions: found.suggestedConditions,
+                    conditionsDraftSource: found.suggestedConditionsSource,
                   ),
                 );
               },

@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 
 import '../records/models.dart';
 import '../records/photo_storage.dart';
+import '../shop_search/found_shop.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/shop_candidate.dart';
 import 'record_state.dart';
@@ -250,7 +251,7 @@ Map<String, Object?>? _shopToJson(ShopCandidate? shop) {
     'strategyMemo': shop.strategyMemo,
     'dataSource': _sourceToJson(source),
     'wishId': shop.wishId,
-    'conditionsFromMap': shop.conditionsFromMap,
+    'conditionsDraftSource': shop.conditionsDraftSource?.name,
   };
 }
 
@@ -268,7 +269,13 @@ ShopCandidate? _shopFromJson(Object? json) {
     strategyMemo: _string(json['strategyMemo']) ?? '',
     dataSource: _sourceFromJson(source),
     wishId: _string(json['wishId']),
-    conditionsFromMap: json['conditionsFromMap'] == true,
+    conditionsDraftSource:
+        ConditionsDraftSource.values
+            .asNameMap()[json['conditionsDraftSource']] ??
+        // 前の版の下書きは、地図の営業時間からの下書きかどうかだけを持っていた。
+        (json['conditionsFromMap'] == true
+            ? ConditionsDraftSource.openingHours
+            : null),
   );
 }
 

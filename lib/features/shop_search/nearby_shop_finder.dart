@@ -63,7 +63,8 @@ class NearbyShopFinder {
     }
 
     // 手で持つ店（ラーメン二郎の直系店）は、通信できなくても出す。
-    final builtin = builtinShopsNear(center, radiusMeters, shops: _curated());
+    final curated = _curated();
+    final builtin = builtinShopsNear(center, radiusMeters, shops: curated);
     final api = _api;
     if (api != null) {
       try {
@@ -72,7 +73,7 @@ class NearbyShopFinder {
           radiusMeters: radiusMeters,
           timeout: timeout,
         );
-        return mergeFoundShops(shops, builtin);
+        return withCuratedConditions(mergeFoundShops(shops, builtin), curated);
       } catch (e) {
         debugPrint('Ramen-In-Cho API search failed: $e');
       }
@@ -112,10 +113,9 @@ class NearbyShopFinder {
       throw StateError('店の検索がすべて失敗しました');
     }
     // OpenStreetMap の店を優先し（IDがあるため）、次にアプリに持たせている店、Yahoo!、最後に OpenPOI。
-    return mergeFoundShops(osm ?? const [], [
-      ...builtin,
-      ...?yahooShops,
-      ...?poi,
-    ]);
+    return withCuratedConditions(
+      mergeFoundShops(osm ?? const [], [...builtin, ...?yahooShops, ...?poi]),
+      curated,
+    );
   }
 }

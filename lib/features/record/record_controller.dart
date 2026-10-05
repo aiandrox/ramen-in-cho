@@ -510,6 +510,9 @@ class RecordController extends Notifier<RecordState> {
           .saveEatenVisit(
             shop: _shopInput(draft),
             hoursConditions: _hoursConditions(draft),
+            draftConditions: draft.selectedShop?.conditionsDraftSource != null
+                ? draft.selectedShop?.hoursConditions
+                : null,
             eatenAt: eatenAt,
             rating: draft.rating,
             photoPath: savedPhoto,
@@ -539,11 +542,14 @@ class RecordController extends Notifier<RecordState> {
     }
   }
 
-  /// 選び直していなければ、初めての店には候補に付いていた条件（願で入れた条件・地図の営業時間からの下書き）を使う。
+  /// 選び直していなければ、初めての店には候補に付いていた願の条件を使う。
+  /// 下書きの条件（手で持つ店・地図の営業時間から）は、記録済みの店の条件を変えないよう別に渡す。
   Set<HoursCondition>? _hoursConditions(RecordState draft) {
     final selected = draft.selectedShop;
     return draft.chosenHoursConditions ??
-        (selected != null && selected.shopId == null
+        (selected != null &&
+                selected.shopId == null &&
+                selected.conditionsDraftSource == null
             ? selected.hoursConditions
             : null);
   }

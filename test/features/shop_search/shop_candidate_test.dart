@@ -149,11 +149,14 @@ void main() {
         HoursCondition.lunchOnly,
         HoursCondition.weekdaysOnly,
       });
-      expect(named('昼の店').conditionsFromMap, isTrue);
+      expect(
+        named('昼の店').conditionsDraftSource,
+        ConditionsDraftSource.openingHours,
+      );
       expect(named('願の店').hoursConditions, {HoursCondition.irregular});
-      expect(named('願の店').conditionsFromMap, isFalse);
+      expect(named('願の店').conditionsDraftSource, isNull);
       expect(named('ふつうの店').hoursConditions, isNull);
-      expect(named('ふつうの店').conditionsFromMap, isFalse);
+      expect(named('ふつうの店').conditionsDraftSource, isNull);
     });
 
     test('まだの願の店は「願」を付けて先頭に出し、候補に無ければ願の店を足す', () {
