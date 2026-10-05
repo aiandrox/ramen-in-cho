@@ -40,7 +40,6 @@ class _YearReviewScreenState extends ConsumerState<YearReviewScreen> {
   final _pageController = PageController();
   final _cardKey = GlobalKey();
   final _buttonKey = GlobalKey();
-  late int _year = widget.year;
   int _page = 0;
   bool _isSharing = false;
 
@@ -48,14 +47,6 @@ class _YearReviewScreenState extends ConsumerState<YearReviewScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  void _selectYear(int year) {
-    setState(() {
-      _year = year;
-      _page = 0;
-    });
-    if (_pageController.hasClients) _pageController.jumpToPage(0);
   }
 
   Future<void> _share() async {
@@ -76,7 +67,9 @@ class _YearReviewScreenState extends ConsumerState<YearReviewScreen> {
       image.dispose();
       if (bytes == null) throw StateError('画像を作れませんでした');
       final directory = await getTemporaryDirectory();
-      final file = File(p.join(directory.path, 'ramen-in-cho-$_year.png'));
+      final file = File(
+        p.join(directory.path, 'ramen-in-cho-${widget.year}.png'),
+      );
       await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
       await SharePlus.instance.share(
         ShareParams(
@@ -98,14 +91,12 @@ class _YearReviewScreenState extends ConsumerState<YearReviewScreen> {
     final scored = ref.watch(scoredVisitsProvider);
     final review = yearReview(
       scored,
-      _year,
+      widget.year,
       questProgress: ref.watch(questProgressProvider),
     );
-    final years = {...reviewYears(scored), _year}.toList()
-      ..sort((a, b) => b.compareTo(a));
 
     final pages = <Widget>[
-      _CoverPage(review: review, years: years, onSelectYear: _selectYear),
+      _CoverPage(review: review),
       if (!review.isEmpty) _CountsPage(review: review),
       if (review.favoriteShop case final favorite?)
         _FavoritePage(favorite: favorite),
@@ -144,7 +135,7 @@ class _YearReviewScreenState extends ConsumerState<YearReviewScreen> {
       backgroundColor: Washi.desk,
       appBar: AppBar(
         backgroundColor: Washi.desk,
-        title: Text(l10n.reviewEntry(_year)),
+        title: Text(l10n.reviewEntry(widget.year)),
       ),
       body: SafeArea(
         top: false,
@@ -249,15 +240,9 @@ String _eraYear(AppLocalizations l10n, int year) {
 }
 
 class _CoverPage extends StatelessWidget {
-  const _CoverPage({
-    required this.review,
-    required this.years,
-    required this.onSelectYear,
-  });
+  const _CoverPage({required this.review});
 
   final YearReview review;
-  final List<int> years;
-  final ValueChanged<int> onSelectYear;
 
   @override
   Widget build(BuildContext context) {
@@ -277,22 +262,6 @@ class _CoverPage extends StatelessWidget {
           textAlign: TextAlign.center,
           style: textTheme.bodyLarge?.copyWith(color: Washi.inkSoft),
         ),
-        if (years.length > 1) ...[
-          const SizedBox(height: 32),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final year in years)
-                ChoiceChip(
-                  label: Text(l10n.reviewYearOption(year)),
-                  selected: year == review.year,
-                  onSelected: (_) => onSelectYear(year),
-                ),
-            ],
-          ),
-        ],
       ],
     );
   }

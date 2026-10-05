@@ -1225,6 +1225,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get questSpotNone => 'まだ会得した秘伝はありません';
 
   @override
+  String get reviewListTitle => '年の振り返り';
+
+  @override
   String reviewEntry(int year) {
     return '$year年の振り返り';
   }
@@ -1255,11 +1258,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get reviewCoverEmpty => 'この年の記録はありません';
-
-  @override
-  String reviewYearOption(int year) {
-    return '$year年';
-  }
 
   @override
   String get reviewCountsTitle => 'この一年で';
