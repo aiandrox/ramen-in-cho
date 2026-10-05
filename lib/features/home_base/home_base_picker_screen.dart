@@ -96,37 +96,10 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
     await _save(name, here);
   }
 
-  Future<String?> _askName() {
-    final l10n = AppLocalizations.of(context);
-    final controller = TextEditingController(
-      text: l10n.homeBaseHereNameDefault,
-    );
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.homeBaseHereNameTitle),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 30,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final name = controller.text.trim();
-              Navigator.of(context)
-                  .pop(name.isEmpty ? l10n.homeBaseHereNameDefault : name);
-            },
-            child: Text(l10n.homeBaseDecide),
-          ),
-        ],
-      ),
-    ).whenComplete(controller.dispose);
-  }
+  Future<String?> _askName() => showDialog<String>(
+    context: context,
+    builder: (_) => const _HereNameDialog(),
+  );
 
   Future<void> _save(String name, GeoPoint location) async {
     final l10n = AppLocalizations.of(context);
@@ -293,4 +266,51 @@ Future<void> showHomeBaseHidenDialog(BuildContext context, DateTime setAt) {
       ],
     ),
   );
+}
+
+/// 現在地の拠点の呼び名を聞く。閉じる動きの間も入力欄が残るので、入力の中身は窓と一緒に片付ける。
+class _HereNameDialog extends StatefulWidget {
+  const _HereNameDialog();
+
+  @override
+  State<_HereNameDialog> createState() => _HereNameDialogState();
+}
+
+class _HereNameDialogState extends State<_HereNameDialog> {
+  late final _controller = TextEditingController(
+    text: AppLocalizations.of(context).homeBaseHereNameDefault,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.homeBaseHereNameTitle),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        maxLength: 30,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () {
+            final name = _controller.text.trim();
+            Navigator.of(context)
+                .pop(name.isEmpty ? l10n.homeBaseHereNameDefault : name);
+          },
+          child: Text(l10n.homeBaseDecide),
+        ),
+      ],
+    );
+  }
 }
