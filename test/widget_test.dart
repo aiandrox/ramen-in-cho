@@ -75,6 +75,22 @@ void main() {
     expect(find.byTooltip(ja.addRecord), findsOneWidget);
   });
 
+  testWidgets('通知が出ても、真ん中の判子は動かず、通知は判子の上に出る', (tester) async {
+    await pumpApp(tester, const []);
+    final seal = find.byType(RecordSealButton);
+    final before = tester.getRect(seal);
+
+    ScaffoldMessenger.of(tester.element(seal))
+        .showSnackBar(const SnackBar(content: Text('お知らせ')));
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(seal), before);
+    expect(
+      tester.getRect(find.byType(SnackBar)).bottom,
+      lessThanOrEqualTo(before.top),
+    );
+  });
+
   testWidgets('下のタブで修行・地図に切り替えられる。地図は開いたときだけ作る', (tester) async {
     await pumpApp(tester, const []);
 
