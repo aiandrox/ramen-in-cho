@@ -36,6 +36,19 @@
 	<string>近くのラーメン店を探すため、また並んだ店を確認するために使います</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>撮った写真を記録に使うために使います</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.aiandrox.ramenInCho</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ramenincho</string>
+			</array>
+		</dict>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
