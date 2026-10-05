@@ -125,26 +125,26 @@ class _TabSealPainter extends CustomPainter {
     return path..close();
   }
 
-  /// 御朱印帳: 閉じた表紙に題箋、下に蛇腹に折った頁の端がのぞく。
+  /// 御朱印帳: 閉じた表紙の左上に題箋、右下に丸い印を1つ押す。
   void _book(Canvas canvas) {
-    final cover = RRect.fromLTRBR(9, 5.5, 23.5, 22, const Radius.circular(1.2));
+    final cover = RRect.fromLTRBR(8, 4.5, 24, 27.5, const Radius.circular(1.4));
     canvas.drawRRect(cover, _fill);
-    // 題箋（縦長の札）を抜き、中に1画を残す。
-    canvas.drawRect(const Rect.fromLTRB(11.2, 7.8, 15, 17.5), _clear);
+    // 綴じ側の細い筋。
     canvas.drawLine(
-      const Offset(13.1, 9.8),
-      const Offset(13.1, 15.5),
+      const Offset(10.4, 6),
+      const Offset(10.4, 26),
+      _clearLine(0.8),
+    );
+    // 題箋（縦長の札）を抜き、中に1画を残す。
+    canvas.drawRect(const Rect.fromLTRB(12.4, 6.8, 16.2, 16.8), _clear);
+    canvas.drawLine(
+      const Offset(14.3, 8.8),
+      const Offset(14.3, 14.8),
       _line(1.1),
     );
-    // 蛇腹の頁（ジグザグ）。
-    final pleats = Path()..moveTo(9.5, 24.5);
-    for (var i = 0; i < 4; i++) {
-      final x = 9.5 + i * 3.5;
-      pleats
-        ..lineTo(x + 1.75, 27)
-        ..lineTo(x + 3.5, 24.5);
-    }
-    canvas.drawPath(pleats, _line(1.7));
+    // 押した印（輪を抜き、真ん中に点を残す）。
+    canvas.drawCircle(const Offset(19.3, 21.8), 3.4, _clearLine(1.3));
+    canvas.drawCircle(const Offset(19.3, 21.8), 1.2, _clear);
   }
 
   /// 絵馬: 浅い屋根の五角形の板に屋根の段、上に紐を掛け、願いを筆で2行。
