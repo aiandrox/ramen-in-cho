@@ -18,6 +18,9 @@ import UserNotifications
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "SharedPhoto") {
       SharedPhoto.register(with: registrar.messenger())
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "SystemSettings") {
+      SystemSettings.register(with: registrar.messenger())
+    }
   }
 }
 
@@ -57,6 +60,30 @@ enum SharedPhoto {
     } catch {
       try? files.removeItem(at: photo)
       return nil
+    }
+  }
+}
+
+/// スマホの設定のうち、麺印帳の通知の画面を開く。
+enum SystemSettings {
+  static func register(with messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(
+      name: "com.aiandrox.ramen_in_cho/system_settings", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "openNotificationSettings" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      let name: String
+      if #available(iOS 16.0, *) {
+        name = UIApplication.openNotificationSettingsURLString
+      } else {
+        name = UIApplication.openSettingsURLString
+      }
+      if let url = URL(string: name) {
+        UIApplication.shared.open(url)
+      }
+      result(nil)
     }
   }
 }

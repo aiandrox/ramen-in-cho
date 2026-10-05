@@ -1596,4 +1596,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get locationOpenSettings => '設定を開く';
+
+  @override
+  String get notificationSettings => '通知';
+
+  @override
+  String get notificationSettingsNote => 'スマホの設定で、麺印帳の通知を切り替えます';
 }

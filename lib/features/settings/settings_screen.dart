@@ -7,6 +7,7 @@ import '../credits/credits_screen.dart';
 import '../home_base/home_base_picker_screen.dart';
 import '../home_base/home_base_repository.dart';
 import '../onboarding/onboarding_screen.dart';
+import 'system_settings.dart';
 
 /// 設定。修行タブの右上の歯車から開く。
 class SettingsScreen extends ConsumerWidget {
@@ -36,6 +37,13 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text(homeBase?.name ?? l10n.homeBaseNotSet),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => open(const HomeBasePickerScreen()),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.notificationSettings),
+            subtitle: Text(l10n.notificationSettingsNote),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: openNotificationSettings,
           ),
           for (final (title, screen) in [
             (l10n.backupTitle, const BackupScreen()),
