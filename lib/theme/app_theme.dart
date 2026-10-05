@@ -93,14 +93,21 @@ ThemeData buildAppTheme() {
       indicatorColor: Colors.transparent,
     ),
     dividerTheme: const DividerThemeData(color: Washi.line),
-    // 入力欄は枠で囲まず、帳面の罫線のような下線だけにする。
+    // 入力欄は明るい紙の枠で囲み、見出しや仕切りの線と見分けられるようにする。
     inputDecorationTheme: const InputDecorationTheme(
-      border: UnderlineInputBorder(borderSide: BorderSide(color: Washi.line)),
-      enabledBorder: UnderlineInputBorder(
+      filled: true,
+      fillColor: Washi.page,
+      border: OutlineInputBorder(
         borderSide: BorderSide(color: Washi.line),
+        borderRadius: BorderRadius.all(Radius.circular(4)),
       ),
-      focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: Washi.ai, width: 2),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Washi.line),
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Washi.ai, width: 1.6),
+        borderRadius: BorderRadius.all(Radius.circular(4)),
       ),
     ),
     snackBarTheme: const SnackBarThemeData(
