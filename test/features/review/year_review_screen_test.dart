@@ -94,6 +94,51 @@ void main() {
     expect(find.text(ja.shareButton), findsOneWidget);
   });
 
+  group('めくったときの動き', () {
+    Future<void> turn(WidgetTester tester) async {
+      await tester.drag(find.byType(PageView), const Offset(-400, 0));
+      await tester.pump();
+    }
+
+    testWidgets('数字は初めて見えたときに数え上げ、触れると動き終えた姿にする', (tester) async {
+      await pump(tester, const YearReviewScreen(year: 2026));
+
+      await turn(tester);
+      // めくり終えるまで待つ（めくっている間は、紙に触れても届かない）。
+      final pages = tester.widget<PageView>(find.byType(PageView)).controller!;
+      while (pages.page! != pages.page!.roundToDouble()) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(find.text(ja.reviewCountsTitle), findsOneWidget);
+      expect(find.text(ja.bowls(1)), findsNothing);
+
+      await tester.tapAt(tester.getCenter(find.byType(PageView)));
+      await tester.pump();
+      expect(find.text(ja.bowls(1)), findsOneWidget);
+      await tester.pumpAndSettle();
+
+      // めくって戻ってきたときは、もう動かさない。
+      await turn(tester);
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(PageView), const Offset(400, 0));
+      await tester.pump();
+      expect(find.text(ja.bowls(1)), findsOneWidget);
+    });
+
+    testWidgets('動きを減らす設定では、初めから動き終えた姿を見せる', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await pump(tester, const YearReviewScreen(year: 2026));
+
+      await turn(tester);
+      expect(find.text(ja.bowls(1)), findsOneWidget);
+      expect(find.byType(InkanStamp), findsOneWidget);
+    });
+  });
+
   testWidgets('表紙には年の切り替えを出さない', (tester) async {
     await pump(tester, const YearReviewScreen(year: 2026));
 

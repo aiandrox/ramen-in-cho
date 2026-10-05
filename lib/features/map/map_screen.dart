@@ -44,7 +44,8 @@ class MapScreen extends ConsumerStatefulWidget {
   ConsumerState<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends ConsumerState<MapScreen> {
+class _MapScreenState extends ConsumerState<MapScreen>
+    with SingleTickerProviderStateMixin {
   final _controller = MapController();
   GeoPoint? _here;
   List<FoundShop> _nearby = const [];
@@ -60,9 +61,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   /// 旅路を見せる年。nullならすべての年。
   int? _journeyYear;
 
-  /// 旅路を再生しているときの、灯っている店の数。再生していなければnull。
-  int? _replayCount;
-  Timer? _replayTimer;
+  /// 旅路を再生しているときの店の並び。再生していなければnull。
+  List<JourneyStop>? _replayStops;
+  late final _replayController = AnimationController(vsync: this)
+    ..addStatusListener((status) {
+      if (status == AnimationStatus.completed && mounted) {
+        setState(_stopReplay);
+      }
+    });
 
   @override
   void initState() {
@@ -72,7 +78,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   void dispose() {
-    _replayTimer?.cancel();
+    _replayController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -147,27 +153,24 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   void _stopReplay() {
-    _replayTimer?.cancel();
-    _replayTimer = null;
-    _replayCount = null;
+    _replayController.stop();
+    _replayStops = null;
   }
 
-  /// 1杯目から順に、店を1つずつ灯していく。
+  /// 1杯目から順に、線を筆で引くようにのばし、着いた店を1つずつ灯していく。
+  /// 動きを減らす設定のときは、引き終えた旅路をそのまま見せる。
   void _replay(List<JourneyStop> stops) {
     _stopReplay();
     if (stops.isEmpty) return;
     _fitTo(stops);
-    setState(() => _replayCount = 1);
-    _replayTimer = Timer.periodic(const Duration(milliseconds: 400), (timer) {
-      if (!mounted) return timer.cancel();
-      final next = (_replayCount ?? 0) + 1;
-      if (next > stops.length) {
-        timer.cancel();
-        setState(_stopReplay);
-        return;
-      }
-      setState(() => _replayCount = next);
-    });
+    if (MediaQuery.disableAnimationsOf(context)) {
+      setState(() {});
+      return;
+    }
+    setState(() => _replayStops = stops);
+    _replayController
+      ..duration = journeyReplayDuration(stops.length)
+      ..forward(from: 0);
   }
 
   void _fitTo(List<JourneyStop> stops) {
@@ -260,15 +263,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             for (final stop in allStops)
               if (stop.eatenAt.year == _journeyYear) stop,
           ];
-    final shownStops = _replayCount == null
-        ? stops
-        : stops.take(_replayCount!).toList();
-    // 再生中は、灯った店のピンだけを出す。
-    final pins = _replayCount == null
+    final replayStops = _replayStops;
+    // 再生中は、旅路の店のピンだけを、線が着いた順に灯す。
+    final pins = replayStops == null
         ? allPins
         : [
             for (final pin in allPins)
-              if (shownStops.any((stop) => stop.shop.id == pin.shop.id)) pin,
+              if (replayStops.any((stop) => stop.shop.id == pin.shop.id)) pin,
           ];
     final base = ref.watch(currentHomeBaseProvider);
     final tilesEnabled = ref.watch(mapTilesEnabledProvider);
@@ -304,6 +305,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       padding: const EdgeInsets.all(48),
                       maxZoom: 16,
                     ),
+              // 再生中に地図に触れたら、再生をやめて引き終えた旅路を見せる。
+              onTap: (_, _) {
+                if (_replayStops != null) setState(_stopReplay);
+              },
               onPositionChanged: (_, hasGesture) {
                 if (hasGesture) _userMoved = true;
               },
@@ -313,21 +318,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
             children: [
               if (tilesEnabled) const WashiTileLayer(),
-              if (_showJourney && shownStops.length > 1)
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: [
-                        for (final stop in shownStops)
-                          LatLng(
-                            stop.location.latitude,
-                            stop.location.longitude,
-                          ),
-                      ],
-                      color: Washi.ai.withValues(alpha: 0.8),
-                      strokeWidth: 3,
-                    ),
-                  ],
+              if (_showJourney && (replayStops ?? stops).length > 1)
+                AnimatedBuilder(
+                  animation: _replayController,
+                  builder: (context, _) => PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: [
+                          for (final point
+                              in replayStops == null
+                                  ? [for (final stop in stops) stop.location]
+                                  : journeyLineTo(
+                                      replayStops,
+                                      journeyReplayReach(
+                                        _replayController.value,
+                                        replayStops.length,
+                                      ),
+                                    ))
+                            LatLng(point.latitude, point.longitude),
+                        ],
+                        color: Washi.ai.withValues(alpha: 0.8),
+                        strokeWidth: 3,
+                        strokeCap: StrokeCap.round,
+                        strokeJoin: StrokeJoin.round,
+                      ),
+                    ],
+                  ),
                 ),
               MarkerLayer(
                 markers: [
@@ -358,7 +374,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       alignment: Alignment.topCenter,
                       child: _WishPin(wish: wish),
                     ),
-                  if (base != null && _replayCount == null)
+                  if (base != null && replayStops == null)
                     Marker(
                       point: LatLng(base.latitude, base.longitude),
                       width: 24,
@@ -371,7 +387,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       width: 44,
                       height: 44,
                       alignment: Alignment.topCenter,
-                      child: _Pin(pin: pin),
+                      child: replayStops == null
+                          ? _Pin(pin: pin)
+                          : _LightingPin(
+                              animation: _replayController,
+                              stops: replayStops,
+                              order: replayStops.indexWhere(
+                                (stop) => stop.shop.id == pin.shop.id,
+                              ),
+                              child: _Pin(pin: pin),
+                            ),
                     ),
                   if (here != null)
                     Marker(
@@ -419,7 +444,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 years: years,
                 year: _journeyYear,
                 stops: stops,
-                isReplaying: _replayCount != null,
+                isReplaying: replayStops != null,
                 onYear: (year) {
                   setState(() {
                     _stopReplay();
@@ -430,7 +455,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       if (year == null || stop.eatenAt.year == year) stop,
                   ]);
                 },
-                onReplay: () => _replayCount == null
+                onReplay: () => replayStops == null
                     ? _replay(stops)
                     : setState(_stopReplay),
                 onExpeditions: () =>
@@ -819,4 +844,42 @@ class _LoadingBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 旅路の再生で、線が着いたときにふっと灯るピン。
+class _LightingPin extends StatelessWidget {
+  const _LightingPin({
+    required this.animation,
+    required this.stops,
+    required this.order,
+    required this.child,
+  });
+
+  final Animation<double> animation;
+  final List<JourneyStop> stops;
+
+  /// 旅路の何番目に着く店か。
+  final int order;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: animation,
+    child: child,
+    builder: (context, child) {
+      final lit =
+          ((journeyReplayReach(animation.value, stops.length) - order) / 0.35)
+              .clamp(0.0, 1.0);
+      if (lit == 0) return const SizedBox.shrink();
+      final pop = Curves.easeOutBack.transform(lit);
+      return Opacity(
+        opacity: lit,
+        child: Transform.scale(
+          scale: 0.6 + 0.4 * pop,
+          alignment: Alignment.bottomCenter,
+          child: child,
+        ),
+      );
+    },
+  );
 }

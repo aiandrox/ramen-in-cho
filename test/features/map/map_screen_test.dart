@@ -169,6 +169,72 @@ void main() {
     expect(find.text(ja.journeyExpeditionsNone), findsOneWidget);
   });
 
+  group('旅路の再生を止める', () {
+    final a = buildShop(id: 'a', latitude: 35.0, longitude: 139.0);
+    final b = buildShop(id: 'b', latitude: 35.01, longitude: 139.0);
+    final c = buildShop(id: 'c', latitude: 35.02, longitude: 139.0);
+    final visits = [
+      buildEntry(shop: a, eatenAt: DateTime(2026, 1, 1, 12)),
+      buildEntry(shop: b, eatenAt: DateTime(2026, 1, 2, 12)),
+      buildEntry(shop: c, eatenAt: DateTime(2026, 1, 3, 12)),
+    ];
+
+    testWidgets('「止める」で途中でやめ、引き終えた旅路に戻る', (tester) async {
+      await pumpMap(tester, visits);
+      await tester.tap(find.byTooltip(ja.journeyToggle));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(ja.journeyReplay));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.text(ja.journeyStop));
+      await tester.pump();
+
+      expect(find.text(ja.journeyReplay), findsOneWidget);
+      expect(
+        tester
+            .widget<PolylineLayer>(find.byType(PolylineLayer))
+            .polylines
+            .single
+            .points,
+        hasLength(3),
+      );
+    });
+
+    testWidgets('再生中に地図に触れても止まる', (tester) async {
+      await pumpMap(tester, visits);
+      await tester.tap(find.byTooltip(ja.journeyToggle));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(ja.journeyReplay));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tapAt(
+        tester.getBottomLeft(find.byType(FlutterMap)) + const Offset(400, -400),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.text(ja.journeyReplay), findsOneWidget);
+    });
+
+    testWidgets('動きを減らす設定では、再生せずに引き終えた旅路を見せる', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await pumpMap(tester, visits);
+      await tester.tap(find.byTooltip(ja.journeyToggle));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(ja.journeyReplay));
+      await tester.pump();
+
+      expect(find.text(ja.journeyReplay), findsOneWidget);
+      expect(find.text(ja.journeyStop), findsNothing);
+    });
+  });
+
   testWidgets('周辺を探している間は、地図の上に「探しています」と出す', (tester) async {
     final gate = Completer<void>();
     overpass.gate = gate;

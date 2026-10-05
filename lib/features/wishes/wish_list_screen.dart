@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/ink_wear.dart';
 import '../../theme/washi.dart';
+import '../home/app_tab.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
 import '../records/labels.dart';
@@ -220,7 +223,14 @@ class _PendingWishCard extends ConsumerWidget {
       child: Card(
         child: ListTile(
           contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          leading: _WishSeal(fulfilled: false, wishId: wish.id),
+          leading: _SwingOnce(
+            wishId: wish.id,
+            enabled:
+                ref.watch(appTabProvider) == AppTab.wishes &&
+                ref.read(clockProvider)().difference(wish.createdAt) <
+                    _freshWish,
+            child: _WishSeal(fulfilled: false, wishId: wish.id),
+          ),
           title: Text(wish.name, style: textTheme.titleMedium),
           subtitle: wish.trigger.isEmpty && wish.hoursConditions.isEmpty
               ? null
@@ -277,6 +287,84 @@ class _FulfilledWishCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 掛けたばかりとみなす間。地図や店のページで掛けてから、願掛け帳を開くまでの分。
+const _freshWish = Duration(minutes: 10);
+
+/// この起動の間に揺らした願。同じ願は二度揺らさない。
+final _swungWishIds = <String>{};
+
+/// 掛けたばかりの願のしおりを、吊られたように一度だけ揺らして落ち着かせる。
+/// 願掛け帳が見えているときだけ揺らし、動きを減らす設定のときは揺らさない。
+class _SwingOnce extends StatefulWidget {
+  const _SwingOnce({
+    required this.wishId,
+    required this.enabled,
+    required this.child,
+  });
+
+  final String wishId;
+  final bool enabled;
+  final Widget child;
+
+  @override
+  State<_SwingOnce> createState() => _SwingOnceState();
+}
+
+class _SwingOnceState extends State<_SwingOnce>
+    with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 650),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _maybeSwing();
+  }
+
+  @override
+  void didUpdateWidget(_SwingOnce oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _maybeSwing();
+  }
+
+  void _maybeSwing() {
+    if (!widget.enabled || !_swungWishIds.add(widget.wishId)) return;
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    _controller.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _controller,
+    child: widget.child,
+    builder: (context, child) {
+      if (!_controller.isAnimating) return child!;
+      final t = _controller.value;
+      final settle = (1 - t) * (1 - t);
+      final drop = Curves.easeOutCubic.transform((t / 0.35).clamp(0.0, 1.0));
+      return Opacity(
+        opacity: drop,
+        child: Transform.translate(
+          offset: Offset(0, -10 * (1 - drop)),
+          child: Transform.rotate(
+            alignment: Alignment.topCenter,
+            angle: 0.35 * math.cos(t * 3 * math.pi) * settle,
+            child: child,
+          ),
+        ),
+      );
+    },
+  );
 }
 
 /// 「願」の丸印。叶った願は朱、まだの願は灰色の輪郭だけ。

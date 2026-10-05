@@ -161,4 +161,34 @@ void main() {
   test('記録が無ければ遠征も無い', () {
     expect(expeditions(const []), isEmpty);
   });
+
+  group('旅路の再生', () {
+    test('1区間は長くても0.7秒、店が多くても7秒に収める', () {
+      expect(journeyReplayDuration(1), const Duration(milliseconds: 300));
+      expect(journeyReplayDuration(2), const Duration(milliseconds: 1000));
+      expect(journeyReplayDuration(200), const Duration(seconds: 7));
+    });
+
+    test('最初の店を灯す間は線をのばさず、終わりには最後の店に着く', () {
+      expect(journeyReplayReach(0, 3), 0);
+      expect(journeyReplayReach(0.1, 3), 0);
+      expect(journeyReplayReach(1, 3), 2);
+      expect(journeyReplayReach(1, 1), 0);
+    });
+
+    test('途中の区間は、着いた割合のところまで線を引く', () {
+      final stops = journeyStops(
+        scored([
+          buildEntry(shop: home, eatenAt: day(1, 1)),
+          buildEntry(shop: near, eatenAt: day(1, 2)),
+        ]),
+      );
+
+      expect(journeyLineTo(stops, 0), hasLength(1));
+      final half = journeyLineTo(stops, 0.5);
+      expect(half, hasLength(2));
+      expect(half.last.latitude, closeTo(35.005, 1e-9));
+      expect(journeyLineTo(stops, 1), hasLength(2));
+    });
+  });
 }
