@@ -7,36 +7,42 @@ import '../../theme/washi_sheet.dart';
 
 enum StartChoice { eaten, queue }
 
+const startSheetTag = #startSheet;
+
 /// 真ん中の「麺」を押したときに、記録するか並び始めるかを選ぶ窓。
-Future<StartChoice?> showStartSheet(BuildContext context) =>
-    showWashiSheet<StartChoice>(
-      context: context,
-      builder: (context) {
-        final l10n = AppLocalizations.of(context);
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _StartChoiceButton(
-                icon: Icons.ramen_dining,
-                title: l10n.startEatenTitle,
-                body: l10n.startEatenBody,
-                onPressed: () => Navigator.of(context).pop(StartChoice.eaten),
-              ),
-              const SizedBox(height: 16),
-              _StartChoiceButton(
-                icon: Icons.groups,
-                title: l10n.startQueueTitle,
-                body: l10n.startQueueBody,
-                onPressed: () => Navigator.of(context).pop(StartChoice.queue),
-              ),
-            ],
+Future<StartChoice?> showStartSheet(
+  BuildContext context, {
+  ShellSheetHostState? host,
+}) => showWashiSheet<StartChoice>(
+  context: context,
+  host: host,
+  tag: startSheetTag,
+  builder: (context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _StartChoiceButton(
+            icon: Icons.ramen_dining,
+            title: l10n.startEatenTitle,
+            body: l10n.startEatenBody,
+            onPressed: () => closeWashiSheet(context, StartChoice.eaten),
           ),
-        );
-      },
+          const SizedBox(height: 16),
+          _StartChoiceButton(
+            icon: Icons.groups,
+            title: l10n.startQueueTitle,
+            body: l10n.startQueueBody,
+            onPressed: () => closeWashiSheet(context, StartChoice.queue),
+          ),
+        ],
+      ),
     );
+  },
+);
 
 class _StartChoiceButton extends StatelessWidget {
   const _StartChoiceButton({

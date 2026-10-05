@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ramen_in_cho/theme/washi_sheet.dart';
 
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/quests/quest_list_screen.dart';
@@ -90,7 +91,7 @@ void main() {
     expect(tester.getTopLeft(seal).dx, 0);
   });
 
-  testWidgets('秘伝の窓は下のタブの上ではなく、画面の下端から出す', (tester) async {
+  testWidgets('タブの外（別の Navigator の中）で開いた秘伝の窓は、画面の下端から出す', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.5;
     addTearDown(tester.view.reset);
@@ -125,5 +126,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(ja.questSpotOpenShop), findsOneWidget);
     expect(tester.getBottomLeft(find.byType(BottomSheet)).dy, 2400 / 2.5);
+  });
+
+  testWidgets('タブの画面で開いた秘伝の窓は、下のタブの上に出してタブを覆わない', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    final shop = buildShop(id: 'shop');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          visitsProvider.overrideWithValue(
+            AsyncData([
+              buildEntry(shop: shop, eatenAt: DateTime(2026, 9, 1, 12)),
+            ]),
+          ),
+          wishesProvider.overrideWithValue(const AsyncData([])),
+        ],
+        child: localizedApp(
+          home: Scaffold(
+            body: ShellSheetHost(
+              child: Scaffold(
+                appBar: AppBar(),
+                body: ListView(children: const [QuestSections()]),
+              ),
+            ),
+            bottomNavigationBar: const SizedBox(height: 80),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('はじめての着丼'));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.questSpotOpenShop), findsOneWidget);
+    expect(tester.getBottomLeft(find.byType(BottomSheet)).dy, 2400 / 2.5 - 80);
+
+    await tester.tapAt(const Offset(200, kToolbarHeight + 8));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsNothing);
   });
 }
