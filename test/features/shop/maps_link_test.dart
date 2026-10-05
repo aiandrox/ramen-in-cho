@@ -5,15 +5,15 @@ void main() {
   group('mapsUris', () {
     test('iOS は Apple のマップを開き、だめならブラウザの Google マップ', () {
       final uris = mapsUris(
-        latitude: 35.443708,
-        longitude: 139.362543,
+        latitude: 35.681236,
+        longitude: 139.767125,
         name: 'らーめん 一番',
         apple: true,
       );
       expect(uris.map((u) => u.toString()), [
-        'https://maps.apple.com/?ll=35.443708,139.362543'
+        'https://maps.apple.com/?ll=35.681236,139.767125'
             '&q=%E3%82%89%E3%83%BC%E3%82%81%E3%82%93%20%E4%B8%80%E7%95%AA',
-        'https://www.google.com/maps/search/?api=1&query=35.443708,139.362543',
+        'https://www.google.com/maps/search/?api=1&query=35.681236,139.767125',
       ]);
       expect(uris.first.queryParameters['q'], 'らーめん 一番');
     });

@@ -167,9 +167,9 @@ void main() {
                   {
                     'type': 'node',
                     'id': 1,
-                    'lat': 35.4398,
-                    'lon': 139.3651,
-                    'tags': {'name': 'ラーメン豚山'},
+                    'lat': 35.6908,
+                    'lon': 139.7006,
+                    'tags': {'name': '麺処 さくら'},
                   },
                 ],
               }),
@@ -184,7 +184,8 @@ void main() {
         MockClient(
           (_) async => http.Response.bytes(
             utf8.encode(
-              File('test/fixtures/yahoo_local_atsugi.json').readAsStringSync(),
+              File('test/fixtures/yahoo_local_shinjuku.json')
+                  .readAsStringSync(),
             ),
             200,
           ),
@@ -193,9 +194,9 @@ void main() {
       ),
     );
 
-    final shops = await finder.searchNearby(const GeoPoint(35.4395, 139.3645));
+    final shops = await finder.searchNearby(const GeoPoint(35.6905, 139.7000));
 
-    expect(shops.map((s) => s.name), ['ラーメン豚山', '麺屋藤ろう']);
+    expect(shops.map((s) => s.name), ['麺処 さくら', '麺屋ふじみち']);
     expect(shops.first.osmId, 'node/1');
   });
 }

@@ -58,7 +58,7 @@ class Shop {
   /// OpenPOI で見つけた店の出所。OpenStreetMap の店・手入力の店は null。
   final ShopSource? dataSource;
 
-  /// 店のある市区町村（「厚木市」など）。道中記に使う。位置から調べるまではnull、調べても分からなければ空。
+  /// 店のある市区町村（「新宿区」など）。道中記に使う。位置から調べるまではnull、調べても分からなければ空。
   final String? area;
   final DateTime createdAt;
 }
@@ -179,7 +179,7 @@ class HomeBaseSetting {
 
   final String id;
 
-  /// 画面に出す名前（「横浜駅」「厚木市」など）。
+  /// 画面に出す名前（「横浜駅」「札幌市」など）。
   final String name;
   final double latitude;
   final double longitude;

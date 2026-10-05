@@ -10,15 +10,15 @@ void main() {
 
   group('placeSearchNames', () {
     test('「駅」を外し、市町村は「市・町・村・区」をつけた名前でも探す', () {
-      final names = placeSearchNames('厚木駅');
-      expect(names.stations, {'厚木'});
-      expect(names.places, {'厚木', '厚木市', '厚木町', '厚木村', '厚木区'});
+      final names = placeSearchNames('札幌駅');
+      expect(names.stations, {'札幌'});
+      expect(names.places, {'札幌', '札幌市', '札幌町', '札幌村', '札幌区'});
     });
 
-    test('「厚木市」と打てば、駅は「厚木」でも探す', () {
-      final names = placeSearchNames(' 厚木市 ');
-      expect(names.stations, {'厚木市', '厚木'});
-      expect(names.places, contains('厚木市'));
+    test('「札幌市」と打てば、駅は「札幌」でも探す', () {
+      final names = placeSearchNames(' 札幌市 ');
+      expect(names.stations, {'札幌市', '札幌'});
+      expect(names.places, contains('札幌市'));
     });
 
     test('問い合わせを壊す記号は取り除き、空なら何も探さない', () {
@@ -28,21 +28,21 @@ void main() {
   });
 
   test('問い合わせは名前がぴったり合う駅と市町村を探す', () {
-    final query = buildPlaceSearchQuery('厚木');
-    expect(query, contains('nwr["name"="厚木"]["railway"="station"];'));
-    expect(query, contains('node["name"="厚木市"]["place"];'));
+    final query = buildPlaceSearchQuery('札幌');
+    expect(query, contains('nwr["name"="札幌"]["railway"="station"];'));
+    expect(query, contains('node["name"="札幌市"]["place"];'));
     expect(query, contains('[timeout:23]'));
   });
 
   test('駅には「駅」をつけ、市と駅を候補にし、集落や外国の村は除く', () {
     final places = parsePlaceSearchResponse(
-      fixture('overpass_place_atsugi.json'),
-      '厚木',
+      fixture('overpass_place_sapporo.json'),
+      '札幌',
     );
 
-    expect(places.map((p) => p.name), ['厚木駅', '厚木市']);
+    expect(places.map((p) => p.name), ['札幌駅', '札幌市']);
     expect(places.first.kind, PlaceKind.station);
-    expect(places.first.operators, ['小田急電鉄', 'JR東日本']);
+    expect(places.first.operators, ['北海道旅客鉄道']);
     expect(places.last.kind, PlaceKind.city);
   });
 
@@ -70,7 +70,7 @@ void main() {
     expect(
       () => parsePlaceSearchResponse(
         '{"elements": [], "remark": "runtime error: Query timed out"}',
-        '厚木',
+        '札幌',
       ),
       throwsFormatException,
     );

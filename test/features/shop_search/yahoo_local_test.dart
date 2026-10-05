@@ -10,16 +10,16 @@ import 'package:ramen_in_cho/features/shop_search/yahoo_local.dart';
 import 'package:ramen_in_cho/features/shop_search/yahoo_local_client.dart';
 
 void main() {
-  final sample = File('test/fixtures/yahoo_local_atsugi.json')
+  final sample = File('test/fixtures/yahoo_local_shinjuku.json')
       .readAsStringSync();
 
   test('保存した応答から、名前と位置のあるラーメン店を取り出す（座標は経度,緯度の順。主な業種がラーメンでない居酒屋は除く）', () {
     final shops = parseYahooLocal(sample);
 
-    expect(shops.map((s) => s.name), ['ラーメン豚山 本厚木店', '麺屋藤ろう']);
-    expect(shops.first.location.latitude, closeTo(35.4398, 1e-6));
-    expect(shops.first.location.longitude, closeTo(139.3651, 1e-6));
-    expect(shops.first.address, '神奈川県厚木市中町2-1-1');
+    expect(shops.map((s) => s.name), ['麺処 さくら 新宿店', '麺屋ふじみち']);
+    expect(shops.first.location.latitude, closeTo(35.6908, 1e-6));
+    expect(shops.first.location.longitude, closeTo(139.7006, 1e-6));
+    expect(shops.first.address, '東京都新宿区西新宿1-1-1');
     expect(shops.last.address, isNull);
     expect(shops.first.osmId, isNull);
     expect(shops.first.dataSource!.attributions, [yahooAttribution]);
@@ -31,7 +31,7 @@ void main() {
 
   test('周辺検索はラーメンの業種で、km の半径（最大20km）と近い順で問い合わせる', () {
     final uri = buildYahooNearbyUri(
-      const GeoPoint(35.44, 139.36),
+      const GeoPoint(35.69, 139.71),
       radiusMeters: 300,
       appId: 'test-id',
     );
@@ -40,11 +40,11 @@ void main() {
     expect(uri.queryParameters['gc'], '0106');
     expect(uri.queryParameters['dist'], '0.3');
     expect(uri.queryParameters['sort'], 'dist');
-    expect(uri.queryParameters['lat'], '35.44');
-    expect(uri.queryParameters['lon'], '139.36');
+    expect(uri.queryParameters['lat'], '35.69');
+    expect(uri.queryParameters['lon'], '139.71');
     expect(
       buildYahooNearbyUri(
-        const GeoPoint(35.44, 139.36),
+        const GeoPoint(35.69, 139.71),
         radiusMeters: 50000,
         appId: 'x',
       ).queryParameters['dist'],

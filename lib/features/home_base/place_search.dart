@@ -5,7 +5,7 @@ import '../shop_search/geo.dart';
 /// 拠点の候補の種類。
 enum PlaceKind { station, city, town, village, suburb }
 
-/// 拠点の候補（駅か市町村など）。
+/// 拠点の候補（駅や市町村など）。
 class PlaceCandidate {
   const PlaceCandidate({
     required this.name,
@@ -14,7 +14,7 @@ class PlaceCandidate {
     this.operators = const [],
   });
 
-  /// 画面に出し、拠点の名前として残す名前（「横浜駅」「厚木市」など）。
+  /// 画面に出し、拠点の名前として残す名前（「横浜駅」「札幌市」など）。
   final String name;
   final PlaceKind kind;
   final GeoPoint location;
@@ -41,7 +41,7 @@ String placeSearchStem(String input) {
 }
 
 /// 探す名前。全国を名前の一部で探すと公開サーバーでは時間切れになるため、名前がぴったり合うものだけを探す。
-/// 「厚木」なら駅の「厚木」と、市町村などの「厚木」「厚木市」「厚木町」「厚木村」「厚木区」。
+/// 「札幌」なら駅の「札幌」と、市町村などの「札幌」「札幌市」「札幌町」「札幌村」「札幌区」。
 ({Set<String> stations, Set<String> places}) placeSearchNames(String input) {
   final stem = placeSearchStem(input);
   if (stem.isEmpty) return (stations: <String>{}, places: <String>{});

@@ -30,7 +30,7 @@ void main() {
       ),
       Wish(
         id: 'b',
-        name: '麺屋藤ろう',
+        name: '麺屋ふじみち',
         note: '煮干し',
         createdAt: DateTime(2026, 9, 28),
       ),
@@ -52,7 +52,7 @@ void main() {
 
     expect(find.text(ja.wishPendingTab(1)), findsOneWidget);
     expect(find.text(ja.wishFulfilledTab(1)), findsOneWidget);
-    expect(find.text('麺屋藤ろう'), findsOneWidget);
+    expect(find.text('麺屋ふじみち'), findsOneWidget);
 
     await tester.tap(find.text(ja.wishFulfilledTab(1)));
     await tester.pumpAndSettle();
@@ -79,7 +79,7 @@ void main() {
           homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(
             AsyncData([
-              Wish(id: 'b', name: '麺屋藤ろう', createdAt: DateTime(2026, 9, 28)),
+              Wish(id: 'b', name: '麺屋ふじみち', createdAt: DateTime(2026, 9, 28)),
             ]),
           ),
           visitsProvider.overrideWithValue(const AsyncData([])),
@@ -90,13 +90,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.drag(find.text('麺屋藤ろう'), const Offset(-500, 0));
+    await tester.drag(find.text('麺屋ふじみち'), const Offset(-500, 0));
     await tester.pumpAndSettle();
-    expect(find.text(ja.wishDeleteConfirm('麺屋藤ろう')), findsOneWidget);
+    expect(find.text(ja.wishDeleteConfirm('麺屋ふじみち')), findsOneWidget);
     await tester.tap(find.widgetWithText(KeshiFuda, ja.delete));
     await tester.pumpAndSettle();
 
     expect(repository.deleted, ['b']);
-    expect(find.text('麺屋藤ろう'), findsNothing);
+    expect(find.text('麺屋ふじみち'), findsNothing);
   });
 }

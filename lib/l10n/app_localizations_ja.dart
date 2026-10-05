@@ -796,16 +796,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeBaseIntro =>
-      'ふだん暮らしている駅か街を拠点にします。拠点から80km以上離れた店で食べると「遠征」になります。拠点を変えても、変えた日から後の記録にだけ効きます。';
+      'ふだん暮らしている駅や街を拠点にします。拠点から80km以上離れた店で食べると「遠征」になります。拠点を変えても、変えた日から後の記録にだけ効きます。';
 
   @override
-  String get homeBaseSearchHint => '駅や市町村の名前（例: 横浜駅、厚木市）';
+  String get homeBaseSearchHint => '駅や市町村の名前（例: 横浜駅、札幌市）';
 
   @override
   String get homeBaseSearch => '探す';
 
   @override
-  String get homeBaseSearchNote => '名前はそのまま入れてください（「本厚木」と「厚木」は別の駅です）';
+  String get homeBaseSearchNote => '名前はそのまま入れてください（「新宿三丁目」と「新宿」は別の駅です）';
 
   @override
   String get homeBaseUseHere => '現在地にする';
@@ -1519,7 +1519,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingHomeBaseBody =>
-      'ふだん暮らす駅か街を、修行の拠点と定める。\n\n拠点から80km以上離れた店で食べた一杯は「遠征」となり、修行点が上乗せされる。拠点はあとから設定で変えられ、変えた日から後の一杯にだけ効く。';
+      'ふだん暮らす駅や街を、修行の拠点と定める。\n\n拠点から80km以上離れた店で食べた一杯は「遠征」となり、修行点が上乗せされる。拠点はあとから設定で変えられ、変えた日から後の一杯にだけ効く。';
 
   @override
   String get onboardingHomeBaseButton => '拠点を決める';

@@ -85,10 +85,10 @@ void main() {
           final keyword = request.url.queryParameters['q']!;
           keywords.add(keyword);
           return respond([
-            if (keyword == 'ラーメン') {'name': '晴っぴ', 'lat': 35.0, 'lng': 139.0},
+            if (keyword == 'ラーメン') {'name': 'はれのひ', 'lat': 35.0, 'lng': 139.0},
             if (keyword == '麺屋') ...[
-              {'name': '麺屋藤ろう', 'lat': 35.001, 'lng': 139.0},
-              {'name': '晴っぴ', 'lat': 35.0, 'lng': 139.0},
+              {'name': '麺屋ふじみち', 'lat': 35.001, 'lng': 139.0},
+              {'name': 'はれのひ', 'lat': 35.0, 'lng': 139.0},
             ],
           ]);
         }),
@@ -97,7 +97,7 @@ void main() {
       final shops = await client.searchNearby(const GeoPoint(35.0, 139.0));
 
       expect(keywords, unorderedEquals(openPoiKeywords));
-      expect(shops.map((s) => s.name), ['晴っぴ', '麺屋藤ろう']);
+      expect(shops.map((s) => s.name), ['はれのひ', '麺屋ふじみち']);
     });
 
     test('一部の語が失敗しても、ほかの語の結果を返す', () async {
@@ -107,14 +107,14 @@ void main() {
             return http.Response('', 503);
           }
           return respond([
-            {'name': '麺屋藤ろう', 'lat': 35.0, 'lng': 139.0},
+            {'name': '麺屋ふじみち', 'lat': 35.0, 'lng': 139.0},
           ]);
         }),
       );
 
       final shops = await client.searchNearby(const GeoPoint(35.0, 139.0));
 
-      expect(shops.single.name, '麺屋藤ろう');
+      expect(shops.single.name, '麺屋ふじみち');
     });
 
     test('すべての語が失敗したら失敗にする', () {
@@ -131,12 +131,12 @@ void main() {
 
   group('店名で探す', () {
     test('全国から探し、近い順の基準があれば中心を渡す', () {
-      final nationwide = buildOpenPoiNameUri(' 藤ろう ');
-      expect(nationwide.queryParameters['q'], '藤ろう');
+      final nationwide = buildOpenPoiNameUri(' ふじみち ');
+      expect(nationwide.queryParameters['q'], 'ふじみち');
       expect(nationwide.queryParameters.containsKey('center'), isFalse);
 
       final near = buildOpenPoiNameUri(
-        '藤ろう',
+        'ふじみち',
         near: const GeoPoint(35.69, 139.70),
       );
       expect(near.queryParameters['center'], '139.7,35.69');
@@ -150,21 +150,21 @@ void main() {
               jsonEncode({
                 'suggestions': [
                   {
-                    'name': '麺屋藤ろう',
-                    'prefecture': '神奈川県',
-                    'city': '厚木市',
+                    'name': '麺屋ふじみち',
+                    'prefecture': '東京都',
+                    'city': '新宿区',
                     'address': '',
-                    'lat': 35.44,
-                    'lng': 139.36,
+                    'lat': 35.69,
+                    'lng': 139.71,
                   },
                   {
-                    'name': '麺屋 藤ろう',
-                    'address': '神奈川県厚木市中町',
-                    'lat': 35.4401,
-                    'lng': 139.36,
+                    'name': '麺屋 ふじみち',
+                    'address': '東京都新宿区西新宿',
+                    'lat': 35.6901,
+                    'lng': 139.71,
                   },
                   {
-                    'name': '藤ろう',
+                    'name': 'ふじみち',
                     'address': '埼玉県加須市',
                     'lat': 36.1,
                     'lng': 139.6,
@@ -177,10 +177,10 @@ void main() {
         ),
       );
 
-      final shops = await client.searchByName('藤ろう');
+      final shops = await client.searchByName('ふじみち');
 
-      expect(shops.map((s) => s.name), ['麺屋藤ろう', '藤ろう']);
-      expect(shops.first.address, '神奈川県厚木市');
+      expect(shops.map((s) => s.name), ['麺屋ふじみち', 'ふじみち']);
+      expect(shops.first.address, '東京都新宿区');
       expect(shops.last.address, '埼玉県加須市');
     });
   });
@@ -188,15 +188,15 @@ void main() {
   test('まわりの施設でいちばん多い市区町村を、その場所の地名にする', () {
     expect(
       parseOpenPoiArea(
-        '{"results":[{"city":"厚木市"},{"city":""},{"city":"厚木市"},'
-        '{"city":"海老名市"}]}',
+        '{"results":[{"city":"新宿区"},{"city":""},{"city":"新宿区"},'
+        '{"city":"渋谷区"}]}',
       ),
-      '厚木市',
+      '新宿区',
     );
     expect(parseOpenPoiArea('{"results":[]}'), isNull);
     expect(
-      buildOpenPoiAreaUri(const GeoPoint(35.44, 139.36)).queryParameters,
-      containsPair('center', '139.36,35.44'),
+      buildOpenPoiAreaUri(const GeoPoint(35.69, 139.71)).queryParameters,
+      containsPair('center', '139.71,35.69'),
     );
   });
 
@@ -213,7 +213,7 @@ void main() {
           },
           {'name': '藤井施術院', 'category': 'medical', 'lat': 35.0, 'lng': 139.0},
           {
-            'name': '麺屋藤ろう',
+            'name': '麺屋ふじみち',
             'category': 'restaurant',
             'lat': 35.1,
             'lng': 139.0,
@@ -223,12 +223,12 @@ void main() {
       }),
     );
 
-    expect(shops.map((s) => s.name), ['麺屋藤ろう', '藤の家', '藤ストアー']);
+    expect(shops.map((s) => s.name), ['麺屋ふじみち', '藤の家', '藤ストアー']);
   });
 
   test('店名で探すときは、すべての語に合う店だけを返す窓口を使う', () {
-    final uri = buildOpenPoiNameUri('麺屋 藤ろう');
+    final uri = buildOpenPoiNameUri('麺屋 ふじみち');
     expect(uri.path, '/v1/suggest');
-    expect(uri.queryParameters['q'], '麺屋 藤ろう');
+    expect(uri.queryParameters['q'], '麺屋 ふじみち');
   });
 }
