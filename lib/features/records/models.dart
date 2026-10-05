@@ -184,4 +184,17 @@ class HomeBaseSetting {
   final double latitude;
   final double longitude;
   final DateTime setAt;
+
+  HomeBaseSetting copyWith({
+    String? name,
+    double? latitude,
+    double? longitude,
+    DateTime? setAt,
+  }) => HomeBaseSetting(
+    id: id,
+    name: name ?? this.name,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    setAt: setAt ?? this.setAt,
+  );
 }

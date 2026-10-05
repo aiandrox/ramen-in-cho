@@ -38,4 +38,43 @@ void main() {
     expect(latestHomeBase(const []), isNull);
     expect(firstHomeBase(const []), isNull);
   });
+
+  group('同じ日時の拠点', () {
+    final a = buildHomeBase(id: 'a', setAt: DateTime(2026, 6, 1));
+    final b = buildHomeBase(id: 'b', setAt: DateTime(2026, 6, 1));
+
+    test('IDの大きいほうが効き、並べ方によらない', () {
+      for (final settings in [
+        [a, b],
+        [b, a],
+      ]) {
+        expect(homeBaseAt(settings, DateTime(2026, 6, 1))?.id, 'b');
+        expect(latestHomeBase(settings)?.id, 'b');
+        expect(firstHomeBase(settings)?.id, 'a');
+        expect(homeBasesNewestFirst(settings).map((s) => s.id), ['b', 'a']);
+      }
+    });
+  });
+
+  test('これまでの拠点は新しい順に並べる', () {
+    expect(homeBasesNewestFirst([yokohama, sapporo]).map((s) => s.id), [
+      'sapporo',
+      'yokohama',
+    ]);
+  });
+
+  test('日付を直すと、その日の0時から効く', () {
+    expect(
+      homeBaseDayStart(DateTime(2026, 6, 1, 23, 59)),
+      DateTime(2026, 6, 1),
+    );
+    final moved = sapporo.copyWith(
+      setAt: homeBaseDayStart(DateTime(2026, 5, 20, 15)),
+    );
+    expect(
+      homeBaseAt([yokohama, moved], DateTime(2026, 5, 19, 23))?.id,
+      'yokohama',
+    );
+    expect(homeBaseAt([yokohama, moved], DateTime(2026, 5, 20))?.id, 'sapporo');
+  });
 }

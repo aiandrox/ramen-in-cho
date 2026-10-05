@@ -18,6 +18,7 @@ import '../scoring/rank_labels.dart';
 import '../scoring/scoring_providers.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/location_service.dart';
+import 'home_base.dart';
 import 'home_base_repository.dart';
 
 /// 拠点を選ぶときの地図の倍率。駅や街のあたりが見分けられる広さ。
@@ -28,9 +29,12 @@ const _japanCenter = LatLng(36.5, 137.0);
 const _japanZoom = 5.0;
 
 /// 拠点を決める画面。地図を動かして真ん中の「拠」の場所にするか、現在地にする。決めたら true を返して閉じる。
+/// [editing]を渡すと、その拠点の場所を直す画面になる。
 /// 場所はどこにも送らない（地図の画像を取るときに表示範囲が伝わるだけ）。
 class HomeBasePickerScreen extends ConsumerStatefulWidget {
-  const HomeBasePickerScreen({super.key});
+  const HomeBasePickerScreen({super.key, this.editing});
+
+  final HomeBaseSetting? editing;
 
   @override
   ConsumerState<HomeBasePickerScreen> createState() =>
@@ -63,7 +67,9 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
     final here = await location.currentPosition(requestPermission: false);
     if (!mounted || here == null) return;
     setState(() => _here = here);
-    if (ref.read(currentHomeBaseProvider) == null && !_userMoved) {
+    if (widget.editing == null &&
+        ref.read(currentHomeBaseProvider) == null &&
+        !_userMoved) {
       _controller.move(LatLng(here.latitude, here.longitude), homeBasePickZoom);
     }
   }
@@ -105,7 +111,35 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
 
   Future<void> _useCenter() {
     final center = _controller.camera.center;
-    return _choose(GeoPoint(center.latitude, center.longitude));
+    final location = GeoPoint(center.latitude, center.longitude);
+    return switch (widget.editing) {
+      final editing? => _relocate(editing, location),
+      null => _choose(location),
+    };
+  }
+
+  Future<void> _relocate(HomeBaseSetting editing, GeoPoint location) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(homeBaseRepositoryProvider)
+          .updateHomeBase(
+            editing.copyWith(
+              latitude: location.latitude,
+              longitude: location.longitude,
+            ),
+          );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.homeBaseRelocated(editing.name))),
+      );
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      debugPrint('Home base relocate failed: $e');
+      messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _choose(GeoPoint location) async {
@@ -154,7 +188,8 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final history = ref.watch(homeBaseSettingsProvider).value ?? const [];
-    final current = ref.watch(currentHomeBaseProvider);
+    final editing = widget.editing;
+    final current = editing ?? ref.watch(currentHomeBaseProvider);
     final pins = shopPins(ref.watch(scoredVisitsProvider));
     final tilesEnabled = ref.watch(mapTilesEnabledProvider);
     final here = _here;
@@ -247,7 +282,9 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Text(
-                        l10n.homeBaseIntro,
+                        editing == null
+                            ? l10n.homeBaseIntro
+                            : l10n.homeBaseRelocateIntro(editing.name),
                         style: textTheme.bodySmall,
                       ),
                     ),
@@ -283,39 +320,45 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    current == null
-                        ? l10n.homeBaseNotSet
-                        : l10n.homeBaseLine(current.name),
-                    style: textTheme.titleMedium,
-                  ),
+                  Text(switch ((editing, current)) {
+                    (final editing?, _) => l10n.homeBaseRelocateLine(
+                      editing.name,
+                    ),
+                    (null, final current?) => l10n.homeBaseLine(current.name),
+                    (null, null) => l10n.homeBaseNotSet,
+                  }, style: textTheme.titleMedium),
                   const SizedBox(height: 12),
                   AiFuda(
                     expand: true,
                     onPressed: busy ? null : _useCenter,
-                    child: Text(l10n.homeBaseUseCenter),
+                    child: Text(
+                      editing == null
+                          ? l10n.homeBaseUseCenter
+                          : l10n.homeBaseRelocateHere,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    children: [
-                      FudeLink(
-                        icon: const Icon(Icons.my_location),
-                        onPressed: busy ? null : _useHere,
-                        child: Text(l10n.homeBaseUseHere),
-                      ),
-                      if (history.isNotEmpty)
+                  if (editing == null)
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      children: [
                         FudeLink(
-                          icon: const Icon(Icons.history),
-                          onPressed: () => showWashiSheet<void>(
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (_) => _HistorySheet(history: history),
-                          ),
-                          child: Text(l10n.homeBaseHistoryTitle),
+                          icon: const Icon(Icons.my_location),
+                          onPressed: busy ? null : _useHere,
+                          child: Text(l10n.homeBaseUseHere),
                         ),
-                    ],
-                  ),
+                        if (history.isNotEmpty)
+                          FudeLink(
+                            icon: const Icon(Icons.history),
+                            onPressed: () => showWashiSheet<void>(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (_) => const _HistorySheet(),
+                            ),
+                            child: Text(l10n.homeBaseHistoryTitle),
+                          ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -368,15 +411,16 @@ class _CenterSeal extends StatelessWidget {
   }
 }
 
-/// これまでの拠点（新しい順）。
-class _HistorySheet extends StatelessWidget {
-  const _HistorySheet({required this.history});
-
-  final List<HomeBaseSetting> history;
+/// これまでの拠点（新しい順）。タップで日付・呼び名・場所を直したり消したりする。
+class _HistorySheet extends ConsumerWidget {
+  const _HistorySheet();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final history = homeBasesNewestFirst(
+      ref.watch(homeBaseSettingsProvider).value ?? const [],
+    );
     return SafeArea(
       child: ListView(
         shrinkWrap: true,
@@ -386,15 +430,173 @@ class _HistorySheet extends StatelessWidget {
             l10n.homeBaseHistoryTitle,
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          for (final setting in history.reversed)
+          for (final setting in history)
             ListTile(
+              key: ValueKey(setting.id),
               contentPadding: EdgeInsets.zero,
               dense: true,
               title: Text(setting.name),
               subtitle: Text(
-                l10n.homeBaseHistoryFrom(formatDateTime(setting.setAt)),
+                l10n.homeBaseHistoryFrom(formatDate(setting.setAt)),
+              ),
+              trailing: const Icon(Icons.edit_outlined),
+              onTap: () => showWashiSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => _EditSheet(setting: setting),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// これまでの拠点の1件を直す・消す。
+class _EditSheet extends ConsumerStatefulWidget {
+  const _EditSheet({required this.setting});
+
+  final HomeBaseSetting setting;
+
+  @override
+  ConsumerState<_EditSheet> createState() => _EditSheetState();
+}
+
+class _EditSheetState extends ConsumerState<_EditSheet> {
+  late var _setting = widget.setting;
+
+  Future<void> _update(HomeBaseSetting updated) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final saved = await ref
+          .read(homeBaseRepositoryProvider)
+          .updateHomeBase(updated);
+      if (mounted) setState(() => _setting = saved);
+    } catch (e) {
+      debugPrint('Home base update failed: $e');
+      messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final today = homeBaseDayStart(ref.read(clockProvider)());
+    final current = homeBaseDayStart(_setting.setAt);
+    final day = await showDatePicker(
+      context: context,
+      initialDate: current.isAfter(today) ? today : current,
+      firstDate: DateTime(2000),
+      lastDate: today,
+    );
+    if (day == null || !mounted) return;
+    await _update(_setting.copyWith(setAt: homeBaseDayStart(day)));
+  }
+
+  Future<void> _rename() async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => _NameDialog(initial: _setting.name),
+    );
+    if (name == null || !mounted) return;
+    await _update(_setting.copyWith(name: name));
+  }
+
+  Future<void> _relocate() async {
+    final moved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => HomeBasePickerScreen(editing: _setting),
+      ),
+    );
+    if (moved == true && mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _delete() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final setting = _setting;
+    final all =
+        ref.read(homeBaseSettingsProvider).value ?? const <HomeBaseSetting>[];
+    final others = [
+      for (final other in all)
+        if (other.id != setting.id) other,
+    ];
+    final previous = homeBaseAt(others, setting.setAt);
+    final date = formatDate(setting.setAt);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.homeBaseDeleteConfirm(setting.name)),
+        content: Text(switch (previous) {
+          final previous? => l10n.homeBaseDeleteToPrevious(date, previous.name),
+          null when others.isEmpty => l10n.homeBaseDeleteLast,
+          null => l10n.homeBaseDeleteToNone(date),
+        }),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          KeshiFuda(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await ref.read(homeBaseRepositoryProvider).deleteHomeBase(setting.id);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.homeBaseDeleted(setting.name))),
+      );
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      debugPrint('Home base delete failed: $e');
+      messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final setting = _setting;
+    return SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        children: [
+          Text(
+            l10n.homeBaseEditTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.event),
+            title: Text(l10n.homeBaseEditDate),
+            subtitle: Text(l10n.homeBaseHistoryFrom(formatDate(setting.setAt))),
+            onTap: _pickDate,
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.edit_outlined),
+            title: Text(l10n.homeBaseEditName),
+            subtitle: Text(setting.name),
+            onTap: _rename,
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.map_outlined),
+            title: Text(l10n.homeBaseEditPlace),
+            subtitle: Text(l10n.homeBaseEditPlaceHint),
+            onTap: _relocate,
+          ),
+          const SizedBox(height: 16),
+          KeshiFuda(
+            expand: true,
+            onPressed: _delete,
+            icon: const Icon(Icons.delete_outline),
+            child: Text(l10n.homeBaseDelete),
+          ),
         ],
       ),
     );
@@ -432,7 +634,10 @@ Future<void> showHomeBaseHidenDialog(BuildContext context, DateTime setAt) {
 
 /// 拠点の呼び名を聞く。閉じる動きの間も入力欄が残るので、入力の中身は窓と一緒に片付ける。
 class _NameDialog extends StatefulWidget {
-  const _NameDialog();
+  const _NameDialog({this.initial});
+
+  /// 直すときの今の呼び名。無ければ「このあたり」。
+  final String? initial;
 
   @override
   State<_NameDialog> createState() => _NameDialogState();
@@ -441,7 +646,8 @@ class _NameDialog extends StatefulWidget {
 class _NameDialogState extends State<_NameDialog> {
   // 初めの呼び名は全体を選んでおき、打てばそのまま置き換わるようにする。
   late final _controller = () {
-    final text = AppLocalizations.of(context).homeBaseNameDefault;
+    final text =
+        widget.initial ?? AppLocalizations.of(context).homeBaseNameDefault;
     return TextEditingController.fromValue(
       TextEditingValue(
         text: text,

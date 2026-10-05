@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:ramen_in_cho/features/backup/backup_codec.dart';
 import 'package:ramen_in_cho/features/backup/backup_service.dart';
+import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
@@ -211,12 +212,13 @@ void main() {
   });
 
   group('BackupService', () {
+    late AppDatabase sourceDatabase;
     late RecordRepository source;
     late PhotoStorage sourcePhotos;
     late Directory temporary;
 
     setUp(() async {
-      final sourceDatabase = createTestDatabase();
+      sourceDatabase = createTestDatabase();
       source = RecordRepository(sourceDatabase);
       await HomeBaseRepository(sourceDatabase).setHomeBase(
         name: '横浜駅',
@@ -292,6 +294,46 @@ void main() {
       expect(summary.addedVisits, 0);
       expect(await source.watchVisits().first, hasLength(2));
       expect((await source.exportAll()).homeBases, hasLength(1));
+    });
+
+    test('直した拠点は直した中身で書き出し、消した拠点は書き出さない', () async {
+      final homeBases = HomeBaseRepository(sourceDatabase);
+      final yokohama = (await homeBases.allSettings()).single;
+      final sapporo = await homeBases.setHomeBase(
+        name: '札幌',
+        latitude: 43.0687,
+        longitude: 141.3508,
+        now: DateTime(2026, 9, 10, 9),
+      );
+      await homeBases.updateHomeBase(
+        yokohama.copyWith(name: '横浜', setAt: DateTime(2026, 7, 1)),
+      );
+      await homeBases.deleteHomeBase(sapporo.id);
+      final backup = await serviceFor(source, sourcePhotos).writeBackup(_now);
+
+      final targetDatabase = createTestDatabase();
+      await serviceFor(
+        RecordRepository(targetDatabase),
+        PhotoStorage(createTempDirectory()),
+      ).restoreBackup(backup.path);
+
+      final restored = (await HomeBaseRepository(
+        targetDatabase,
+      ).allSettings()).single;
+      expect(restored.id, yokohama.id);
+      expect(restored.name, '横浜');
+      expect(restored.setAt, DateTime(2026, 7, 1));
+    });
+
+    test('同じIDの拠点がもうあれば、読み込んでも端末の中身を残す', () async {
+      final backup = await serviceFor(source, sourcePhotos).writeBackup(_now);
+      final homeBases = HomeBaseRepository(sourceDatabase);
+      final yokohama = (await homeBases.allSettings()).single;
+      await homeBases.updateHomeBase(yokohama.copyWith(name: '横浜'));
+
+      await serviceFor(source, sourcePhotos).restoreBackup(backup.path);
+
+      expect((await homeBases.allSettings()).single.name, '横浜');
     });
 
     test('書き出すたびに、前回書き出したファイルを消す', () async {

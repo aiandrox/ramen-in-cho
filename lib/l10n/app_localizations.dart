@@ -1588,6 +1588,96 @@ abstract class AppLocalizations {
   /// **'{date}から'**
   String homeBaseHistoryFrom(String date);
 
+  /// No description provided for @homeBaseEditTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点を直す'**
+  String get homeBaseEditTitle;
+
+  /// No description provided for @homeBaseEditDate.
+  ///
+  /// In ja, this message translates to:
+  /// **'日付（この日から効きます）'**
+  String get homeBaseEditDate;
+
+  /// No description provided for @homeBaseEditName.
+  ///
+  /// In ja, this message translates to:
+  /// **'呼び名'**
+  String get homeBaseEditName;
+
+  /// No description provided for @homeBaseEditPlace.
+  ///
+  /// In ja, this message translates to:
+  /// **'場所'**
+  String get homeBaseEditPlace;
+
+  /// No description provided for @homeBaseEditPlaceHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図を動かして直す'**
+  String get homeBaseEditPlaceHint;
+
+  /// No description provided for @homeBaseRelocateIntro.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図を動かして、{name}の場所を真ん中の「拠」に合わせてください。'**
+  String homeBaseRelocateIntro(String name);
+
+  /// No description provided for @homeBaseRelocateLine.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name}の場所を直します'**
+  String homeBaseRelocateLine(String name);
+
+  /// No description provided for @homeBaseRelocateHere.
+  ///
+  /// In ja, this message translates to:
+  /// **'この場所に直す'**
+  String get homeBaseRelocateHere;
+
+  /// No description provided for @homeBaseRelocated.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name}の場所を直しました'**
+  String homeBaseRelocated(String name);
+
+  /// No description provided for @homeBaseDelete.
+  ///
+  /// In ja, this message translates to:
+  /// **'この拠点を消す'**
+  String get homeBaseDelete;
+
+  /// No description provided for @homeBaseDeleteConfirm.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点「{name}」を消しますか？'**
+  String homeBaseDeleteConfirm(String name);
+
+  /// No description provided for @homeBaseDeleteToPrevious.
+  ///
+  /// In ja, this message translates to:
+  /// **'{date}から後の記録は、ひとつ前の拠点（{previous}）から遠征かどうかを決め直します。'**
+  String homeBaseDeleteToPrevious(String date, String previous);
+
+  /// No description provided for @homeBaseDeleteToNone.
+  ///
+  /// In ja, this message translates to:
+  /// **'これより前の拠点が無いので、{date}から次の拠点までの記録は遠征になりません。'**
+  String homeBaseDeleteToNone(String date);
+
+  /// No description provided for @homeBaseDeleteLast.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点がひとつも無くなり、遠征になる記録も、秘伝「拠点を構える」も無くなります。'**
+  String get homeBaseDeleteLast;
+
+  /// No description provided for @homeBaseDeleted.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点「{name}」を消しました'**
+  String homeBaseDeleted(String name);
+
   /// No description provided for @homeBaseHidenGained.
   ///
   /// In ja, this message translates to:
