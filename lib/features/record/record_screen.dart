@@ -161,26 +161,26 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
           else
             const SizedBox.shrink(),
           _PhotoSection(state: state),
-          const SizedBox(height: 16),
-          SectionTitle(l10n.shopSection),
+          const SizedBox(height: 24),
+          SectionTitle(l10n.shopSection, ruled: false),
           _ShopSection(
             state: state,
             nameController: _nameController,
             nameFieldKey: _nameFieldKey,
             onSelect: _selectShop,
           ),
-          const SizedBox(height: 16),
-          SectionTitle(l10n.ratingSection),
+          const SizedBox(height: 24),
+          SectionTitle(l10n.ratingSection, ruled: false),
           Center(
             child: StarRating(
               rating: state.rating,
               onChanged: controller.setRating,
             ),
           ),
-          ExpansionTile(
+          const SizedBox(height: 16),
+          _FoldSection(
             initiallyExpanded: true,
-            tilePadding: EdgeInsets.zero,
-            title: Text(l10n.optionalSection),
+            title: l10n.optionalSection,
             children: [
               VisitDetailsForm(
                 style: state.style,
@@ -198,9 +198,8 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
             ],
           ),
           // 店の条件は行く前（願掛け・店のページ）に入れる。ここでは閉じておき、入っている条件だけ見せる。
-          ExpansionTile(
-            tilePadding: EdgeInsets.zero,
-            title: Text(l10n.shopConditionsSection),
+          _FoldSection(
+            title: l10n.shopConditionsSection,
             subtitle: Text(
               state.hoursConditions.isEmpty
                   ? l10n.shopConditionsEmpty
@@ -244,6 +243,44 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 開け閉めできる欄。入力欄の枠と紛れないよう、開いても上下に線を引かない。
+class _FoldSection extends StatelessWidget {
+  const _FoldSection({
+    required this.title,
+    this.subtitle,
+    this.initiallyExpanded = false,
+    required this.children,
+  });
+
+  final String title;
+  final Widget? subtitle;
+  final bool initiallyExpanded;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return ExpansionTile(
+      initiallyExpanded: initiallyExpanded,
+      tilePadding: EdgeInsets.zero,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      iconColor: Washi.ai,
+      collapsedIconColor: Washi.inkSoft,
+      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontFamily: Washi.brush,
+          fontSize: 20,
+          color: Washi.ink,
+        ),
+      ),
+      subtitle: subtitle,
+      children: children,
     );
   }
 }

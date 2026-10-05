@@ -233,19 +233,24 @@ int? _bestBreak(List<String> chars, Set<int> spaceBefore, int maxChars) {
 
 /// 筆文字の見出し。下に細い墨の線を引く。
 class SectionTitle extends StatelessWidget {
-  const SectionTitle(this.text, {super.key, this.trailing});
+  const SectionTitle(this.text, {super.key, this.trailing, this.ruled = true});
 
   final String text;
   final Widget? trailing;
+
+  /// false なら下の罫線を引かない（入力欄の多い画面で、欄の枠と見分けやすくするため）。
+  final bool ruled;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(bottom: 4),
       margin: const EdgeInsets.only(bottom: 8),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Washi.line)),
-      ),
+      decoration: ruled
+          ? const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Washi.line)),
+            )
+          : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
