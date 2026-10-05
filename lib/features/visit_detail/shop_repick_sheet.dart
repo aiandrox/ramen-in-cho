@@ -12,6 +12,7 @@ import '../shop_search/shop_name_search_sheet.dart';
 import '../shop_search/shop_search_service.dart';
 import '../shop_search/shop_tile.dart';
 import '../shop_search/yahoo_local.dart';
+import '../../theme/washi_sheet.dart';
 
 /// 保存した記録の店を選び直す。店の位置（無ければ写真の撮影場所、それも無ければ現在地）の
 /// 近くの候補と、店名での全国検索から選ぶ。やめたらnull。
@@ -20,10 +21,9 @@ Future<ShopCandidate?> showShopRepick(
   required Shop shop,
   required String? photoPath,
   required String name,
-}) => showModalBottomSheet<ShopCandidate>(
+}) => showWashiSheet<ShopCandidate>(
   context: context,
   isScrollControlled: true,
-  showDragHandle: true,
   builder: (_) =>
       _ShopRepickSheet(shop: shop, photoPath: photoPath, name: name),
 );

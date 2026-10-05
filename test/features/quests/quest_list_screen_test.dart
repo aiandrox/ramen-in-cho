@@ -72,4 +72,56 @@ void main() {
     expect(find.textContaining('2026/9/1'), findsNothing);
     expect(find.text(ja.questSpotOpenShop), findsOneWidget);
   });
+
+  testWidgets('秘伝の印は横幅いっぱいに同じ幅で並べる', (tester) async {
+    final shop = buildShop(id: 'shop');
+    await pumpQuests(tester, [
+      buildEntry(shop: shop, eatenAt: DateTime(2026, 9, 1, 12)),
+    ]);
+
+    // 幅 432 に 4 つ（間は 8）: (432 - 8 * 3) / 4 = 102。
+    final seal = find.ancestor(
+      of: find.text('はじめての着丼'),
+      matching: find.byType(InkWell),
+    );
+    expect(tester.getSize(seal).width, closeTo(102, 0.1));
+    expect(tester.getTopLeft(seal).dx, 0);
+  });
+
+  testWidgets('秘伝の窓は下のタブの上ではなく、画面の下端から出す', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    final shop = buildShop(id: 'shop');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          visitsProvider.overrideWithValue(
+            AsyncData([
+              buildEntry(shop: shop, eatenAt: DateTime(2026, 9, 1, 12)),
+            ]),
+          ),
+          wishesProvider.overrideWithValue(const AsyncData([])),
+        ],
+        child: localizedApp(
+          // タブの中に別の Navigator があっても、窓はタブを覆って出る。
+          home: Scaffold(
+            body: Navigator(
+              onGenerateRoute: (_) => MaterialPageRoute<void>(
+                builder: (_) =>
+                    Scaffold(body: ListView(children: const [QuestSections()])),
+              ),
+            ),
+            bottomNavigationBar: const SizedBox(height: 80),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('はじめての着丼'));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.questSpotOpenShop), findsOneWidget);
+    expect(tester.getBottomLeft(find.byType(BottomSheet)).dy, 2400 / 2.5);
+  });
 }
