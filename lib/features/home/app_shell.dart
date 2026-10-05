@@ -71,7 +71,7 @@ class _AppShellState extends ConsumerState<AppShell> {
           const HomeScreen(),
           const WishListScreen(),
           const ShugyoScreen(),
-          // 地図は開いたときだけ作る。開くたびに全部のピンが入る範囲に合わせ直し、
+          // 地図は開いたときだけ作る。開くたびに現在地のまわりへ寄せ直し（わかるまでは全部のピン）、
           // 地図を見ていないときにタイルを取りに行かないようにするため。
           if (index == _mapIndex)
             const MapScreen()

@@ -23,6 +23,7 @@ import '../wishes/wish_providers.dart';
 import '../wishes/wishes.dart';
 import 'home_base_line.dart';
 import 'journey.dart';
+import 'map_camera.dart';
 import '../shop_search/yahoo_local.dart';
 import 'shop_pins.dart';
 import '../../theme/washi_buttons.dart';
@@ -65,6 +66,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   int _locating = 0;
   bool _showJourney = false;
 
+  /// 指で地図を動かしたか。動かしたあとに現在地がわかっても、地図を寄せない。
+  bool _userMoved = false;
+
   /// 旅路を見せる年。nullならすべての年。
   int? _journeyYear;
 
@@ -101,10 +105,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       return;
     }
     setState(() => _here = here);
-    // 行った店が無いときは、現在地のまわりを見せる。
-    final hasPins = shopPins(ref.read(scoredVisitsProvider)).isNotEmpty;
-    if (move || !hasPins) {
-      _controller.move(LatLng(here.latitude, here.longitude), 15);
+    if (move ||
+        shouldCenterOnArrivedLocation(
+          userMoved: _userMoved,
+          showingJourney: _showJourney,
+        )) {
+      _controller.move(LatLng(here.latitude, here.longitude), neighborhoodZoom);
     }
   }
 
@@ -145,9 +151,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
-  void _toggleJourney() {
+  void _toggleJourney(List<JourneyStop> stops) {
     _stopReplay();
     setState(() => _showJourney = !_showJourney);
+    // 地図は現在地のまわりから始まるので、旅路を開いたら道のり全体が入る範囲に合わせる。
+    if (_showJourney) _fitTo(stops);
   }
 
   void _stopReplay() {
@@ -287,7 +295,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             isSelected: _showJourney,
             icon: const Icon(Icons.route_outlined),
             selectedIcon: const Icon(Icons.route),
-            onPressed: _toggleJourney,
+            onPressed: () => _toggleJourney(stops),
           ),
         ],
       ),
@@ -308,6 +316,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       padding: const EdgeInsets.all(48),
                       maxZoom: 16,
                     ),
+              onPositionChanged: (_, hasGesture) {
+                if (hasGesture) _userMoved = true;
+              },
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
               ),
@@ -441,10 +452,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 year: _journeyYear,
                 stops: stops,
                 isReplaying: _replayCount != null,
-                onYear: (year) => setState(() {
-                  _stopReplay();
-                  _journeyYear = year;
-                }),
+                onYear: (year) {
+                  setState(() {
+                    _stopReplay();
+                    _journeyYear = year;
+                  });
+                  _fitTo([
+                    for (final stop in allStops)
+                      if (year == null || stop.eatenAt.year == year) stop,
+                  ]);
+                },
                 onReplay: () => _replayCount == null
                     ? _replay(stops)
                     : setState(_stopReplay),

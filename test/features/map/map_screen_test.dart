@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/map/map_camera.dart';
 import 'package:ramen_in_cho/features/map/map_screen.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
@@ -62,6 +64,18 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  MapCamera camera(WidgetTester tester) =>
+      tester.widget<FlutterMap>(find.byType(FlutterMap)).mapController!.camera;
+
+  // 現在地（35.0, 139.0）から遠く離れた店。
+  final farShop = buildShop(
+    id: 'far',
+    name: '遠くの店',
+    osmId: 'node/9',
+    latitude: 36.0,
+    longitude: 140.0,
+  );
 
   testWidgets('行った店が無くても地図を出し、周辺を探せることを案内する', (tester) async {
     await pumpMap(tester, [buildEntry(shop: buildShop(id: 'no-location'))]);
@@ -219,5 +233,46 @@ void main() {
       find.byType(VisitDetailScreen),
     );
     expect(detail.visitId, retreat.visit.id);
+  });
+
+  testWidgets('開いて現在地がわかったら、行った店が遠くにあっても現在地のまわりを見せる', (tester) async {
+    await pumpMap(tester, [buildEntry(shop: farShop)]);
+
+    expect(camera(tester).center.latitude, closeTo(35.0, 1e-6));
+    expect(camera(tester).center.longitude, closeTo(139.0, 1e-6));
+    expect(camera(tester).zoom, neighborhoodZoom);
+  });
+
+  testWidgets('現在地がわからなければ、行った店が入る範囲を見せる', (tester) async {
+    location.position = null;
+    await pumpMap(tester, [buildEntry(shop: farShop)]);
+
+    expect(camera(tester).center.latitude, closeTo(36.0, 1e-3));
+    expect(camera(tester).center.longitude, closeTo(140.0, 1e-3));
+  });
+
+  testWidgets('旅路を開くと、道のり全体が入る範囲に合わせる', (tester) async {
+    await pumpMap(tester, [buildEntry(shop: farShop)]);
+
+    await tester.tap(find.byTooltip(ja.journeyToggle));
+    await tester.pumpAndSettle();
+
+    expect(camera(tester).center.latitude, closeTo(36.0, 1e-3));
+    expect(camera(tester).center.longitude, closeTo(140.0, 1e-3));
+  });
+
+  test('自分で地図を動かしたあとや、旅路を見ているときは現在地へ寄せない', () {
+    expect(
+      shouldCenterOnArrivedLocation(userMoved: false, showingJourney: false),
+      isTrue,
+    );
+    expect(
+      shouldCenterOnArrivedLocation(userMoved: true, showingJourney: false),
+      isFalse,
+    );
+    expect(
+      shouldCenterOnArrivedLocation(userMoved: false, showingJourney: true),
+      isFalse,
+    );
   });
 }
