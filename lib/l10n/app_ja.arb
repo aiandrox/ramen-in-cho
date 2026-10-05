@@ -399,6 +399,8 @@
   "@nameSearchDistance": {"placeholders": {"km": {"type": "String"}}},
   "shopLocate": "地図に載せる（店名で探す）",
   "shopLocated": "地図に載せました",
+  "openInMaps": "地図アプリで開く",
+  "openInMapsFailed": "地図アプリを開けませんでした",
   "yahooAttribution": "Web Services by Yahoo! JAPAN（https://developer.yahoo.co.jp/sitemap/）",
   "creditsYahoo": "店の情報: Web Services by Yahoo! JAPAN（https://developer.yahoo.co.jp/sitemap/）",
   "backupTitle": "バックアップ",

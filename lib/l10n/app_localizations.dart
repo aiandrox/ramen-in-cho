@@ -1480,6 +1480,18 @@ abstract class AppLocalizations {
   /// **'地図に載せました'**
   String get shopLocated;
 
+  /// No description provided for @openInMaps.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図アプリで開く'**
+  String get openInMaps;
+
+  /// No description provided for @openInMapsFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図アプリを開けませんでした'**
+  String get openInMapsFailed;
+
   /// No description provided for @yahooAttribution.
   ///
   /// In ja, this message translates to:

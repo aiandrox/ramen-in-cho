@@ -19,6 +19,7 @@ import '../scoring/points.dart';
 import '../scoring/points_breakdown_view.dart';
 import '../../theme/washi.dart';
 import '../shop/hours_condition_chips.dart';
+import '../shop/maps_link.dart';
 import '../shop/shop_memo_dialog.dart';
 import '../scoring/scoring_providers.dart';
 import '../wishes/wish_dialog.dart';
@@ -107,6 +108,20 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
       debugPrint('Shop locate failed: $e');
       messenger.showSnackBar(SnackBar(content: Text(l10n.editSaveFailed)));
     }
+  }
+
+  Future<void> _openInMaps(Shop shop) async {
+    final latitude = shop.latitude;
+    final longitude = shop.longitude;
+    if (latitude == null || longitude == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).openInMapsFailed;
+    final opened = await openInMaps(
+      latitude: latitude,
+      longitude: longitude,
+      name: shop.name,
+    );
+    if (!opened) messenger.showSnackBar(SnackBar(content: Text(failed)));
   }
 
   Future<void> _editShopConditions(Shop shop) async {
@@ -241,18 +256,23 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
             child: _ShopPage(entry: entry, scored: scored),
           ),
-          if (entry.shop.latitude == null || entry.shop.longitude == null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: FudeLink(
-                  icon: const Icon(Icons.travel_explore),
-                  child: Text(l10n.shopLocate),
-                  onPressed: () => _locateShop(entry.shop),
-                ),
-              ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: entry.shop.latitude == null || entry.shop.longitude == null
+                  ? FudeLink(
+                      icon: const Icon(Icons.travel_explore),
+                      child: Text(l10n.shopLocate),
+                      onPressed: () => _locateShop(entry.shop),
+                    )
+                  : FudeLink(
+                      icon: const Icon(Icons.map_outlined),
+                      child: Text(l10n.openInMaps),
+                      onPressed: () => _openInMaps(entry.shop),
+                    ),
             ),
+          ),
           if (canFulfill)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
