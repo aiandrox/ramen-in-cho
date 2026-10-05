@@ -67,16 +67,39 @@ class RecordController extends Notifier<RecordState> {
     });
   }
 
+  /// 保存せずに閉じた入力が残っているか。
+  Future<bool> hasDraft() async {
+    try {
+      final draft = await _draftStore.load();
+      return draft != null && !draft.isEmpty;
+    } catch (e) {
+      debugPrint('Draft load failed: $e');
+      return false;
+    }
+  }
+
   /// 近くの店を探しはじめる。カメラは自動では開かず、利用者が写真の欄から選ぶ。
-  /// 保存せずに閉じた入力があれば、そこから再開する。
-  Future<void> start({String? recoveredPhotoPath}) async {
+  /// 保存せずに閉じた入力があれば、そこから再開する（[startOver]なら捨てて新しく始める）。
+  /// [sharedPhoto]は、[recoveredPhotoPath]がほかのアプリから共有された写真のとき。
+  Future<void> start({
+    String? recoveredPhotoPath,
+    bool sharedPhoto = false,
+    bool startOver = false,
+  }) async {
     unawaited(_loadKnownShops());
     await _loadCheckin();
     if (!ref.mounted) return;
-    await _restoreDraft();
+    if (startOver) {
+      await _clearDraftStore();
+    } else {
+      await _restoreDraft();
+    }
     if (!ref.mounted) return;
     _draftReady = true;
-    if (recoveredPhotoPath != null) {
+    // 下書きの続きにするとき、共有された写真は元のアプリに残っているので、下書きの写真を優先する。
+    // 取り戻した写真は、この下書きを書いている途中に撮った写真（ほかに控えが無い）なので入れ替える。
+    final keepDraftPhoto = sharedPhoto && state.photoPath != null;
+    if (recoveredPhotoPath != null && !keepDraftPhoto) {
       // 取り戻した写真はカメラとギャラリーのどちらのものか区別できない。
       await _setGalleryPhoto(recoveredPhotoPath, incoming: true);
       if (!ref.mounted) return;
@@ -185,6 +208,20 @@ class RecordController extends Notifier<RecordState> {
     }
     try {
       await cleared;
+    } catch (e) {
+      debugPrint('Draft clear failed: $e');
+    }
+  }
+
+  /// 記録をやめるときに、下書きと下書きの写真を消す。このあとの入力は下書きに書かない。
+  Future<void> abandonDraft() async {
+    _draftClosed = true;
+    await _clearDraftStore();
+  }
+
+  Future<void> _clearDraftStore() async {
+    try {
+      await _draftStore.clear();
     } catch (e) {
       debugPrint('Draft clear failed: $e');
     }
@@ -408,11 +445,7 @@ class RecordController extends Notifier<RecordState> {
             now: now,
           );
       _draftClosed = true;
-      try {
-        await _draftStore.clear();
-      } catch (e) {
-        debugPrint('Draft clear failed: $e');
-      }
+      await _clearDraftStore();
       return visit.id;
     } catch (e) {
       debugPrint('Record save failed: $e');

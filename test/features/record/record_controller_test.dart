@@ -910,28 +910,112 @@ void main() {
       expect(draftPhotos().listSync().single.path, state().photoPath);
     });
 
-    test('取り戻した写真で開くと、下書きの入力にその写真を合わせ、捨てても写真は残す', () async {
+    String incomingPhoto() => (File(
+      p.join(createTempDirectory().path, 'incoming.jpg'),
+    )..writeAsBytesSync([4, 5, 6])).path;
+
+    Future<ProviderContainer> leaveDraft({bool withPhoto = false}) async {
       await controller().start();
+      if (withPhoto) await controller().takePhoto();
       controller().setManualName('書きかけの店');
       await flushed(container);
       container.dispose();
+      return newSession();
+    }
 
-      final next = newSession();
-      final nextController = next.read(recordControllerProvider.notifier);
-      await nextController.start(recoveredPhotoPath: picker.cameraPath);
-      var state = next.read(recordControllerProvider);
+    test('写真を渡されて開くとき、下書きがあるかを確かめられる', () async {
+      expect(await controller().hasDraft(), isFalse);
+      final next = await leaveDraft();
+      expect(
+        await next.read(recordControllerProvider.notifier).hasDraft(),
+        isTrue,
+      );
+    });
+
+    test('下書きを破棄して新しく始めると、渡された写真だけの記録になる', () async {
+      final next = await leaveDraft(withPhoto: true);
+      final source = incomingPhoto();
+      await next
+          .read(recordControllerProvider.notifier)
+          .start(recoveredPhotoPath: source, startOver: true);
+      final state = next.read(recordControllerProvider);
+      expect(state.resumedFromDraft, isFalse);
+      expect(state.manualName, isEmpty);
+      expect(File(state.photoPath!).readAsBytesSync(), [4, 5, 6]);
+      final draft = await flushed(next);
+      expect(draft?.photoPath, state.photoPath);
+      expect(draft?.manualName, isEmpty);
+      expect(draftPhotos().listSync().single.path, state.photoPath);
+      expect(File(source).existsSync(), isTrue);
+    });
+
+    test('取り戻した写真で下書きの続きにすると、その写真を下書きに入れる（下書きを書く途中で撮った写真のため）', () async {
+      final next = await leaveDraft(withPhoto: true);
+      await next
+          .read(recordControllerProvider.notifier)
+          .start(recoveredPhotoPath: incomingPhoto());
+      final state = next.read(recordControllerProvider);
       expect(state.resumedFromDraft, isTrue);
       expect(state.manualName, '書きかけの店');
-      expect(state.photoPath, isNotNull);
+      expect(File(state.photoPath!).readAsBytesSync(), [4, 5, 6]);
+      expect((await flushed(next))?.photoPath, state.photoPath);
+    });
+
+    test('共有された写真で下書きの続きにすると、下書きに写真があればそちらを残す', () async {
+      final next = await leaveDraft(withPhoto: true);
+      final source = incomingPhoto();
+      await next
+          .read(recordControllerProvider.notifier)
+          .start(recoveredPhotoPath: source, sharedPhoto: true);
+      final state = next.read(recordControllerProvider);
+      expect(state.manualName, '書きかけの店');
+      expect(File(state.photoPath!).readAsBytesSync(), [1, 2, 3]);
+      await flushed(next);
+      expect(draftPhotos().listSync().single.path, state.photoPath);
+      expect(File(source).existsSync(), isTrue);
+    });
+
+    test('共有された写真で下書きの続きにすると、下書きに写真が無ければ入れ、捨てても写真は残す', () async {
+      final next = await leaveDraft();
+      final nextController = next.read(recordControllerProvider.notifier);
+      await nextController.start(
+        recoveredPhotoPath: incomingPhoto(),
+        sharedPhoto: true,
+      );
+      var state = next.read(recordControllerProvider);
+      expect(state.manualName, '書きかけの店');
+      expect(File(state.photoPath!).readAsBytesSync(), [4, 5, 6]);
 
       await nextController.discardDraft();
       await flushed(next);
       state = next.read(recordControllerProvider);
       expect(state.manualName, isEmpty);
-      expect(File(state.photoPath!).readAsBytesSync(), [1, 2, 3]);
-      final draft = await flushed(next);
-      expect(draft?.photoPath, state.photoPath);
-      expect(draft?.manualName, isEmpty);
+      expect(File(state.photoPath!).readAsBytesSync(), [4, 5, 6]);
+    });
+
+    test('記録をやめて破棄すると下書きと下書きの写真だけが消え、そのあとの入力も書かない', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller().setManualName('前の店');
+      expect(await controller().save(), isNotNull);
+      final saved = (await visits()).single.visit.photoPath!;
+      container.dispose();
+
+      final next = newSession();
+      final nextController = next.read(recordControllerProvider.notifier);
+      await nextController.start();
+      await nextController.takePhoto();
+      nextController.setManualName('書きかけの店');
+      await flushed(next);
+      expect(draftPhotos().listSync(), hasLength(1));
+
+      await nextController.abandonDraft();
+      nextController.setMemo('閉じる間際の入力');
+      expect(await flushed(next), isNull);
+      expect(draftFile().existsSync(), isFalse);
+      expect(draftPhotos().listSync(), isEmpty);
+      expect(File(p.join(documents.path, saved)).readAsBytesSync(), [1, 2, 3]);
     });
   });
 }

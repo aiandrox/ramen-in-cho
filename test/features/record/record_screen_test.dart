@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ramen_in_cho/features/checkin/checkin_controller.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
+import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
 import 'package:ramen_in_cho/features/record/record_draft.dart';
 import 'package:ramen_in_cho/features/record/record_result_screen.dart';
@@ -28,7 +29,10 @@ void main() {
   late FakePhotoPicker picker;
   late MemoryRecordDraftStore drafts;
 
-  Future<void> pumpScreen(WidgetTester tester) async {
+  Future<void> pumpScreen(
+    WidgetTester tester, {
+    RecordScreen screen = const RecordScreen(),
+  }) async {
     database = createTestDatabase();
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.5;
@@ -47,15 +51,18 @@ void main() {
           ),
           nearbyShopFinderProvider.overrideWithValue(overpass),
           photoPickerProvider.overrideWithValue(picker),
+          photoMetadataReaderProvider.overrideWithValue(
+            FakePhotoMetadataReader(),
+          ),
           recordDraftStoreProvider.overrideWithValue(drafts),
         ],
         child: localizedApp(
           home: Builder(
             builder: (context) => Scaffold(
               body: TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<bool>(builder: (_) => const RecordScreen()),
-                ),
+                onPressed: () =>
+                    Navigator.of(context)
+                        .push(MaterialPageRoute<bool>(builder: (_) => screen)),
                 child: const Text('open'),
               ),
             ),
@@ -163,17 +170,44 @@ void main() {
     expect(tester.widget<AiFuda>(saveButton).onPressed, isNotNull);
   });
 
-  testWidgets('入力して戻ると確かめずに閉じ、次に開くと下書きから再開する', (tester) async {
-    await pumpScreen(tester);
-    expect(find.text(ja.draftResumed), findsNothing);
+  Future<void> typeShopAndBack(WidgetTester tester) async {
     await tester.enterText(
       find.widgetWithText(TextField, ja.shopNameLabel),
       '下書きの店',
     );
     await tester.tap(find.byTooltip(ja.ratingStar(3)));
     await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('何も入れていなければ、戻ると確かめずに閉じる', (tester) async {
+    await pumpScreen(tester);
 
     await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text(ja.leaveRecordTitle), findsNothing);
+    expect(find.byType(RecordScreen), findsNothing);
+  });
+
+  testWidgets('入力して戻ると確かめ、「続ける」なら記録画面に残る', (tester) async {
+    await pumpScreen(tester);
+    await typeShopAndBack(tester);
+
+    expect(find.text(ja.leaveRecordTitle), findsOneWidget);
+    await tester.tap(find.text(ja.leaveRecordCancel));
+    await tester.pumpAndSettle();
+    expect(find.byType(RecordScreen), findsOneWidget);
+    expect(find.text('下書きの店'), findsOneWidget);
+    expect(drafts.draft?.manualName, '下書きの店');
+  });
+
+  testWidgets('「下書きに残してやめる」で閉じ、次に開くと下書きから再開する', (tester) async {
+    await pumpScreen(tester);
+    expect(find.text(ja.draftResumed), findsNothing);
+    await typeShopAndBack(tester);
+
+    await tester.tap(find.text(ja.leaveRecordKeepDraft));
     await tester.pumpAndSettle();
     expect(find.byType(RecordScreen), findsNothing);
     expect(drafts.draft?.manualName, '下書きの店');
@@ -184,6 +218,61 @@ void main() {
     expect(find.text('下書きの店'), findsOneWidget);
     final saveButton = find.widgetWithText(AiFuda, ja.save);
     expect(tester.widget<AiFuda>(saveButton).onPressed, isNotNull);
+  });
+
+  testWidgets('「破棄してやめる」で下書きを消して閉じ、次に開くと何も入っていない', (tester) async {
+    await pumpScreen(tester);
+    await typeShopAndBack(tester);
+
+    await tester.tap(find.widgetWithText(KeshiFuda, ja.leaveRecordDiscard));
+    await tester.pumpAndSettle();
+    expect(find.byType(RecordScreen), findsNothing);
+    expect(drafts.draft, isNull);
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.draftResumed), findsNothing);
+    expect(find.text('下書きの店'), findsNothing);
+  });
+
+  testWidgets('写真を渡されて開いたとき下書きがあれば、破棄して新しく記録するか確かめる', (tester) async {
+    drafts.draft = const RecordDraft(manualName: '下書きの店');
+    await pumpScreen(
+      tester,
+      screen: const RecordScreen(recoveredPhotoPath: '/tmp/shared.jpg'),
+    );
+
+    expect(find.text(ja.draftDiscardTitle), findsOneWidget);
+    await tester.tap(find.widgetWithText(KeshiFuda, ja.draftDiscardConfirm));
+    await tester.pumpAndSettle();
+    expect(find.text('下書きの店'), findsNothing);
+    expect(find.text(ja.draftResumed), findsNothing);
+    expect(drafts.draft?.photoPath, '/tmp/shared.jpg');
+    expect(drafts.draft?.manualName, isEmpty);
+  });
+
+  testWidgets('写真を渡されて開き、「下書きの続きから記録する」なら下書きから再開する', (tester) async {
+    drafts.draft = const RecordDraft(manualName: '下書きの店');
+    await pumpScreen(
+      tester,
+      screen: const RecordScreen(recoveredPhotoPath: '/tmp/shared.jpg'),
+    );
+
+    await tester.tap(find.text(ja.draftDiscardCancel));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.draftResumed), findsOneWidget);
+    expect(find.text('下書きの店'), findsOneWidget);
+    expect(drafts.draft?.manualName, '下書きの店');
+  });
+
+  testWidgets('写真を渡されて開いても、下書きが無ければ確かめない', (tester) async {
+    await pumpScreen(
+      tester,
+      screen: const RecordScreen(recoveredPhotoPath: '/tmp/shared.jpg'),
+    );
+
+    expect(find.text(ja.draftDiscardTitle), findsNothing);
+    expect(drafts.draft?.photoPath, '/tmp/shared.jpg');
   });
 
   testWidgets('「下書きを捨てて新しく」で確かめてから入力を消す', (tester) async {
