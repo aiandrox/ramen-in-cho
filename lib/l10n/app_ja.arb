@@ -84,7 +84,6 @@
   "deleteConfirmTitle": "この記録を削除しますか？",
   "deleteConfirmMessage": "写真も削除されます。元に戻せません",
   "deleteFailed": "削除できませんでした",
-  "previousVisit": "前回の記録",
   "visitNotFound": "記録が見つかりません",
   "editTitle": "記録を編集",
   "editSave": "保存",

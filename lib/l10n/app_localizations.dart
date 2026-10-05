@@ -508,12 +508,6 @@ abstract class AppLocalizations {
   /// **'削除できませんでした'**
   String get deleteFailed;
 
-  /// No description provided for @previousVisit.
-  ///
-  /// In ja, this message translates to:
-  /// **'前回の記録'**
-  String get previousVisit;
-
   /// No description provided for @visitNotFound.
   ///
   /// In ja, this message translates to:

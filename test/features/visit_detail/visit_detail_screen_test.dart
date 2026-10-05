@@ -93,11 +93,6 @@ void main() {
     await tester.tap(find.text(item).last);
   }
 
-  Finder stars(int rating) => find.byWidgetPredicate(
-    (widget) =>
-        widget is Semantics && widget.properties.label == ja.ratingStar(rating),
-  );
-
   setUp(() {
     documents = createTempDirectory();
     repository = FakeRecordRepository();
@@ -118,7 +113,6 @@ void main() {
     expect(find.text(ja.styleShoyu), findsOneWidget);
     expect(find.text(ja.limitedBadge), findsOneWidget);
     expect(find.text('スープが濃い'), findsOneWidget);
-    expect(find.text(ja.previousVisit), findsNothing);
   });
 
   testWidgets('★の無い記録は、詳細で★をタップして評価できる', (tester) async {
@@ -197,7 +191,7 @@ void main() {
       ),
     ], 'second');
 
-    expect(find.text(ja.previousVisit), findsOneWidget);
+    expect(find.text('前回の記録'), findsNothing);
     expect(find.text(ja.journalTitle), findsOneWidget);
     expect(
       repeatOpening
@@ -205,10 +199,9 @@ void main() {
           .any((line) => find.text(line).evaluate().isNotEmpty),
       isTrue,
     );
-    // 前回の記録と、この道場の印の日付の2か所。
-    expect(find.text('2026/9/1'), findsNWidgets(2));
-    expect(stars(5), findsOneWidget);
-    expect(find.text('前回のメモ'), findsOneWidget);
+    // 前の1杯は、この道場の印の日付からたどれる。
+    expect(find.text('2026/9/1'), findsOneWidget);
+    expect(find.text('前回のメモ'), findsNothing);
   });
 
   testWidgets('この道場の印をタップすると、その1杯に切り替わる', (tester) async {
@@ -229,7 +222,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.widget<StarRating>(find.byType(StarRating)).rating, 5);
-    expect(find.text(ja.previousVisit), findsNothing);
   });
 
   testWidgets('この店の記録が1杯だけなら、印の一覧は出さない', (tester) async {
