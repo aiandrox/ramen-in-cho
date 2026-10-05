@@ -6,6 +6,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/records/models.dart';
+import 'package:ramen_in_cho/features/records/style_tiles.dart';
+import 'package:ramen_in_cho/l10n/app_localizations.dart';
 import 'package:ramen_in_cho/theme/app_theme.dart';
 import 'package:ramen_in_cho/theme/washi.dart';
 import 'package:ramen_in_cho/theme/washi_buttons.dart';
@@ -143,7 +146,7 @@ Widget _panel({required bool night}) {
       ],
     ),
     if (!night) ...[
-      _label('選ぶ札（系統・営業の条件・年）', night: night),
+      _label('選ぶ札（営業の条件・年など。選ぶと藍の地）', night: night),
       Wrap(
         spacing: 8,
         runSpacing: 4,
@@ -171,6 +174,8 @@ Widget _panel({required bool night}) {
           ActionChip(label: const Text('売り切れ'), onPressed: _noop),
         ],
       ),
+      _label('系統の札（椀の絵と名前。選ぶと藍の縁と帯）', night: night),
+      RamenStyleTiles(selected: RamenStyle.shoyu, onChanged: (_) {}),
       _label('確かめる窓の下の並び', night: night),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -229,6 +234,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: buildAppTheme(),
+        locale: const Locale('ja'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
             child: RepaintBoundary(

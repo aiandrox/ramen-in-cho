@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../shop/hours_condition_chips.dart';
-import 'labels.dart';
 import 'models.dart';
+import 'style_tiles.dart';
 
 /// 系統・限定・攻略しにくさ・メモの入力欄。記録画面と編集画面で共有する。
 class VisitDetailsForm extends StatelessWidget {
@@ -46,18 +46,9 @@ class VisitDetailsForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(l10n.styleSection, style: textTheme.labelLarge),
-        Wrap(
-          spacing: 8,
-          children: [
-            for (final option in RamenStyle.values)
-              ChoiceChip(
-                label: Text(styleLabel(l10n, option)),
-                selected: style == option,
-                onSelected: (selected) =>
-                    onStyleChanged(selected ? option : null),
-              ),
-          ],
-        ),
+        const SizedBox(height: 6),
+        RamenStyleTiles(selected: style, onChanged: onStyleChanged),
+        const SizedBox(height: 4),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.isLimited),

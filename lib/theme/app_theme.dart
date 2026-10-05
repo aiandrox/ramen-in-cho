@@ -56,32 +56,36 @@ ThemeData buildAppTheme() {
         minimumSize: const Size(48, 48),
       ),
     ),
-    // 選ぶ札は、角を落とした木札の形。選ぶと藍の縁とチェックがつく。
+    // 選ぶ札は、角を落とした木札の形。選ぶと藍の地に和紙色の字になる。
+    // チェックを出すと札の幅が変わってがたつくので、色だけで示す。
     chipTheme: ChipThemeData(
+      showCheckmark: false,
       shape: const BeveledRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(5)),
       ),
       color: WidgetStateProperty.resolveWith(
-        (states) => states.contains(WidgetState.selected)
-            ? const Color(0x1A26344A)
-            : Washi.page,
+        (states) =>
+            states.contains(WidgetState.selected) ? Washi.ai : Washi.page,
       ),
       side: WidgetStateBorderSide.resolveWith(
-        (states) => states.contains(WidgetState.selected)
-            ? const BorderSide(color: Washi.ai, width: 1.4)
-            : const BorderSide(color: Washi.line),
+        (states) => BorderSide(
+          color: states.contains(WidgetState.selected) ? Washi.ai : Washi.line,
+          width: 1.2,
+        ),
       ),
-      labelStyle: const TextStyle(
+      labelStyle: TextStyle(
         fontFamily: Washi.mincho,
         fontSize: 14,
-        color: Washi.ink,
+        color: WidgetStateColor.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? Washi.page : Washi.ink,
+        ),
       ),
       secondaryLabelStyle: const TextStyle(
         fontFamily: Washi.mincho,
         fontSize: 14,
-        color: Washi.ink,
+        color: Washi.page,
       ),
-      checkmarkColor: Washi.ai,
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: Washi.ai,
