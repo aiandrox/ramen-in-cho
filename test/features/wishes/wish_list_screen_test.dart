@@ -57,7 +57,7 @@ void main() {
     expect(find.text('はやし田'), findsOneWidget);
     expect(find.text(ja.wishFulfilledLine('2026/10/3', 32)), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.bookmark_add));
+    await tester.tap(find.byType(ShioriFab));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, '豚山');
     await tester.pump();

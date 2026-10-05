@@ -284,7 +284,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
-/// 心得の進み具合。済んだ段は朱の小さな角印、いまの段は朱の枠、先の段は薄墨の枠。
+/// 心得の進み具合。済んだ段は藍の小さな角印、いまの段は藍の枠、先の段は薄墨の枠。
 class _StepMarks extends StatelessWidget {
   const _StepMarks({required this.current});
 
@@ -301,9 +301,9 @@ class _StepMarks extends StatelessWidget {
             height: 9,
             margin: const EdgeInsets.only(left: 5),
             decoration: BoxDecoration(
-              color: i < current ? Washi.shu : null,
+              color: i < current ? Washi.ai : null,
               border: Border.all(
-                color: i <= current ? Washi.shu : Washi.line,
+                color: i <= current ? Washi.ai : Washi.line,
                 width: 1.5,
               ),
               borderRadius: BorderRadius.circular(1.5),
@@ -349,7 +349,7 @@ class _OnboardingPage extends StatelessWidget {
                   style: const TextStyle(
                     fontFamily: Washi.brush,
                     fontSize: 16,
-                    color: Washi.shu,
+                    color: Washi.ai,
                     letterSpacing: 3,
                   ),
                 ),
@@ -381,7 +381,7 @@ class _OnboardingPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     note,
-                    style: textTheme.bodyMedium?.copyWith(color: Washi.shu),
+                    style: textTheme.bodyMedium?.copyWith(color: Washi.ai),
                   ),
                 ],
                 const Spacer(),
@@ -399,7 +399,7 @@ class _OnboardingPage extends StatelessWidget {
   }
 }
 
-/// 題の下に引く、朱の短い筆の線（入りが太く、抜けが細い）。
+/// 題の下に引く、藍の短い筆の線（入りが太く、抜けが細い）。
 class _BrushRule extends StatelessWidget {
   const _BrushRule();
 
@@ -420,7 +420,7 @@ class _BrushRulePainter extends CustomPainter {
       ..quadraticBezierTo(size.width * 0.5, 0, size.width, size.height * 0.45)
       ..quadraticBezierTo(size.width * 0.5, size.height * 0.7, 0, size.height)
       ..close();
-    canvas.drawPath(path, Paint()..color = Washi.shu);
+    canvas.drawPath(path, Paint()..color = Washi.ai);
   }
 
   @override

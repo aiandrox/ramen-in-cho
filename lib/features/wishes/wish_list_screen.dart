@@ -107,12 +107,10 @@ class WishListScreen extends ConsumerWidget {
                   ),
           ],
         ),
-        // 真ん中の判子（記録）と取り違えないよう、「＋」ではなく願の印にする。
-        floatingActionButton: SealFab(
+        // 真ん中の判子（記録）と取り違えないよう、丸ではなくしおりの形にする。
+        floatingActionButton: ShioriFab(
           tooltip: l10n.wishAddTitle,
-          brush: true,
           onPressed: () => _addByName(context, ref),
-          child: const Icon(Icons.bookmark_add),
         ),
       ),
     );

@@ -672,10 +672,21 @@ class RecordSealButton extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                const Positioned.fill(
-                  child: CustomPaint(painter: _RecordSealPainter()),
+                Positioned.fill(
+                  child: InkWear(
+                    seed: inkSeed('record-seal'),
+                    strength: 0.6,
+                    child: const Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned.fill(
+                          child: CustomPaint(painter: _RecordSealPainter()),
+                        ),
+                        Icon(Icons.add, size: 36, color: Washi.page),
+                      ],
+                    ),
+                  ),
                 ),
-                const Icon(Icons.add, size: 36, color: Washi.page),
                 Positioned.fill(
                   child: Material(
                     type: MaterialType.transparency,
@@ -751,5 +762,127 @@ void _paintEnso(
   for (final p in inner.reversed) {
     ring.lineTo(p.dx, p.dy);
   }
-  canvas.drawPath(ring..close(), Paint()..color = color);
+  final paint = Paint()..color = color;
+  canvas.drawPath(ring..close(), paint);
+  // 筆の入りと抜けを丸くし、断ち切ったような角を残さない。
+  for (final (o, i) in [(outer.first, inner.first), (outer.last, inner.last)]) {
+    canvas.drawCircle((o + i) / 2, (o - i).distance / 2, paint);
+  }
+}
+
+/// 願掛け帳で願を足す、しおりの形のボタン。真ん中の判子（記録）と取り違えないよう、丸にしない。
+class ShioriFab extends StatelessWidget {
+  const ShioriFab({super.key, required this.tooltip, required this.onPressed});
+
+  static const width = 46.0;
+  static const height = 66.0;
+
+  final String tooltip;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        enabled: onPressed != null,
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: InkWear(
+                  seed: inkSeed('shiori'),
+                  strength: 0.5,
+                  child: CustomPaint(
+                    painter: const _ShioriPainter(),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: height * 0.22),
+                      child: Center(
+                        child: Icon(Icons.add, size: 26, color: Washi.page),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Material(
+                  type: MaterialType.transparency,
+                  shape: const _ShioriBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: onPressed,
+                    customBorder: const _ShioriBorder(),
+                    splashColor: Washi.page.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// しおりの形。上の角はわずかに丸め、下は燕尾に切り込む。
+Path _shioriPath(Rect rect) {
+  final r = rect.width * 0.08;
+  final notch = rect.height * 0.2;
+  return Path()
+    ..moveTo(rect.left, rect.top + r)
+    ..quadraticBezierTo(rect.left, rect.top, rect.left + r, rect.top)
+    ..lineTo(rect.right - r, rect.top)
+    ..quadraticBezierTo(rect.right, rect.top, rect.right, rect.top + r)
+    ..lineTo(rect.right, rect.bottom)
+    ..lineTo(rect.center.dx, rect.bottom - notch)
+    ..lineTo(rect.left, rect.bottom)
+    ..close();
+}
+
+class _ShioriBorder extends ShapeBorder {
+  const _ShioriBorder();
+
+  @override
+  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
+      _shioriPath(rect);
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) =>
+      _shioriPath(rect);
+
+  @override
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
+
+  @override
+  ShapeBorder scale(double t) => this;
+}
+
+class _ShioriPainter extends CustomPainter {
+  const _ShioriPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final path = _shioriPath(rect);
+    canvas.drawShadow(path, Colors.black, 3, false);
+    canvas.drawPath(path, Paint()..color = Washi.ai);
+    // 内側に淡い藍の細い線を引き、布のしおりの縁取りにする。
+    final inset = size.width * 0.12;
+    canvas.drawPath(
+      _shioriPath(rect.deflate(inset)).shift(Offset(0, -inset * 0.4)),
+      Paint()
+        ..color = Washi.aiLight.withValues(alpha: 0.8)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ShioriPainter old) => false;
 }
