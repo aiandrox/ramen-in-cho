@@ -719,7 +719,7 @@ class _RecordSealPainter extends CustomPainter {
       canvas,
       center,
       ringRadius: radius * 0.74,
-      maxWidth: radius * 0.16,
+      maxWidth: radius * 0.19,
       wobble: radius * 0.015,
       color: Washi.aiLight,
     );
@@ -729,7 +729,8 @@ class _RecordSealPainter extends CustomPainter {
   bool shouldRepaint(_RecordSealPainter old) => false;
 }
 
-/// 筆でひと息に描いた輪（円相）。左上で筆を置いて太く入り、時計回りに細く抜け、始まりの少し手前で終わる。
+/// 筆でひと息に描いた輪（円相）。真上のやや左で筆を置いて丸く太く入り、時計回りに走って、
+/// 左下からは穂先が割れて細い筋になり、かすれながら始まりの手前で抜ける。
 void _paintEnso(
   Canvas canvas,
   Offset center, {
@@ -740,33 +741,106 @@ void _paintEnso(
 }) {
   Offset at(double angle, double r) =>
       center + Offset(math.cos(angle), math.sin(angle)) * r;
-  const start = -math.pi * 0.62;
-  const sweep = math.pi * 1.88;
-  const steps = 90;
+  const start = -math.pi * 0.56;
+  const sweep = math.pi * 1.86;
+  const steps = 160;
+  // 割れた筋が始まる位置と、筋の数。
+  const splitAt = 0.5;
+  const strands = 4;
+  final paint = Paint()..color = color;
+
+  double widthAt(double t) {
+    if (t < 0.05) return maxWidth * (1.15 - t / 0.05 * 0.15);
+    if (t < 0.45) return maxWidth * (1 - (t - 0.05) / 0.4 * 0.12);
+    return maxWidth * (0.88 - (t - 0.45) / 0.55 * 0.7);
+  }
+
+  double radiusAt(double t) =>
+      ringRadius +
+      math.sin(t * math.pi * 2) * wobble +
+      math.sin(t * math.pi * 5 + 1.3) * wobble * 0.4;
+
+  // 規則的に見えないよう、筋と位置ごとに決まった揺らぎを作る。
+  double noise(int k, int i) {
+    final v = math.sin(k * 127.1 + i * 311.7) * 43758.5453;
+    return v - v.floorToDouble();
+  }
+
+  Path strip(List<Offset> outer, List<Offset> inner) {
+    final path = Path()..moveTo(outer.first.dx, outer.first.dy);
+    for (final p in outer.skip(1)) {
+      path.lineTo(p.dx, p.dy);
+    }
+    for (final p in inner.reversed) {
+      path.lineTo(p.dx, p.dy);
+    }
+    return path..close();
+  }
+
+  // 太い芯。穂先が割れはじめると内側から痩せていき、筋だけが残る。
+  double coreAt(double t) {
+    if (t < splitAt) return 1;
+    return math.max(0, 1 - (t - splitAt) / 0.3);
+  }
+
   final outer = <Offset>[];
   final inner = <Offset>[];
   for (var i = 0; i <= steps; i++) {
     final t = i / steps;
+    final core = coreAt(t);
+    if (core <= 0) break;
     final a = start + sweep * t;
-    final width =
-        maxWidth *
-        (t < 0.08 ? 0.7 + t / 0.08 * 0.3 : 1 - 0.7 * ((t - 0.08) / 0.92));
-    final r = ringRadius + math.sin(t * math.pi * 2) * wobble;
-    outer.add(at(a, r + width / 2));
-    inner.add(at(a, r - width / 2));
+    final w = widthAt(t) * (0.35 + 0.65 * core);
+    final r = radiusAt(t);
+    outer.add(at(a, r + w / 2));
+    inner.add(at(a, r - w / 2));
   }
-  final ring = Path()..moveTo(outer.first.dx, outer.first.dy);
-  for (final p in outer.skip(1)) {
-    ring.lineTo(p.dx, p.dy);
-  }
-  for (final p in inner.reversed) {
-    ring.lineTo(p.dx, p.dy);
-  }
-  final paint = Paint()..color = color;
-  canvas.drawPath(ring..close(), paint);
-  // 筆の入りと抜けを丸くし、断ち切ったような角を残さない。
-  for (final (o, i) in [(outer.first, inner.first), (outer.last, inner.last)]) {
-    canvas.drawCircle((o + i) / 2, (o - i).distance / 2, paint);
+  canvas.drawPath(strip(outer, inner), paint);
+  canvas.drawCircle(
+    (outer.last + inner.last) / 2,
+    (outer.last - inner.last).distance / 2,
+    paint,
+  );
+  // 筆を置いた頭は、外側へ少しはみ出す丸い溜まりにする。
+  canvas.drawCircle(
+    at(start + sweep * 0.012 - 0.04, radiusAt(0) + maxWidth * 0.05),
+    maxWidth * 0.68,
+    paint,
+  );
+
+  // 割れた穂先の筋。先へ行くほど細く離れ、終わり近くでところどころ途切れる。
+  for (var k = 0; k < strands; k++) {
+    final offset = (k + 0.5) / strands - 0.5;
+    var segOuter = <Offset>[];
+    var segInner = <Offset>[];
+    void flush() {
+      if (segOuter.length > 1) {
+        canvas.drawPath(strip(segOuter, segInner), paint);
+      }
+      segOuter = [];
+      segInner = [];
+    }
+
+    final from = (steps * splitAt).round();
+    final last = steps - (k == 1 ? 0 : 4 + k * 3);
+    for (var i = from; i <= last; i++) {
+      final t = i / steps;
+      final fade = (t - splitAt) / (1 - splitAt);
+      if (noise(k, i ~/ 5) < math.max(0, fade - 0.45) * 0.6) {
+        flush();
+        continue;
+      }
+      final a = start + sweep * t;
+      final w = widthAt(t);
+      final r =
+          radiusAt(t) +
+          offset * w * (1 + fade * 0.6) +
+          math.sin(t * 11 + k * 2.1) * wobble * 0.25;
+      final sw = w / strands * (1.1 - fade * 0.55);
+      segOuter.add(at(a, r + sw / 2));
+      segInner.add(at(a, r - sw / 2));
+    }
+    flush();
   }
 }
 
