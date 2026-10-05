@@ -1,4 +1,4 @@
-import { type CuratedShop, etagOf } from './curated.ts';
+import { type CuratedShop, type HoursCondition, etagOf, hoursConditionNames } from './curated.ts';
 
 export interface Env {
   DB: D1Database;
@@ -28,9 +28,27 @@ export async function curatedShops(request: Request, shops: CuratedShop[]): Prom
   return json({ shops }, { headers });
 }
 
+type CuratedShopRow = Omit<CuratedShop, 'hoursConditions'> & { hours_conditions: string | null };
+
 export async function loadCuratedShops(db: D1Database): Promise<CuratedShop[]> {
   const { results } = await db
-    .prepare('SELECT id, name, address, latitude, longitude, chain, status FROM curated_shops ORDER BY id')
-    .all<CuratedShop>();
-  return results;
+    .prepare(
+      'SELECT id, name, address, latitude, longitude, chain, status, hours_conditions FROM curated_shops ORDER BY id',
+    )
+    .all<CuratedShopRow>();
+  return results.map(({ hours_conditions, ...shop }) => ({
+    ...shop,
+    hoursConditions: parseHoursConditions(hours_conditions),
+  }));
+}
+
+/** 表に入れた条件（JSON の配列）。読めない値・知らない条件は捨てる。 */
+export function parseHoursConditions(text: string | null): HoursCondition[] {
+  try {
+    const value: unknown = JSON.parse(text ?? '[]');
+    if (!Array.isArray(value)) return [];
+    return value.filter((c): c is HoursCondition => hoursConditionNames.includes(c as HoursCondition));
+  } catch {
+    return [];
+  }
 }

@@ -59,6 +59,10 @@ class CuratedShopsStore {
   static const fileName = 'curated_shops.json';
   static const refreshInterval = Duration(days: 1);
 
+  /// 保存したファイルの形の版。前の版のアプリは店の条件を捨てて保存していたので、版の違うファイルは読まずに取り直す
+  /// （同じ ETag で聞くと「変わっていない」と返され、条件の無い一覧が残り続けるため）。
+  static const formatVersion = 2;
+
   final Directory _documents;
   final RamenInChoApi? _api;
 
@@ -69,6 +73,7 @@ class CuratedShopsStore {
       if (!await _file.exists()) return null;
       final json =
           jsonDecode(await _file.readAsString()) as Map<String, dynamic>;
+      if (json['format'] != formatVersion) return null;
       return SavedCuratedShops(
         shops: [
           for (final shop in json['shops'] as List)
@@ -105,6 +110,7 @@ class CuratedShopsStore {
       );
       await _file.writeAsString(
         jsonEncode({
+          'format': formatVersion,
           'fetchedAt': now.toUtc().toIso8601String(),
           'etag': ?fresh.etag,
           'shops': [for (final shop in shops) shop.toJson()],

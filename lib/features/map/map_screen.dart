@@ -533,9 +533,11 @@ class _UnvisitedPin extends ConsumerWidget {
                   ),
                 if (shop.suggestedConditions case final conditions?)
                   Text(
-                    l10n.mapOpeningHoursConditions(
-                      hoursConditionsLabel(l10n, conditions),
-                    ),
+                    switch (shop.suggestedConditionsSource) {
+                      ConditionsDraftSource.curatedShops =>
+                        l10n.mapCuratedConditions,
+                      _ => l10n.mapOpeningHoursConditions,
+                    }(hoursConditionsLabel(l10n, conditions)),
                   ),
                 const SizedBox(height: 16),
                 AiFuda(

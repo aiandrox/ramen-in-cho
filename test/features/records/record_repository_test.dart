@@ -874,4 +874,65 @@ void main() {
     final entry = (await repository.watchVisits().first).single;
     expect(entry.shop.strategyMemo, '券売機は現金のみ');
   });
+
+  group('下書きの条件（手で持つ店・地図の営業時間から）', () {
+    const sengawa = ShopInput(
+      name: 'ラーメン二郎 仙川店',
+      latitude: 35.661385,
+      longitude: 139.583847,
+    );
+    final at = DateTime(2026, 10, 5, 19);
+
+    Future<Shop> saveWithDraft(ShopInput shop) async {
+      final visit = await repository.saveEatenVisit(
+        shop: shop,
+        draftConditions: {HoursCondition.nightOnly},
+        eatenAt: at,
+        now: at,
+      );
+      return (await repository.allShops()).firstWhere(
+        (s) => s.id == visit.shopId,
+      );
+    }
+
+    test('初めての店には下書きの条件が入る', () async {
+      expect((await saveWithDraft(sengawa)).hoursConditions, {
+        HoursCondition.nightOnly,
+      });
+    });
+
+    test('記録済みの店の条件は、下書きで変えない', () async {
+      await repository.saveEatenVisit(
+        shop: sengawa,
+        hoursConditions: {HoursCondition.irregular},
+        eatenAt: at,
+        now: at,
+      );
+      expect((await saveWithDraft(sengawa)).hoursConditions, {
+        HoursCondition.irregular,
+      });
+    });
+
+    test('願で入れた条件があれば、下書きより優先する', () async {
+      await WishRepository(database).addWish(
+        shop: const ShopInput(
+          osmId: 'node/sengawa',
+          name: 'ラーメン二郎 仙川店',
+          latitude: 35.661385,
+          longitude: 139.583847,
+        ),
+        hoursConditions: {HoursCondition.irregular},
+        now: at,
+      );
+      final shop = await saveWithDraft(
+        const ShopInput(
+          osmId: 'node/sengawa',
+          name: 'ラーメン二郎 仙川店',
+          latitude: 35.661385,
+          longitude: 139.583847,
+        ),
+      );
+      expect(shop.hoursConditions, {HoursCondition.irregular});
+    });
+  });
 }

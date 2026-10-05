@@ -67,10 +67,11 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
       // 同じ店なら、ラーメン店の業種で絞れる Yahoo! のほうを残す。
       // Yahoo! が使えないとき（Client ID が無い・失敗）も、OpenPOI の結果は出す。
       // まずサーバーに聞く（空白の言い換えもサーバーで行う）。だめなら端末から直接探す。
+      final curatedShops = ref.read(curatedShopsProvider);
       final curated = builtinShopsNamed(
         name,
         near: widget.near,
-        shops: ref.read(curatedShopsProvider),
+        shops: curatedShops,
       );
       final api = ref.read(ramenInChoApiProvider);
       if (api != null) {
@@ -79,7 +80,10 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
           if (!mounted || generation != _generation) return;
           setState(() {
             _results = nearestFirst(
-              mergeFoundShops(curated, shops),
+              withCuratedConditions(
+                mergeFoundShops(curated, shops),
+                curatedShops,
+              ),
               widget.near,
             );
             _isSearching = false;
@@ -131,7 +135,10 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
         throw StateError('店名の検索がすべて失敗しました');
       }
       final results = nearestFirst(
-        mergeFoundShops(builtin, [...?yahooShops, ...?poiShops]),
+        withCuratedConditions(
+          mergeFoundShops(builtin, [...?yahooShops, ...?poiShops]),
+          curatedShops,
+        ),
         widget.near,
       );
       if (!mounted || generation != _generation) return;
