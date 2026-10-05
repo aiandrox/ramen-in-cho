@@ -680,6 +680,192 @@ void main() {
     });
   });
 
+  group('updateVisit で店を選び直す', () {
+    Future<void> repick(
+      Visit visit,
+      ShopInput picked, {
+      Set<HoursCondition>? hoursConditions,
+    }) => repository.updateVisit(
+      visitId: visit.id,
+      shopName: picked.name,
+      hoursConditions: hoursConditions,
+      eatenAt: visit.eatenAt,
+      checkedInAt: visit.checkedInAt,
+      rating: visit.rating,
+      style: visit.style,
+      isLimited: visit.isLimited,
+      hasTicket: visit.hasTicket,
+      memo: visit.memo,
+      pickedShop: picked,
+      now: DateTime(2026, 10, 5),
+    );
+
+    Future<Visit> visitById(String id) async =>
+        (await repository.watchVisits().first)
+            .singleWhere((entry) => entry.visit.id == id)
+            .visit;
+
+    test('記録済みの店を選ぶと、この記録だけをその店に付け替え、空になった前の店を消す', () async {
+      final wrong = await save(
+        const ShopInput(name: '麺屋まちがい', latitude: 35.0, longitude: 139.0),
+      );
+      final right = await save(
+        const ShopInput(osmId: 'node/9', name: '麺屋ただしい'),
+      );
+
+      await repick(wrong, ShopInput(shopId: right.shopId, name: '麺屋ただしい'));
+
+      expect((await visitById(wrong.id)).shopId, right.shopId);
+      final shops = await repository.allShops();
+      expect(shops.map((shop) => shop.id), [right.shopId]);
+    });
+
+    test('前の店にほかの記録があれば、前の店は残す', () async {
+      final first = await save(const ShopInput(name: '麺屋まちがい'));
+      final second = await save(const ShopInput(name: '麺屋まちがい'));
+      final right = await save(const ShopInput(name: '麺屋ただしい'));
+
+      await repick(second, ShopInput(shopId: right.shopId, name: '麺屋ただしい'));
+
+      expect((await visitById(first.id)).shopId, first.shopId);
+      expect((await visitById(second.id)).shopId, right.shopId);
+      expect(await repository.allShops(), hasLength(2));
+    });
+
+    test('初めての店を選ぶと、位置・ID・出所つきの店を作って付け替える', () async {
+      final visit = await save(const ShopInput(name: '手入力の店'));
+
+      await repick(
+        visit,
+        const ShopInput(
+          osmId: 'node/1',
+          name: '麺屋みつけた',
+          latitude: 35.5,
+          longitude: 139.5,
+          dataSource: ShopSource(licenses: ['ODbL-1.0']),
+        ),
+        hoursConditions: {HoursCondition.nightOnly},
+      );
+
+      final entry = (await repository.watchVisits().first).single;
+      expect(entry.visit.id, visit.id);
+      expect(entry.shop.id, isNot(visit.shopId));
+      expect(entry.shop.name, '麺屋みつけた');
+      expect(entry.shop.osmId, 'node/1');
+      expect(entry.shop.latitude, 35.5);
+      expect(entry.shop.longitude, 139.5);
+      expect(entry.shop.dataSource?.licenses, ['ODbL-1.0']);
+      expect(entry.shop.hoursConditions, {HoursCondition.nightOnly});
+      expect(await repository.allShops(), hasLength(1));
+    });
+
+    test('OpenStreetMap の ID が同じ記録済みの店があれば、その店に付け替える', () async {
+      final visit = await save(const ShopInput(name: '手入力の店'));
+      final known = await save(
+        const ShopInput(
+          osmId: 'node/1',
+          name: '麺屋みつけた',
+          latitude: 35.5,
+          longitude: 139.5,
+        ),
+      );
+
+      await repick(
+        visit,
+        const ShopInput(
+          osmId: 'node/1',
+          name: '麺屋みつけた',
+          latitude: 35.5,
+          longitude: 139.5,
+        ),
+      );
+
+      expect((await visitById(visit.id)).shopId, known.shopId);
+      expect(await repository.allShops(), hasLength(1));
+    });
+
+    test('同じ名前で300m以内の記録済みの店があれば、その店に付け替える', () async {
+      final visit = await save(const ShopInput(name: '手入力の店'));
+      final known = await save(
+        const ShopInput(name: '麺屋', latitude: 35.0, longitude: 139.0),
+      );
+
+      await repick(
+        visit,
+        const ShopInput(name: '麺屋', latitude: 35.001, longitude: 139.0),
+      );
+
+      expect((await visitById(visit.id)).shopId, known.shopId);
+    });
+
+    test('前の店で叶えた願はまだの願に戻し、選んだ願の店なら叶える', () async {
+      final wishes = WishRepository(database);
+      final wrongWish = await wishes.addWish(
+        shop: const ShopInput(name: '麺屋まちがい'),
+        now: DateTime(2026, 9, 1),
+      );
+      final rightWish = await wishes.addWish(
+        shop: const ShopInput(
+          osmId: 'node/2',
+          name: '麺屋ただしい',
+          latitude: 35.0,
+          longitude: 139.0,
+        ),
+        now: DateTime(2026, 9, 1),
+      );
+      final visit = await repository.saveEatenVisit(
+        shop: ShopInput(name: '麺屋まちがい', wishId: wrongWish.id),
+        eatenAt: DateTime(2026, 9, 30, 12),
+        now: DateTime(2026, 9, 30, 12),
+      );
+
+      await repick(
+        visit,
+        ShopInput(
+          osmId: 'node/2',
+          name: '麺屋ただしい',
+          latitude: 35.0,
+          longitude: 139.0,
+          wishId: rightWish.id,
+        ),
+      );
+
+      final byId = {
+        for (final wish in await wishes.watchWishes().first) wish.id: wish,
+      };
+      expect(byId[wrongWish.id]!.fulfilledVisitId, isNull);
+      expect(byId[wrongWish.id]!.shopId, isNull);
+      expect(byId[rightWish.id]!.fulfilledVisitId, visit.id);
+      expect(byId[rightWish.id]!.shopId, (await visitById(visit.id)).shopId);
+    });
+
+    test('前の店を消すとき、その店に並んでいる最中なら店のIDだけを外して並びは続ける', () async {
+      final visit = await save(const ShopInput(name: '麺屋まちがい'));
+      await repository.checkIn(
+        shop: ShopInput(shopId: visit.shopId, name: '麺屋まちがい'),
+        at: DateTime(2026, 10, 5, 11),
+      );
+
+      await repick(visit, const ShopInput(name: '麺屋ただしい'));
+
+      final checkin = (await repository.activeCheckin())!;
+      expect(checkin.shopId, isNull);
+      expect(checkin.name, '麺屋まちがい');
+      expect(checkin.checkedInAt, DateTime(2026, 10, 5, 11));
+    });
+
+    test('今の店を選んだときは何も付け替えない', () async {
+      final visit = await save(
+        const ShopInput(name: '麺屋', latitude: 35.0, longitude: 139.0),
+      );
+
+      await repick(visit, ShopInput(shopId: visit.shopId, name: '麺屋'));
+
+      expect((await visitById(visit.id)).shopId, visit.shopId);
+      expect(await repository.allShops(), hasLength(1));
+    });
+  });
+
   test('店の攻略メモを保存でき、記録を読むと店と一緒に出る', () async {
     final visit = await save(const ShopInput(name: '麺屋'));
 

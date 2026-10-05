@@ -379,7 +379,8 @@ class RecordRepository {
       );
 
   /// 店名を変えたときは、この記録だけを別の店に付け替える。ただし手入力の店でほかに記録が
-  /// 無ければ、位置を失わないよう店の名前を直す。[hoursConditions]は利用者が変えたときだけ渡す。
+  /// 無ければ、位置を失わないよう店の名前を直す。[pickedShop]（候補や店名検索で選び直した店）を
+  /// 渡すと、店名ではなくその店に付け替える。[hoursConditions]は利用者が変えたときだけ渡す。
   /// [changesPhoto]がtrueなら写真を[photoPath]に替え、ほかの記録が使っていない前の写真の
   /// パスを返す（ファイルの削除は呼び出し側で行う）。
   Future<String?> updateVisit({
@@ -393,6 +394,7 @@ class RecordRepository {
     required bool isLimited,
     required bool hasTicket,
     required String memo,
+    ShopInput? pickedShop,
     bool changesPhoto = false,
     String? photoPath,
     required DateTime now,
@@ -406,7 +408,9 @@ class RecordRepository {
       )..where((s) => s.id.equals(visit.shopId))).getSingle();
       final name = shopName.trim();
       var shopId = shop.id;
-      if (name.isNotEmpty && name != shop.name) {
+      if (pickedShop != null) {
+        shopId = await _resolveShop(pickedShop, hoursConditions, now);
+      } else if (name.isNotEmpty && name != shop.name) {
         final sameName = await _findShop(
           ShopInput(
             name: name,
@@ -446,7 +450,20 @@ class RecordRepository {
           photoPath: changesPhoto ? Value(photoPath) : const Value.absent(),
         ),
       );
-      if (shopId != shop.id) await _deleteShopIfUnused(shop.id);
+      if (shopId != shop.id) {
+        // 前の店で叶えた願は、まだの願に戻す。付け替えた先の店の願なら叶え直す。
+        await (_db.update(_db.wishes)
+              ..where((w) => w.fulfilledVisitId.equals(visitId)))
+            .write(const WishesCompanion(fulfilledVisitId: Value(null)));
+        if (visit.result == VisitResult.eaten) {
+          await _fulfillWish(
+            pickedShop ?? ShopInput(name: name),
+            shopId: shopId,
+            visitId: visitId,
+          );
+        }
+        await _deleteShopIfUnused(shop.id);
+      }
       final oldPhoto = visit.photoPath;
       if (!changesPhoto || oldPhoto == null || oldPhoto == photoPath) {
         return null;
@@ -492,10 +509,13 @@ class RecordRepository {
   Future<void> _deleteShopIfUnused(String shopId) async {
     if (await _visitCount(shopId) > 0) return;
     await (_db.delete(_db.shops)..where((s) => s.id.equals(shopId))).go();
-    // 願は名前と位置を持っているので、消えた店のIDだけを外して残す。
+    // 願と並んでいる店は名前と位置を持っているので、消えた店のIDだけを外して残す。
     await (_db.update(_db.wishes)..where((w) => w.shopId.equals(shopId))).write(
       const WishesCompanion(shopId: Value(null)),
     );
+    await (_db.update(_db.activeCheckins)
+          ..where((c) => c.shopId.equals(shopId)))
+        .write(const ActiveCheckinsCompanion(shopId: Value(null)));
   }
 
   Future<String> _resolveShop(

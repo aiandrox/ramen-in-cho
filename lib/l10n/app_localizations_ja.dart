@@ -218,6 +218,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editPhotoFailed => '写真を読み込めませんでした';
 
   @override
+  String get editShopRepick => '店を選び直す';
+
+  @override
+  String get editShopRepickTitle => 'どの店の記録ですか？';
+
+  @override
+  String get editShopRepickNoLocation => '店の位置も現在地もわかりませんでした。店名で探してください';
+
+  @override
+  String get editShopRepickFailed => '近くの店を検索できませんでした。店名で探すか、店名を書き換えてください';
+
+  @override
+  String get editShopRepickNone => '近くに候補が見つかりませんでした。店名で探してください';
+
+  @override
+  String get editShopRepickByName => '店名で全国の店から探す';
+
+  @override
   String get limitedBadge => '限定';
 
   @override

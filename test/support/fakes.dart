@@ -110,6 +110,7 @@ typedef VisitUpdate = ({
   bool isLimited,
   bool hasTicket,
   String memo,
+  ShopInput? pickedShop,
   bool changesPhoto,
   String? photoPath,
 });
@@ -134,6 +135,7 @@ class FakeRecordRepository implements RecordRepository {
     required bool isLimited,
     required bool hasTicket,
     required String memo,
+    ShopInput? pickedShop,
     bool changesPhoto = false,
     String? photoPath,
     required DateTime now,
@@ -151,6 +153,7 @@ class FakeRecordRepository implements RecordRepository {
       isLimited: isLimited,
       hasTicket: hasTicket,
       memo: memo,
+      pickedShop: pickedShop,
       changesPhoto: changesPhoto,
       photoPath: photoPath,
     ));
