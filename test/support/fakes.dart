@@ -109,6 +109,8 @@ typedef VisitUpdate = ({
   bool isLimited,
   bool hasTicket,
   String memo,
+  bool changesPhoto,
+  String? photoPath,
 });
 
 /// 画面のテスト用。driftを通さずに、呼ばれた内容だけを覚える。
@@ -116,10 +118,11 @@ class FakeRecordRepository implements RecordRepository {
   final updates = <VisitUpdate>[];
   final deletedVisitIds = <String>[];
   String? deletedPhotoPath;
+  String? unusedPhotoPath;
   Object? error;
 
   @override
-  Future<void> updateVisit({
+  Future<String?> updateVisit({
     required String visitId,
     required String shopName,
     required Set<HoursCondition>? hoursConditions,
@@ -130,6 +133,8 @@ class FakeRecordRepository implements RecordRepository {
     required bool isLimited,
     required bool hasTicket,
     required String memo,
+    bool changesPhoto = false,
+    String? photoPath,
     required DateTime now,
   }) async {
     final error = this.error;
@@ -145,7 +150,10 @@ class FakeRecordRepository implements RecordRepository {
       isLimited: isLimited,
       hasTicket: hasTicket,
       memo: memo,
+      changesPhoto: changesPhoto,
+      photoPath: photoPath,
     ));
+    return unusedPhotoPath;
   }
 
   @override

@@ -301,7 +301,7 @@ void main() {
   });
 
   group('updateVisit', () {
-    Future<void> update(
+    Future<String?> update(
       Visit visit, {
       required String shopName,
       Set<HoursCondition>? hoursConditions,
@@ -320,6 +320,70 @@ void main() {
       memo: memo,
       now: DateTime(2026, 10, 1),
     );
+
+    Future<Visit> saveWithPhoto(String name, String? photoPath) =>
+        repository.saveEatenVisit(
+          shop: ShopInput(name: name),
+          eatenAt: DateTime(2026, 9, 30, 12),
+          photoPath: photoPath,
+          now: DateTime(2026, 9, 30, 12, 5),
+        );
+
+    Future<String?> changePhoto(Visit visit, String? photoPath) =>
+        repository.updateVisit(
+          visitId: visit.id,
+          shopName: '麺屋',
+          hoursConditions: null,
+          eatenAt: visit.eatenAt,
+          checkedInAt: visit.checkedInAt,
+          rating: visit.rating,
+          style: visit.style,
+          isLimited: visit.isLimited,
+          hasTicket: visit.hasTicket,
+          memo: visit.memo,
+          changesPhoto: true,
+          photoPath: photoPath,
+          now: DateTime(2026, 10, 1),
+        );
+
+    test('写真を替えると新しいパスを保存し、使われなくなった前の写真のパスを返す', () async {
+      final visit = await saveWithPhoto('麺屋', 'photos/old.jpg');
+
+      final unused = await changePhoto(visit, 'photos/new.jpg');
+
+      expect(unused, 'photos/old.jpg');
+      final entry = (await repository.watchVisits().first).single;
+      expect(entry.visit.photoPath, 'photos/new.jpg');
+    });
+
+    test('写真を外すと写真なしになり、前の写真のパスを返す', () async {
+      final visit = await saveWithPhoto('麺屋', 'photos/old.jpg');
+
+      final unused = await changePhoto(visit, null);
+
+      expect(unused, 'photos/old.jpg');
+      final entry = (await repository.watchVisits().first).single;
+      expect(entry.visit.photoPath, isNull);
+    });
+
+    test('前の写真をほかの記録も使っていれば、消してよいパスとして返さない', () async {
+      final visit = await saveWithPhoto('麺屋', 'photos/shared.jpg');
+      await saveWithPhoto('麺屋', 'photos/shared.jpg');
+
+      final unused = await changePhoto(visit, 'photos/new.jpg');
+
+      expect(unused, isNull);
+    });
+
+    test('写真を変えないときは前の写真を残し、何も返さない', () async {
+      final visit = await saveWithPhoto('麺屋', 'photos/old.jpg');
+
+      final unused = await update(visit, shopName: '麺屋');
+
+      expect(unused, isNull);
+      final entry = (await repository.watchVisits().first).single;
+      expect(entry.visit.photoPath, 'photos/old.jpg');
+    });
 
     test('記録の内容と店の営業の条件を書き換える', () async {
       final visit = await save(const ShopInput(name: '麺屋'));

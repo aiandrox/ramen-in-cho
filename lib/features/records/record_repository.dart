@@ -380,7 +380,9 @@ class RecordRepository {
 
   /// 店名を変えたときは、この記録だけを別の店に付け替える。ただし手入力の店でほかに記録が
   /// 無ければ、位置を失わないよう店の名前を直す。[hoursConditions]は利用者が変えたときだけ渡す。
-  Future<void> updateVisit({
+  /// [changesPhoto]がtrueなら写真を[photoPath]に替え、ほかの記録が使っていない前の写真の
+  /// パスを返す（ファイルの削除は呼び出し側で行う）。
+  Future<String?> updateVisit({
     required String visitId,
     required String shopName,
     required Set<HoursCondition>? hoursConditions,
@@ -391,6 +393,8 @@ class RecordRepository {
     required bool isLimited,
     required bool hasTicket,
     required String memo,
+    bool changesPhoto = false,
+    String? photoPath,
     required DateTime now,
   }) {
     return _db.transaction(() async {
@@ -439,10 +443,25 @@ class RecordRepository {
           isLimited: Value(isLimited),
           hasTicket: Value(hasTicket),
           memo: Value(memo),
+          photoPath: changesPhoto ? Value(photoPath) : const Value.absent(),
         ),
       );
       if (shopId != shop.id) await _deleteShopIfUnused(shop.id);
+      final oldPhoto = visit.photoPath;
+      if (!changesPhoto || oldPhoto == null || oldPhoto == photoPath) {
+        return null;
+      }
+      return await _isPhotoUsed(oldPhoto) ? null : oldPhoto;
     });
+  }
+
+  Future<bool> _isPhotoUsed(String photoPath) async {
+    final used =
+        await (_db.select(_db.visits)
+              ..where((v) => v.photoPath.equals(photoPath))
+              ..limit(1))
+            .getSingleOrNull();
+    return used != null;
   }
 
   /// 削除した記録の写真のパスを返す（ファイルの削除は呼び出し側で行う）。
