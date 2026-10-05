@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:ramen_in_cho/features/backup/backup_codec.dart';
 import 'package:ramen_in_cho/features/backup/backup_service.dart';
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
@@ -129,6 +130,38 @@ void main() {
         'visits': <Object?>[],
       });
       expect(restored.visits, isEmpty);
+      // 拠点を自分で決めるようになる前のバックアップには拠点が無い。
+      expect(restored.homeBases, isEmpty);
+    });
+
+    test('拠点の履歴を書き出して読み戻せる', () {
+      final json = jsonDecode(
+        jsonEncode(
+          encodeBackup(
+            BackupData(
+              shops: const [],
+              visits: const [],
+              homeBases: [
+                HomeBaseSetting(
+                  id: 'base',
+                  name: '厚木市',
+                  latitude: 35.44,
+                  longitude: 139.36,
+                  setAt: DateTime(2026, 10, 5, 9),
+                ),
+              ],
+            ),
+            exportedAt: _now,
+          ),
+        ),
+      );
+
+      final base = decodeBackup(json).homeBases.single;
+      expect(base.id, 'base');
+      expect(base.name, '厚木市');
+      expect(base.latitude, 35.44);
+      expect(base.longitude, 139.36);
+      expect(base.setAt, DateTime(2026, 10, 5, 9));
     });
 
     test('ほかのアプリのファイルや、新しい版のバックアップは読まない', () {
@@ -183,7 +216,14 @@ void main() {
     late Directory temporary;
 
     setUp(() async {
-      source = RecordRepository(createTestDatabase());
+      final sourceDatabase = createTestDatabase();
+      source = RecordRepository(sourceDatabase);
+      await HomeBaseRepository(sourceDatabase).setHomeBase(
+        name: '横浜駅',
+        latitude: 35.466,
+        longitude: 139.622,
+        now: DateTime(2026, 8, 1, 9),
+      );
       sourcePhotos = PhotoStorage(createTempDirectory());
       temporary = createTempDirectory();
       final picked = File(p.join(temporary.path, 'picked.jpg'))
@@ -217,7 +257,8 @@ void main() {
       final backup = await serviceFor(source, sourcePhotos).writeBackup(_now);
       expect(p.basename(backup.path), 'ramen-in-cho-20261001-2130.zip');
 
-      final target = RecordRepository(createTestDatabase());
+      final targetDatabase = createTestDatabase();
+      final target = RecordRepository(targetDatabase);
       final targetPhotos = PhotoStorage(createTempDirectory());
       final summary = await serviceFor(
         target,
@@ -225,6 +266,11 @@ void main() {
       ).restoreBackup(backup.path);
 
       expect(summary.addedVisits, 2);
+      final homeBase = (await HomeBaseRepository(
+        targetDatabase,
+      ).allSettings()).single;
+      expect(homeBase.name, '横浜駅');
+      expect(homeBase.setAt, DateTime(2026, 8, 1, 9));
       expect(summary.totalVisits, 2);
       final visits = await target.watchVisits().first;
       expect(visits.map((v) => v.shop.name).toSet(), {'麺屋', '写真なしの店'});
@@ -245,6 +291,7 @@ void main() {
 
       expect(summary.addedVisits, 0);
       expect(await source.watchVisits().first, hasLength(2));
+      expect((await source.exportAll()).homeBases, hasLength(1));
     });
 
     test('書き出すたびに、前回書き出したファイルを消す', () async {

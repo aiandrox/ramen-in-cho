@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../home_base/place_search.dart';
 import 'geo.dart';
 import 'overpass.dart';
 
@@ -50,5 +53,39 @@ class OverpassClient {
       );
     }
     return parseOverpassResponse(response.body);
+  }
+
+  static const placeSearchTimeout = Duration(seconds: 25);
+
+  /// 拠点にする駅や市町村を名前で探す。[near]は並べ替えに使うだけで、サーバーには送らない。
+  /// 通信の失敗・タイムアウト・想定外の応答は例外にする。
+  Future<List<PlaceCandidate>> searchPlaces(
+    String name, {
+    GeoPoint? near,
+    Duration timeout = placeSearchTimeout,
+  }) async {
+    final response = await _client
+        .post(
+          _endpoint,
+          headers: const {'User-Agent': shopSearchUserAgent},
+          body: {
+            'data': buildPlaceSearchQuery(
+              name,
+              timeoutSeconds: timeout.inSeconds - 2,
+            ),
+          },
+        )
+        .timeout(timeout);
+    if (response.statusCode != 200) {
+      throw http.ClientException(
+        'Overpass API: HTTP ${response.statusCode}',
+        _endpoint,
+      );
+    }
+    return parsePlaceSearchResponse(
+      utf8.decode(response.bodyBytes),
+      name,
+      near: near,
+    );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/inkan/inkan_stamp.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
 import 'package:ramen_in_cho/features/record/record_result_screen.dart';
@@ -35,6 +36,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(AsyncData(visits)),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(AsyncData(wishes)),
           notificationServiceProvider.overrideWithValue(notifications),
         ],
@@ -147,6 +149,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(const AsyncData([])),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
           notificationServiceProvider.overrideWithValue(notifications),
         ],

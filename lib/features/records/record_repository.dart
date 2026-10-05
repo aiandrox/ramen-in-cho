@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../backup/backup_codec.dart';
 import '../database/app_database.dart';
+import '../home_base/home_base_repository.dart';
 import '../shop_search/found_shop.dart';
 import '../shop_search/geo.dart';
 import 'models.dart';
@@ -67,9 +68,10 @@ class RecordRepository {
     shops: await _db.select(_db.shops).get(),
     visits: await _db.select(_db.visits).get(),
     wishes: await _db.select(_db.wishes).get(),
+    homeBases: await _db.select(_db.homeBaseSettings).get(),
   );
 
-  /// バックアップの記録を足す。同じIDの店・記録がすでにあれば、端末の方を残す。
+  /// バックアップの記録（店・願・拠点・記録）を足す。同じIDのものがすでにあれば、端末の方を残す。
   /// 足した記録の件数を返す。
   Future<int> importAll(BackupData data) {
     return _db.transaction(() async {
@@ -118,6 +120,14 @@ class RecordRepository {
                 hoursConditions: Value(wish.hoursConditions),
               ),
             );
+      }
+      final homeBaseIds = {
+        for (final base in await _db.select(_db.homeBaseSettings).get())
+          base.id,
+      };
+      for (final base in data.homeBases) {
+        if (!homeBaseIds.add(base.id)) continue;
+        await _db.into(_db.homeBaseSettings).insert(base.toCompanion());
       }
       final visitIds = {
         for (final visit in await _db.select(_db.visits).get()) visit.id,

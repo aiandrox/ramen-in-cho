@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../home_base/home_base_repository.dart';
 import '../records/date_format.dart';
 import '../records/labels.dart';
 import '../scoring/rank_labels.dart';
@@ -282,7 +283,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             for (final pin in allPins)
               if (shownStops.any((stop) => stop.shop.id == pin.shop.id)) pin,
           ];
-    final base = currentHomeBase(scored);
+    final base = ref.watch(currentHomeBaseProvider);
     final tilesEnabled = ref.watch(mapTilesEnabledProvider);
     final here = _here;
 
@@ -381,12 +382,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     ),
                   if (base != null && _replayCount == null)
                     Marker(
-                      point: LatLng(
-                        base.location.latitude,
-                        base.location.longitude,
-                      ),
-                      width: 44,
-                      height: 44,
+                      point: LatLng(base.latitude, base.longitude),
+                      width: 24,
+                      height: 24,
                       child: _HomeBasePin(base: base),
                     ),
                   for (final pin in pins)
@@ -704,20 +702,19 @@ class _PinDetails extends StatelessWidget {
   }
 }
 
-/// 今の拠点の中心。中心の店のピンを隠さないよう、足元の右下に小さな墨の輪で出す。
+/// 今の拠点。店のピンと見分けられるよう、小さな墨の輪で出す。
 class _HomeBasePin extends StatelessWidget {
   const _HomeBasePin({required this.base});
 
-  final HomeBase base;
+  final HomeBaseSetting base;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return IgnorePointer(
       child: Semantics(
-        label: l10n.homeBasePinLabel(base.shop.name),
-        child: Align(
-          alignment: Alignment.bottomRight,
+        label: l10n.homeBasePinLabel(base.name),
+        child: Center(
           child: Container(
             width: 20,
             height: 20,

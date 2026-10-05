@@ -166,3 +166,22 @@ class VisitWithShop {
   final Visit visit;
   final Shop shop;
 }
+
+/// 利用者が決めた拠点（駅・市など）。変えるたびに1件ずつ足し、変えた日時から後の記録にだけ効く。
+class HomeBaseSetting {
+  const HomeBaseSetting({
+    required this.id,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    required this.setAt,
+  });
+
+  final String id;
+
+  /// 画面に出す名前（「横浜駅」「厚木市」など）。
+  final String name;
+  final double latitude;
+  final double longitude;
+  final DateTime setAt;
+}

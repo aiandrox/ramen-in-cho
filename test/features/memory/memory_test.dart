@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/memory/memory.dart';
 import 'package:ramen_in_cho/features/memory/memory_card.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
@@ -85,6 +86,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(AsyncData([entry])),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
           clockProvider.overrideWithValue(() => today),
         ],

@@ -221,7 +221,8 @@ class _SpotDetails extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final quest = progress.quest;
-    final by = progress.levelAchievedBy.first;
+    final by = progress.levelAchievedBy.firstOrNull;
+    final homeBase = progress.achievedHomeBase;
     // どの秘伝でも同じ高さにし、ボタンの位置もそろえる（説明や店名の長さで変わらないように）。
     return SafeArea(
       child: SizedBox(
@@ -235,7 +236,7 @@ class _SpotDetails extends StatelessWidget {
                 quest: quest,
                 level: progress.level,
                 size: 112,
-                achievedAt: by.visit.eatenAt,
+                achievedAt: progress.levelAchievedAt.first,
               ),
               const SizedBox(height: 12),
               Text(
@@ -252,24 +253,27 @@ class _SpotDetails extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                l10n.questSpotAchievedShop(by.shop.name),
+                by != null
+                    ? l10n.questSpotAchievedShop(by.shop.name)
+                    : l10n.questSpotAchievedHomeBase(homeBase?.name ?? ''),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.bodyLarge,
               ),
               const Spacer(),
-              SumiFuda(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => VisitDetailScreen(visitId: by.visit.id),
-                    ),
-                  );
-                },
-                child: Text(l10n.questSpotOpenShop),
-              ),
+              if (by != null)
+                SumiFuda(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => VisitDetailScreen(visitId: by.visit.id),
+                      ),
+                    );
+                  },
+                  child: Text(l10n.questSpotOpenShop),
+                ),
             ],
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../home_base/home_base_repository.dart';
 import '../quests/quests.dart';
 import '../records/record_repository.dart';
 import '../wishes/wish_repository.dart';
@@ -12,6 +13,7 @@ final scoredVisitsProvider = Provider<List<ScoredVisit>>(
   (ref) => scoreVisits(
     ref.watch(visitsProvider).value ?? const [],
     wishes: ref.watch(wishesProvider).value ?? const [],
+    homeBases: ref.watch(homeBaseSettingsProvider).value ?? const [],
   ),
 );
 
@@ -33,5 +35,8 @@ final scoredVisitByIdProvider = Provider<Map<String, ScoredVisit>>(
 
 /// 全クエストの達成状況。保存せず、記録から毎回計算する。
 final questProgressProvider = Provider<List<QuestProgress>>(
-  (ref) => evaluateQuests(ref.watch(scoredVisitsProvider)),
+  (ref) => evaluateQuests(
+    ref.watch(scoredVisitsProvider),
+    homeBases: ref.watch(homeBaseSettingsProvider).value ?? const [],
+  ),
 );

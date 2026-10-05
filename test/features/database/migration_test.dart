@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ramen_in_cho/features/database/app_database.dart';
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
@@ -327,5 +328,73 @@ void main() {
     expect((await wishes.watchWishes().first).single.hoursConditions, {
       HoursCondition.lunchOnly,
     });
+  });
+
+  test('バージョン8に拠点の表を足し、記録と願はそのまま残す', () async {
+    final eatenAt = DateTime(2026, 10, 4, 12);
+    final seconds = eatenAt.millisecondsSinceEpoch ~/ 1000;
+    final database = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw.execute(
+            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+            'latitude REAL, longitude REAL, osm_id TEXT, '
+            "hours_conditions TEXT NOT NULL DEFAULT '', "
+            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
+            'area TEXT, created_at INTEGER NOT NULL, PRIMARY KEY (id))',
+          );
+          raw.execute(_v1Schema[1]);
+          raw.execute(
+            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
+            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
+            'longitude REAL, data_source TEXT, '
+            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
+          );
+          raw.execute(
+            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
+            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
+            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
+            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
+            'fulfilled_visit_id TEXT, '
+            "hours_conditions TEXT NOT NULL DEFAULT '', PRIMARY KEY (id))",
+          );
+          raw.execute(
+            'INSERT INTO shops VALUES '
+            "('shop', '麺屋', 35.0, 139.0, NULL, '', '', NULL, NULL, $seconds)",
+          );
+          raw.execute(
+            "INSERT INTO visits VALUES ('visit', 'shop', 'eaten', "
+            "NULL, NULL, $seconds, 'shoyu', 4, 0, 0, '', $seconds)",
+          );
+          raw.execute(
+            'INSERT INTO wishes VALUES '
+            "('wish', NULL, NULL, 'はやし田', NULL, NULL, NULL, "
+            "'', '', $seconds, NULL, 'lunchOnly')",
+          );
+          raw.execute('PRAGMA user_version = 8');
+        },
+      ),
+    );
+    addTearDown(database.close);
+
+    expect(
+      (await RecordRepository(database).watchVisits().first).single.visit.id,
+      'visit',
+    );
+    expect(
+      (await WishRepository(database).watchWishes().first).single.name,
+      'はやし田',
+    );
+    final homeBases = HomeBaseRepository(database);
+    expect(await homeBases.allSettings(), isEmpty);
+    await homeBases.setHomeBase(
+      name: '横浜駅',
+      latitude: 35.466,
+      longitude: 139.622,
+      now: DateTime(2026, 10, 5, 9),
+    );
+    final saved = (await homeBases.watchSettings().first).single;
+    expect(saved.name, '横浜駅');
+    expect(saved.setAt, DateTime(2026, 10, 5, 9));
   });
 }

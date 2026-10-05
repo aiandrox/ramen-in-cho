@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
@@ -23,6 +24,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(AsyncData(visits)),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
           clockProvider.overrideWithValue(() => DateTime(2026, 10, 1)),
         ],
@@ -48,6 +50,7 @@ void main() {
           visitsProvider.overrideWithValue(
             AsyncError(StateError('db'), StackTrace.empty),
           ),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
         ],
         child: localizedApp(

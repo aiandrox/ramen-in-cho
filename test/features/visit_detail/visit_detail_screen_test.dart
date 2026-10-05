@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/record/star_rating.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
@@ -60,6 +61,7 @@ void main() {
       ProviderScope(
         overrides: [
           visitsProvider.overrideWithValue(AsyncData(visits)),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
           recordRepositoryProvider.overrideWithValue(repository),
           documentsDirectoryProvider.overrideWithValue(documents),

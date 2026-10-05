@@ -1,5 +1,19 @@
 import 'package:ramen_in_cho/features/records/models.dart';
 
+HomeBaseSetting buildHomeBase({
+  String? id,
+  String name = '拠点',
+  double latitude = 35.0,
+  double longitude = 139.0,
+  required DateTime setAt,
+}) => HomeBaseSetting(
+  id: id ?? 'base-${setAt.toIso8601String()}',
+  name: name,
+  latitude: latitude,
+  longitude: longitude,
+  setAt: setAt,
+);
+
 Shop buildShop({
   String id = 'shop',
   String? name,

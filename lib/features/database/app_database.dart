@@ -124,13 +124,27 @@ class ActiveCheckins extends Table {
 
 const activeCheckinId = 1;
 
-@DriftDatabase(tables: [Shops, Visits, ActiveCheckins, Wishes])
+@UseRowClass(HomeBaseSetting)
+class HomeBaseSettings extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  DateTimeColumn get setAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DriftDatabase(
+  tables: [Shops, Visits, ActiveCheckins, Wishes, HomeBaseSettings],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
     : super(executor ?? driftDatabase(name: 'ramen_in_cho'));
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -169,6 +183,7 @@ class AppDatabase extends _$AppDatabase {
       if (from >= 6 && from < 8) {
         await migrator.addColumn(wishes, wishes.hoursConditions);
       }
+      if (from < 9) await migrator.createTable(homeBaseSettings);
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

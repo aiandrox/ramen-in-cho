@@ -1,4 +1,4 @@
-import '../map/journey.dart';
+import '../home_base/home_base.dart';
 import '../records/models.dart';
 import '../records/wait_time.dart';
 
@@ -121,6 +121,7 @@ class ScoredVisit {
     required this.isFirstVisit,
     required this.isRetrySuccess,
     this.fulfilledWish,
+    this.homeBase,
   });
 
   final Visit visit;
@@ -135,13 +136,22 @@ class ScoredVisit {
 
   /// この1杯で叶った願。
   final Wish? fulfilledWish;
+
+  /// この1杯を食べた時点で効いていた拠点。
+  final HomeBaseSetting? homeBase;
+
+  /// 拠点から遠い店で食べた1杯か（遠征）。
+  bool get isExpedition =>
+      visit.result == VisitResult.eaten && isFarFromHomeBase(homeBase, shop);
 }
 
 /// 全記録を採点し、古い順に返す。初訪問と再挑戦成功は店ごとの記録の順番で決まるため、
 /// 1件だけでは採点できない。[wishes]を渡すと、どの1杯で叶った願かも添える。
+/// 遠征は、その1杯を食べた時点で効いていた[homeBases]の拠点から決める。
 List<ScoredVisit> scoreVisits(
   List<VisitWithShop> entries, {
   List<Wish> wishes = const [],
+  List<HomeBaseSetting> homeBases = const [],
 }) {
   final ordered = [...entries]
     ..sort((a, b) {
@@ -153,9 +163,6 @@ List<ScoredVisit> scoreVisits(
   final lastResult = <String, VisitResult>{};
   final scored = <ScoredVisit>[];
   final wishByVisit = {for (final wish in wishes) ?wish.fulfilledVisitId: wish};
-  final expeditionIds = expeditionVisitIds([
-    for (final entry in ordered) (entry.visit, entry.shop),
-  ]);
   for (final entry in ordered) {
     final visit = entry.visit;
     final isEaten = visit.result == VisitResult.eaten;
@@ -163,6 +170,7 @@ List<ScoredVisit> scoreVisits(
     final isFirstVisit = isEaten && !eatenShops.contains(visit.shopId);
     final isRetrySuccess =
         isEaten && lastResult[visit.shopId] == VisitResult.retreated;
+    final homeBase = homeBaseAt(homeBases, visit.eatenAt);
     scored.add(
       ScoredVisit(
         visit: visit,
@@ -172,11 +180,12 @@ List<ScoredVisit> scoreVisits(
           hoursConditions: entry.shop.hoursConditions,
           isFirstVisit: isFirstVisit,
           isRetrySuccess: isRetrySuccess,
-          isExpedition: expeditionIds.contains(visit.id),
+          isExpedition: isFarFromHomeBase(homeBase, entry.shop),
         ),
         isFirstVisit: isFirstVisit,
         isRetrySuccess: isRetrySuccess,
         fulfilledWish: fulfilledWish,
+        homeBase: homeBase,
       ),
     );
     if (isEaten) eatenShops.add(visit.shopId);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_banner.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_screen.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
@@ -37,6 +38,7 @@ void main() {
         overrides: [
           recordRepositoryProvider.overrideWithValue(repository),
           visitsProvider.overrideWithValue(AsyncData(visits)),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
           shopSearchServiceProvider.overrideWithValue(
             FakeShopSearchService(search),

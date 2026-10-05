@@ -1,5 +1,5 @@
 import '../inkan/inkan.dart';
-import '../map/journey.dart';
+import '../home_base/home_base.dart';
 import '../records/models.dart';
 import '../scoring/points.dart';
 import '../shop_search/geo.dart';

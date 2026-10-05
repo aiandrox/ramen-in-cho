@@ -7,6 +7,7 @@ import '../../theme/washi_buttons.dart';
 import '../backup/backup_screen.dart';
 import '../checkin/checkin_screen.dart';
 import '../home/app_tab.dart';
+import '../home_base/home_base_picker_screen.dart';
 import '../inkan/inkan_stamp.dart';
 import '../map/map_screen.dart';
 import '../record/record_screen.dart';
@@ -142,6 +143,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (mounted) _advance(OnboardingEvent.wished);
   }
 
+  Future<void> _chooseHomeBase() async {
+    final chosen = await _open<bool>(const HomeBasePickerScreen());
+    if (chosen == true && mounted) _advance(OnboardingEvent.homeBaseSet);
+  }
+
   void _finish({AppTab? tab}) {
     if (tab != null) ref.read(appTabProvider.notifier).select(tab);
     Navigator.of(context).pop();
@@ -229,6 +235,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             child: Text(l10n.onboardingWishByName),
           ),
           skip,
+        ],
+      ),
+      OnboardingStep.homeBase => _OnboardingPage(
+        chapter: l10n.onboardingHomeBaseChapter,
+        title: l10n.onboardingHomeBaseTitle,
+        body: l10n.onboardingHomeBaseBody,
+        actions: [
+          AiFuda(
+            expand: true,
+            onPressed: _chooseHomeBase,
+            child: Text(l10n.onboardingHomeBaseButton),
+          ),
+          FudeLink(
+            onPressed: () => _advance(OnboardingEvent.skipped),
+            child: Text(l10n.onboardingHomeBaseLater),
+          ),
         ],
       ),
       OnboardingStep.finish => _OnboardingPage(
