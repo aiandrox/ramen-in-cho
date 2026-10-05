@@ -107,17 +107,31 @@ class InkanStamp extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // 細いかなが「麺」に負けないよう、太くして少し横長に潰す。
                     for (final kana in l10n.inkanStyleTsukemenKana.characters)
-                      Text(
-                        kana,
-                        style: small.copyWith(
-                          fontSize: size * 0.14,
-                          height: 0.95,
+                      Transform.scale(
+                        scaleX: 1.2,
+                        scaleY: 0.86,
+                        child: Text(
+                          kana,
+                          style: small.copyWith(
+                            fontSize: size * 0.15,
+                            fontWeight: FontWeight.w700,
+                            height: 0.92,
+                            // 合成の太字だけでは細いので、同じ色を少しずらして重ねて太らせる。
+                            shadows: [
+                              for (final dx in [-1.0, 1.0])
+                                Shadow(
+                                  color: color,
+                                  offset: Offset(dx * size * 0.005, 0),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                   ],
                 ),
-                SizedBox(width: size * 0.01),
+                SizedBox(width: size * 0.025),
                 Text(
                   l10n.inkanStyleTsukemenMain,
                   maxLines: 1,
