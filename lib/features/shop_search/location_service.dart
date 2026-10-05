@@ -5,6 +5,12 @@ import 'package:geolocator/geolocator.dart';
 
 import 'geo.dart';
 
+/// 現在地を求められたのに、アプリからは直せない理由で取れなかったこと。
+enum LocationBlock { serviceOff, deniedForever }
+
+/// [LocationBlock]が起きたことを画面に知らせ、スマホの設定を開くよう案内してもらう。
+final locationBlocks = StreamController<LocationBlock>.broadcast();
+
 final locationServiceProvider = Provider<LocationService>(
   (ref) => const GeolocatorLocationService(),
 );
@@ -36,10 +42,17 @@ class GeolocatorLocationService implements LocationService {
   @override
   Future<GeoPoint?> currentPosition({required bool requestPermission}) async {
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) return null;
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        if (requestPermission) locationBlocks.add(LocationBlock.serviceOff);
+        return null;
+      }
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied && requestPermission) {
         permission = await Geolocator.requestPermission();
+      }
+      // 何度か断ると、アプリからは許可を聞き直せなくなる（スマホの設定でしか直せない）。
+      if (permission == LocationPermission.deniedForever && requestPermission) {
+        locationBlocks.add(LocationBlock.deniedForever);
       }
       if (!_isGranted(permission)) return null;
       try {

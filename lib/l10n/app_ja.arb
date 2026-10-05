@@ -757,5 +757,9 @@
   "onboardingHomeBaseBody": "ふだん暮らす駅や街を、修行の拠点と定める。\n\n拠点から80km以上離れた店で食べた一杯は「遠征」となり、修行点が上乗せされる。拠点はあとから設定で変えられ、変えた日から後の一杯にだけ効く。",
   "onboardingHomeBaseButton": "拠点を決める",
   "onboardingHomeBaseLater": "あとで決める",
-  "onboardingFinishChapter": "其の六　精進"
+  "onboardingFinishChapter": "其の六　精進",
+  "locationBlockedTitle": "現在地が使えません",
+  "locationDeniedForeverBody": "麺印帳に位置情報の利用が許可されていません。スマホの設定で、麺印帳の位置情報を「アプリの使用中のみ許可」にしてください。",
+  "locationServiceOffBody": "スマホの位置情報がオフになっています。設定で位置情報をオンにしてください。",
+  "locationOpenSettings": "設定を開く"
 }

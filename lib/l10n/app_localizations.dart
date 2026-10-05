@@ -2823,6 +2823,30 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'其の六　精進'**
   String get onboardingFinishChapter;
+
+  /// No description provided for @locationBlockedTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'現在地が使えません'**
+  String get locationBlockedTitle;
+
+  /// No description provided for @locationDeniedForeverBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'麺印帳に位置情報の利用が許可されていません。スマホの設定で、麺印帳の位置情報を「アプリの使用中のみ許可」にしてください。'**
+  String get locationDeniedForeverBody;
+
+  /// No description provided for @locationServiceOffBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'スマホの位置情報がオフになっています。設定で位置情報をオンにしてください。'**
+  String get locationServiceOffBody;
+
+  /// No description provided for @locationOpenSettings.
+  ///
+  /// In ja, this message translates to:
+  /// **'設定を開く'**
+  String get locationOpenSettings;
 }
 
 class _AppLocalizationsDelegate
