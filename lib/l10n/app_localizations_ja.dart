@@ -161,16 +161,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get draftDiscard => '下書きを捨てて新しく';
 
   @override
-  String get draftDiscardTitle => '下書きを捨てますか？';
+  String get draftDiscardTitle => '下書きが残っています。破棄して新しく記録しますか？';
 
   @override
-  String get draftDiscardMessage => '入れた写真や店名などが消えます。記録した杯には影響しません';
+  String get draftDiscardMessage => '破棄すると、下書きの写真や店名などは消えます。記録した杯には影響しません';
 
   @override
-  String get draftDiscardConfirm => '捨てる';
+  String get draftDiscardConfirm => '破棄して新しく記録する';
 
   @override
-  String get draftDiscardCancel => '残す';
+  String get draftDiscardCancel => '下書きの続きから記録する';
+
+  @override
+  String get leaveRecordTitle => '記録をやめますか？';
+
+  @override
+  String get leaveRecordMessage => '下書きに残すと、次に「＋」を押したときに続きから記録できます';
+
+  @override
+  String get leaveRecordKeepDraft => '下書きに残してやめる';
+
+  @override
+  String get leaveRecordDiscard => '破棄してやめる';
+
+  @override
+  String get leaveRecordCancel => '続ける';
 
   @override
   String get cancel => 'キャンセル';

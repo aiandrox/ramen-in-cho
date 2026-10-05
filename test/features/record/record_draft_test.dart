@@ -150,6 +150,21 @@ void main() {
       expect(outside.existsSync(), isTrue);
     });
 
+    test('消すのは下書きと下書き用のフォルダの写真だけ。記録の写真やほかのファイルは残す', () async {
+      final saved = File(p.join(documents.path, 'photos', 'visit.jpg'))
+        ..createSync(recursive: true);
+      final other = File(p.join(documents.path, 'curated_shops.json'))
+        ..writeAsStringSync('[]');
+      final kept = await store.keepPhoto(source().path);
+      await store.save(RecordDraft(photoPath: kept, memo: 'メモ'));
+
+      await store.clear();
+      expect(await store.load(), isNull);
+      expect(File(kept).existsSync(), isFalse);
+      expect(saved.existsSync(), isTrue);
+      expect(other.existsSync(), isTrue);
+    });
+
     test('消すと下書きと写真がなくなる。残す写真は指定できる', () async {
       final first = await store.keepPhoto(source().path);
       final second = await store.keepPhoto(source().path);

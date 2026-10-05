@@ -153,13 +153,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
     final path = await ref.read(sharedPhotoReceiverProvider).take();
     if (path == null || !mounted) return;
-    await _openRecord(recoveredPhotoPath: path);
+    await _openRecord(recoveredPhotoPath: path, sharedPhoto: true);
   }
 
-  Future<void> _openRecord({String? recoveredPhotoPath}) async {
+  Future<void> _openRecord({
+    String? recoveredPhotoPath,
+    bool sharedPhoto = false,
+  }) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => RecordScreen(recoveredPhotoPath: recoveredPhotoPath),
+        builder: (_) => RecordScreen(
+          recoveredPhotoPath: recoveredPhotoPath,
+          sharedPhoto: sharedPhoto,
+        ),
       ),
     );
   }

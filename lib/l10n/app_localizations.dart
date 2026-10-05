@@ -385,26 +385,56 @@ abstract class AppLocalizations {
   /// No description provided for @draftDiscardTitle.
   ///
   /// In ja, this message translates to:
-  /// **'下書きを捨てますか？'**
+  /// **'下書きが残っています。破棄して新しく記録しますか？'**
   String get draftDiscardTitle;
 
   /// No description provided for @draftDiscardMessage.
   ///
   /// In ja, this message translates to:
-  /// **'入れた写真や店名などが消えます。記録した杯には影響しません'**
+  /// **'破棄すると、下書きの写真や店名などは消えます。記録した杯には影響しません'**
   String get draftDiscardMessage;
 
   /// No description provided for @draftDiscardConfirm.
   ///
   /// In ja, this message translates to:
-  /// **'捨てる'**
+  /// **'破棄して新しく記録する'**
   String get draftDiscardConfirm;
 
   /// No description provided for @draftDiscardCancel.
   ///
   /// In ja, this message translates to:
-  /// **'残す'**
+  /// **'下書きの続きから記録する'**
   String get draftDiscardCancel;
+
+  /// No description provided for @leaveRecordTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'記録をやめますか？'**
+  String get leaveRecordTitle;
+
+  /// No description provided for @leaveRecordMessage.
+  ///
+  /// In ja, this message translates to:
+  /// **'下書きに残すと、次に「＋」を押したときに続きから記録できます'**
+  String get leaveRecordMessage;
+
+  /// No description provided for @leaveRecordKeepDraft.
+  ///
+  /// In ja, this message translates to:
+  /// **'下書きに残してやめる'**
+  String get leaveRecordKeepDraft;
+
+  /// No description provided for @leaveRecordDiscard.
+  ///
+  /// In ja, this message translates to:
+  /// **'破棄してやめる'**
+  String get leaveRecordDiscard;
+
+  /// No description provided for @leaveRecordCancel.
+  ///
+  /// In ja, this message translates to:
+  /// **'続ける'**
+  String get leaveRecordCancel;
 
   /// No description provided for @cancel.
   ///

@@ -20,6 +20,7 @@ import '../shop_search/shop_name_search_sheet.dart';
 import '../shop_search/shop_tile.dart';
 import '../shop_search/yahoo_local.dart';
 import 'record_controller.dart';
+import 'record_draft.dart';
 import 'record_result_screen.dart';
 import 'record_state.dart';
 import 'star_rating.dart';
@@ -27,9 +28,17 @@ import '../../theme/washi_buttons.dart';
 
 /// 保存できたら、得たポイントを見せる画面に切り替わる。
 class RecordScreen extends ConsumerStatefulWidget {
-  const RecordScreen({super.key, this.recoveredPhotoPath});
+  const RecordScreen({
+    super.key,
+    this.recoveredPhotoPath,
+    this.sharedPhoto = false,
+  });
 
+  /// 開いたときに使う写真（取り戻した写真・ほかのアプリから共有された写真）。
   final String? recoveredPhotoPath;
+
+  /// [recoveredPhotoPath]がほかのアプリから共有された写真か。
+  final bool sharedPhoto;
 
   @override
   ConsumerState<RecordScreen> createState() => _RecordScreenState();
@@ -48,11 +57,48 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref
-          .read(recordControllerProvider.notifier)
-          .start(recoveredPhotoPath: widget.recoveredPhotoPath);
+      if (mounted) _start();
     });
+  }
+
+  /// 写真を渡されて開いたときに下書きが残っていれば、どちらで記録するか先に確かめる。
+  Future<void> _start() async {
+    final controller = ref.read(recordControllerProvider.notifier);
+    final photo = widget.recoveredPhotoPath;
+    var startOver = false;
+    if (photo != null && await controller.hasDraft()) {
+      if (!mounted) return;
+      startOver = await _askStartOver();
+      if (!mounted) return;
+    }
+    await controller.start(
+      recoveredPhotoPath: photo,
+      sharedPhoto: widget.sharedPhoto,
+      startOver: startOver,
+    );
+  }
+
+  /// 下書きを破棄して新しく記録するならtrue。
+  Future<bool> _askStartOver() async {
+    final l10n = AppLocalizations.of(context);
+    final startOver = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.draftDiscardTitle),
+        content: Text(l10n.draftDiscardMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.draftDiscardCancel),
+          ),
+          KeshiFuda(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.draftDiscardConfirm),
+          ),
+        ],
+      ),
+    );
+    return startOver == true;
   }
 
   @override
@@ -93,25 +139,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   }
 
   Future<void> _confirmDiscardDraft() async {
-    final l10n = AppLocalizations.of(context);
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.draftDiscardTitle),
-        content: Text(l10n.draftDiscardMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.draftDiscardCancel),
-          ),
-          KeshiFuda(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.draftDiscardConfirm),
-          ),
-        ],
-      ),
-    );
-    if (discard != true || !mounted) return;
+    if (!await _askStartOver() || !mounted) return;
     _nameController.clear();
     _memoController.clear();
     _waitController.clear();
@@ -139,8 +167,49 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
         _fillFromDraft(next);
       }
     });
-    // 保存せずに閉じても、入力は下書きに残るので確かめずに閉じる。
-    return _buildScaffold(context, ref.watch(recordControllerProvider));
+    final state = ref.watch(recordControllerProvider);
+    return PopScope(
+      canPop: RecordDraft.fromState(state).isEmpty,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmLeave();
+      },
+      child: _buildScaffold(context, state),
+    );
+  }
+
+  /// 入力したまま閉じようとしたら、下書きに残すか破棄するかを選んでもらう。
+  Future<void> _confirmLeave() async {
+    final l10n = AppLocalizations.of(context);
+    final choice = await showDialog<_LeaveChoice>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.leaveRecordTitle),
+        content: Text(l10n.leaveRecordMessage),
+        // 縦に並ぶときは、下書きに残すボタンをいちばん上にする。
+        actionsOverflowDirection: VerticalDirection.up,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.leaveRecordCancel),
+          ),
+          KeshiFuda(
+            onPressed: () => Navigator.of(context).pop(_LeaveChoice.discard),
+            child: Text(l10n.leaveRecordDiscard),
+          ),
+          AiFuda(
+            onPressed: () => Navigator.of(context).pop(_LeaveChoice.keepDraft),
+            child: Text(l10n.leaveRecordKeepDraft),
+          ),
+        ],
+      ),
+    );
+    if (choice == null || !mounted) return;
+    final navigator = Navigator.of(context);
+    if (choice == _LeaveChoice.discard) {
+      await ref.read(recordControllerProvider.notifier).abandonDraft();
+    }
+    // 入力は変えるたびに下書きへ書いてあるので、残すときはそのまま閉じる。
+    navigator.pop();
   }
 
   Widget _buildScaffold(BuildContext context, RecordState state) {
@@ -261,6 +330,8 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     );
   }
 }
+
+enum _LeaveChoice { keepDraft, discard }
 
 class _DraftNotice extends StatelessWidget {
   const _DraftNotice({required this.onDiscard});
