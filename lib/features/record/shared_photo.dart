@@ -7,12 +7,10 @@ final sharedPhotoReceiverProvider = Provider<SharedPhotoReceiver>(
 );
 
 /// ほかのアプリの「共有」から送られてきた写真を受け取る（今は Android だけ）。
+/// 共有の入口が写真を預かってアプリを開くので、アプリを開くたびに受け取りに行く。
 abstract class SharedPhotoReceiver {
   /// 受け取った写真の一時ファイルのパス。無ければnull。一度受け取ると消える。
   Future<String?> take();
-
-  /// アプリを開いている間に写真が送られてきたら呼ぶ。
-  void listen(VoidCallback onArrived);
 }
 
 class PlatformSharedPhotoReceiver implements SharedPhotoReceiver {
@@ -31,12 +29,5 @@ class PlatformSharedPhotoReceiver implements SharedPhotoReceiver {
     } on MissingPluginException {
       return null;
     }
-  }
-
-  @override
-  void listen(VoidCallback onArrived) {
-    _channel.setMethodCallHandler((call) async {
-      if (call.method == 'sharedPhotoArrived') onArrived();
-    });
   }
 }

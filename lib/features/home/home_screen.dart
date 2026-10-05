@@ -38,6 +38,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scroll = ScrollController();
+  late final _lifecycle = AppLifecycleListener(onResume: _receiveSharedPhoto);
   final _headerKey = GlobalKey();
   double _headerHeight = 0;
   String? _floatingMonth;
@@ -51,6 +52,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void dispose() {
     _hideMonth?.cancel();
+    _lifecycle.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -87,7 +89,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _recoverLostPhoto();
       _receiveSharedPhoto();
-      ref.read(sharedPhotoReceiverProvider).listen(_receiveSharedPhoto);
+      _lifecycle;
       // 手で持つ店（ラーメン二郎の直系店など）の一覧を、1日1回までサーバーから取り直す。
       ref.read(curatedShopsProvider.notifier).refresh();
       // 通知の文言に画面の言語設定を使うため、最初の描画のあとで見張りはじめる。
