@@ -1207,18 +1207,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get navGlyphRecords => '印';
-
-  @override
-  String get navGlyphWishes => '願';
-
-  @override
-  String get navGlyphShugyo => '修';
-
-  @override
-  String get navGlyphMap => '地';
-
-  @override
   String get wishTriggerRetreat => '撤退した店';
 
   @override

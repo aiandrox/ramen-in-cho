@@ -2158,30 +2158,6 @@ abstract class AppLocalizations {
   /// **'今年 {thisYear}杯　通算 {total}杯'**
   String statsBowlsLine(int thisYear, int total);
 
-  /// No description provided for @navGlyphRecords.
-  ///
-  /// In ja, this message translates to:
-  /// **'印'**
-  String get navGlyphRecords;
-
-  /// No description provided for @navGlyphWishes.
-  ///
-  /// In ja, this message translates to:
-  /// **'願'**
-  String get navGlyphWishes;
-
-  /// No description provided for @navGlyphShugyo.
-  ///
-  /// In ja, this message translates to:
-  /// **'修'**
-  String get navGlyphShugyo;
-
-  /// No description provided for @navGlyphMap.
-  ///
-  /// In ja, this message translates to:
-  /// **'地'**
-  String get navGlyphMap;
-
   /// No description provided for @wishTriggerRetreat.
   ///
   /// In ja, this message translates to:
