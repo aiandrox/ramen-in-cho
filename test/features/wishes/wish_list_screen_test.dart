@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home/app_tab.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
@@ -76,6 +77,61 @@ void main() {
     expect(find.text(ja.wishAdded('豚山')), findsOneWidget);
   });
 
+  group('掛けたばかりの願のしおり', () {
+    Future<void> pumpList(WidgetTester tester, String id) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
+            wishesProvider.overrideWithValue(
+              AsyncData([
+                Wish(
+                  id: id,
+                  name: '麺屋ふじみち',
+                  createdAt: DateTime(2026, 10, 3, 17, 59),
+                ),
+              ]),
+            ),
+            visitsProvider.overrideWithValue(const AsyncData([])),
+            clockProvider.overrideWithValue(() => DateTime(2026, 10, 3, 18)),
+            appTabProvider.overrideWith(_WishesTab.new),
+          ],
+          child: localizedApp(home: const WishListScreen()),
+        ),
+      );
+    }
+
+    Finder sealTransforms() => find.ancestor(
+      of: find.text(ja.wishSealChar),
+      matching: find.byType(Transform),
+    );
+
+    testWidgets('一度だけ揺れて落ち着く', (tester) async {
+      await pumpList(tester, 'swing');
+      await tester.pump(const Duration(milliseconds: 200));
+      final swinging = sealTransforms().evaluate().length;
+      await tester.pumpAndSettle();
+      expect(sealTransforms().evaluate().length, lessThan(swinging));
+
+      // 一覧を作り直しても、同じ願はもう揺らさない。
+      await pumpList(tester, 'swing');
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(sealTransforms().evaluate().length, lessThan(swinging));
+    });
+
+    testWidgets('動きを減らす設定では揺らさない', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await pumpList(tester, 'still');
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(tester.hasRunningAnimations, isFalse);
+    });
+  });
+
   testWidgets('願を左にすべらせると、確かめてから消し、すぐ一覧から外す', (tester) async {
     final repository = FakeWishRepository();
     await tester.pumpWidget(
@@ -105,4 +161,9 @@ void main() {
     expect(repository.deleted, ['b']);
     expect(find.text('麺屋ふじみち'), findsNothing);
   });
+}
+
+class _WishesTab extends AppTabNotifier {
+  @override
+  AppTab build() => AppTab.wishes;
 }
