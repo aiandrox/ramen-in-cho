@@ -1330,6 +1330,12 @@ abstract class AppLocalizations {
   /// **'願成就'**
   String get wishFulfilled;
 
+  /// No description provided for @wishFulfilledSealChar.
+  ///
+  /// In ja, this message translates to:
+  /// **'叶'**
+  String get wishFulfilledSealChar;
+
   /// No description provided for @wishFulfillPrompt.
   ///
   /// In ja, this message translates to:

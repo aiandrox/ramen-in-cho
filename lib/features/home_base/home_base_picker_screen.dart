@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../theme/motion.dart';
 import '../../theme/washi.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
@@ -613,12 +614,24 @@ Future<void> showHomeBaseHidenDialog(BuildContext context, DateTime setAt) {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          QuestSeal(quest: quest, level: 1, size: 112, achievedAt: setAt),
+          // 秘伝の印がにじむように現れ、少しおくれて文が出る。
+          InkBleed(
+            delay: const Duration(milliseconds: 120),
+            child: QuestSeal(
+              quest: quest,
+              level: 1,
+              size: 112,
+              achievedAt: setAt,
+            ),
+          ),
           const SizedBox(height: 16),
-          Text(
-            l10n.homeBaseHidenGained,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge,
+          RiseIn(
+            delay: const Duration(milliseconds: 360),
+            child: Text(
+              l10n.homeBaseHidenGained,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ),
         ],
       ),
