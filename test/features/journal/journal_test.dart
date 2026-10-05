@@ -54,7 +54,7 @@ void main() {
     expect(lines.last, '32日越しの願成就。');
   });
 
-  test('初めての店は何軒目の道場かを、いつもの1杯は今年何杯目かを添える', () {
+  test('初めての店は何軒目の道場かを添える', () {
     final other = buildEntry(
       shop: buildShop(id: 'other'),
       eatenAt: day(1, 5),
@@ -64,7 +64,32 @@ void main() {
 
     expect(lines.first, contains('2軒目'));
     expect(lines.first, isNot(contains('願')));
-    expect(yearClosing.fill({'杯': 2}), contains(lines.last));
+  });
+
+  test('今年何杯目かは、10杯ごとの節目には必ず、ほかはときどきだけ添える', () {
+    final entries = [
+      for (var i = 0; i < 30; i++)
+        buildEntry(
+          shop: shop,
+          eatenAt: DateTime(2026, 1, 1, 12).add(Duration(days: i)),
+        ),
+    ];
+    final scored = scoreVisits(entries);
+    bool hasYearLine(int n) => buildJournal(
+      scored[n - 1],
+      scored,
+    ).any(yearClosing.fill({'杯': n}).contains);
+
+    expect(hasYearLine(1), isFalse);
+    expect(hasYearLine(10), isTrue);
+    expect(hasYearLine(20), isTrue);
+    expect(hasYearLine(30), isTrue);
+    final others = [
+      for (var n = 2; n <= 30; n++)
+        if (n % 10 != 0) hasYearLine(n),
+    ];
+    expect(others, contains(true));
+    expect(others, contains(false));
   });
 
   test('2回目は来訪の回数を、撤退が続いたあとの1杯は再挑戦成功を添える', () {

@@ -146,7 +146,12 @@ List<String> buildJournal(
   } else if (target.isRetrySuccess) {
     lines.add(pick(retryClosing.fill()));
   } else {
-    lines.add(pick(yearClosing.fill({'杯': _yearNumber(target, all)})));
+    final count = _yearNumber(target, all);
+    // 毎回出ると単調なので、10杯ごとの節目のほかは3杯に1杯ほどだけ添える。
+    if (count % 10 == 0 ||
+        (count > 1 && _Picker('${visit.id}#year').oneIn(3))) {
+      lines.add(pick(yearClosing.fill({'杯': count})));
+    }
   }
   return lines;
 }
@@ -398,4 +403,6 @@ class _Picker {
     _seed = (_seed * 1103515245 + 12345) & 0x7fffffff;
     return chosen;
   }
+
+  bool oneIn(int n) => _seed % n == 0;
 }
