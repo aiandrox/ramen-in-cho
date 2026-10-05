@@ -609,10 +609,6 @@
       "total": {"type": "int"}
     }
   },
-  "navGlyphRecords": "印",
-  "navGlyphWishes": "願",
-  "navGlyphShugyo": "修",
-  "navGlyphMap": "地",
   "wishTriggerRetreat": "撤退した店",
   "questSpotNone": "まだ会得した秘伝はありません",
   "reviewListTitle": "年の振り返り",

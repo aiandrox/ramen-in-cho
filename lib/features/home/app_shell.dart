@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../theme/washi.dart';
 import '../map/map_screen.dart';
 import '../shugyo/shugyo_screen.dart';
 import '../wishes/wish_list_screen.dart';
@@ -14,6 +13,7 @@ import '../onboarding/onboarding_store.dart';
 import '../records/record_repository.dart';
 import 'app_tab.dart';
 import 'home_screen.dart';
+import 'tab_seals.dart';
 
 /// 下のタブ（印帳・願掛け・修行・地図）で画面を切り替える、アプリの外枠。
 /// タブの真ん中には、どの画面からでも記録を始められる大きな判子を置く。
@@ -100,13 +100,13 @@ class _AppShellState extends ConsumerState<AppShell> {
               .select(AppTab.values[selected < _gap ? selected : selected - 1]);
         },
         destinations: [
-          for (final (glyph, label) in [
-            (l10n.navGlyphRecords, l10n.navRecords),
-            (l10n.navGlyphWishes, l10n.navWishes),
+          for (final (tab, label) in [
+            (AppTab.records, l10n.navRecords),
+            (AppTab.wishes, l10n.navWishes),
           ])
             NavigationDestination(
-              icon: _TabSeal(glyph: glyph, selected: false),
-              selectedIcon: _TabSeal(glyph: glyph, selected: true),
+              icon: TabSeal(tab: tab, selected: false),
+              selectedIcon: TabSeal(tab: tab, selected: true),
               label: label,
             ),
           const NavigationDestination(
@@ -114,50 +114,16 @@ class _AppShellState extends ConsumerState<AppShell> {
             label: '',
             enabled: false,
           ),
-          for (final (glyph, label) in [
-            (l10n.navGlyphShugyo, l10n.navShugyo),
-            (l10n.navGlyphMap, l10n.navMap),
+          for (final (tab, label) in [
+            (AppTab.shugyo, l10n.navShugyo),
+            (AppTab.map, l10n.navMap),
           ])
             NavigationDestination(
-              icon: _TabSeal(glyph: glyph, selected: false),
-              selectedIcon: _TabSeal(glyph: glyph, selected: true),
+              icon: TabSeal(tab: tab, selected: false),
+              selectedIcon: TabSeal(tab: tab, selected: true),
               label: label,
             ),
         ],
-      ),
-    );
-  }
-}
-
-/// タブのアイコン。筆文字1字の印で、選んでいるときは藍で塗る。
-class _TabSeal extends StatelessWidget {
-  const _TabSeal({required this.glyph, required this.selected});
-
-  final String glyph;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 30,
-      height: 30,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: selected ? Washi.ai : Colors.transparent,
-        border: Border.all(
-          color: selected ? Washi.ai : Washi.inkSoft,
-          width: 1.5,
-        ),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        glyph,
-        style: TextStyle(
-          fontFamily: Washi.brush,
-          fontSize: 18,
-          height: 1.1,
-          color: selected ? Washi.page : Washi.inkSoft,
-        ),
       ),
     );
   }

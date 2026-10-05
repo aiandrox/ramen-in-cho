@@ -14,6 +14,16 @@
 | しおり（藍のしおりに和紙色の＋） | 願掛け帳で願を足す | 願を足す（記録の判子と取り違えないよう丸にしない） |
 | 選ぶ札（角を落とした木札、選ぶと藍の縁とチェック） | 系統・営業の条件・年などを選ぶ | 記録・編集・修行録・地図の旅路・一年の振り返り・撤退の理由 |
 
+## 下のタブのアイコン
+
+手で押した印のような枠に、タブごとの小さな絵（印帳＝御朱印帳、願掛け＝絵馬、修行＝掛け軸、地図＝古地図）を描き、かすれをつける。選んでいるタブは藍で塗り、絵を和紙色で抜く。上が実際の大きさ、下が4倍。
+
+<img src="tab_seals.png" width="760">
+
+- 絵は `lib/features/home/tab_seals.dart`。変えたら `flutter test --dart-define=UPDATE_TAB_SEALS=true test/tool/tab_seal_catalog_test.dart` で画像を作り直す
+
+## 補足
+
 - 部品は `lib/theme/washi_buttons.dart`、選ぶ札とほかの既定のボタンの色は `lib/theme/app_theme.dart`
 - 画面上部の小さなアイコン・★・閉じる（×）・確かめる窓の「キャンセル」は、わかりやすさを優先して文字やアイコンだけのまま
 - ボタンの見た目を変えたら `flutter test --dart-define=UPDATE_BUTTON_CATALOG=true test/tool/button_catalog_test.dart` で画像を作り直す
