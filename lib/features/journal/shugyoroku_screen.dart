@@ -46,7 +46,12 @@ class _ShugyorokuScreenState extends ConsumerState<ShugyorokuScreen> {
               ),
             )
           : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                32 + MediaQuery.viewPaddingOf(context).bottom,
+              ),
               children: [
                 if (years.length > 1)
                   SingleChildScrollView(

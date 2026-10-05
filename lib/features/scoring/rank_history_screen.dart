@@ -25,7 +25,12 @@ class RankHistoryScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.rankHistoryTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          8,
+          16,
+          32 + MediaQuery.viewPaddingOf(context).bottom,
+        ),
         children: [
           for (final rank in AdventurerRank.values)
             if (rank.index < history.length)
