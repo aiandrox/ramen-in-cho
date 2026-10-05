@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeEmpty.
   ///
   /// In ja, this message translates to:
-  /// **'まだ記録がありません\n「＋」から最初の一杯を記録しましょう'**
+  /// **'まだ記録がありません\n真ん中の「麺」から最初の一杯を記録しましょう'**
   String get homeEmpty;
 
   /// No description provided for @homeLoadFailed.
@@ -115,8 +115,44 @@ abstract class AppLocalizations {
   /// No description provided for @addRecord.
   ///
   /// In ja, this message translates to:
-  /// **'記録する'**
+  /// **'記録する・並ぶ'**
   String get addRecord;
+
+  /// No description provided for @arriveSeal.
+  ///
+  /// In ja, this message translates to:
+  /// **'着丼したら押す'**
+  String get arriveSeal;
+
+  /// No description provided for @arriveSealLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'着丼'**
+  String get arriveSealLabel;
+
+  /// No description provided for @startEatenTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'着丼した'**
+  String get startEatenTitle;
+
+  /// No description provided for @startEatenBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真を撮って記録する'**
+  String get startEatenBody;
+
+  /// No description provided for @startQueueTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'いま並んでいる'**
+  String get startQueueTitle;
+
+  /// No description provided for @startQueueBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'待ち時間を測り始める'**
+  String get startQueueBody;
 
   /// No description provided for @recordTitle.
   ///
@@ -415,7 +451,7 @@ abstract class AppLocalizations {
   /// No description provided for @leaveRecordMessage.
   ///
   /// In ja, this message translates to:
-  /// **'下書きに残すと、次に「＋」を押したときに続きから記録できます'**
+  /// **'下書きに残すと、次に記録の画面を開いたときに続きから記録できます'**
   String get leaveRecordMessage;
 
   /// No description provided for @leaveRecordKeepDraft.
@@ -568,12 +604,6 @@ abstract class AppLocalizations {
   /// **'限定'**
   String get limitedBadge;
 
-  /// No description provided for @checkinButton.
-  ///
-  /// In ja, this message translates to:
-  /// **'並んだ'**
-  String get checkinButton;
-
   /// No description provided for @checkinTitle.
   ///
   /// In ja, this message translates to:
@@ -583,7 +613,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkinDone.
   ///
   /// In ja, this message translates to:
-  /// **'{shop} に並びました'**
+  /// **'{shop} に並びました。着丼したら真ん中の「着」を押す'**
   String checkinDone(String shop);
 
   /// No description provided for @checkinFailed.
@@ -643,7 +673,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkinNotificationBody.
   ///
   /// In ja, this message translates to:
-  /// **'{time} から並んでいます。着丼したら「＋」で記録しましょう'**
+  /// **'{time} から並んでいます。着丼したらアプリの真ん中の「着」を押しましょう'**
   String checkinNotificationBody(String time);
 
   /// No description provided for @streakWeeks.
@@ -669,6 +699,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'取り消す'**
   String get checkinCancel;
+
+  /// No description provided for @checkinBannerHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'着丼したら、真ん中の「着」を押す'**
+  String get checkinBannerHint;
 
   /// No description provided for @checkinCancelTitle.
   ///
@@ -2283,12 +2319,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'設定'**
   String get settingsSection;
-
-  /// No description provided for @checkinStart.
-  ///
-  /// In ja, this message translates to:
-  /// **'いま並んでいる'**
-  String get checkinStart;
 
   /// No description provided for @moreActions.
   ///

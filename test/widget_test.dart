@@ -6,7 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
+import 'package:ramen_in_cho/features/checkin/checkin_banner.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_controller.dart';
+import 'package:ramen_in_cho/features/checkin/checkin_screen.dart';
+import 'package:ramen_in_cho/features/database/app_database.dart';
+import 'package:ramen_in_cho/features/record/photo_metadata.dart';
+import 'package:ramen_in_cho/features/record/record_draft.dart';
+import 'package:ramen_in_cho/features/record/record_screen.dart';
+import 'package:ramen_in_cho/theme/washi_buttons.dart';
 import 'package:ramen_in_cho/features/map/map_screen.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
 import 'package:ramen_in_cho/features/onboarding/onboarding_store.dart';
@@ -200,6 +207,130 @@ void main() {
     checkins.addError(StateError('db'));
     await tester.pumpAndSettle();
     expect(notifications.cancelCount, 3);
+  });
+
+  group('真ん中の判子', () {
+    final now = DateTime(2026, 10, 5, 12);
+    final checkin = Checkin(
+      osmId: 'node/9',
+      name: '並んだ店',
+      latitude: 35.0,
+      longitude: 139.0,
+      checkedInAt: now.subtract(const Duration(minutes: 35)),
+    );
+    late FakePhotoPicker picker;
+
+    Future<void> pumpShell(WidgetTester tester, {Checkin? queued}) async {
+      final database = createTestDatabase();
+      if (queued != null) {
+        await tester.runAsync(
+          () => RecordRepository(database).checkIn(
+            shop: ShopInput(
+              osmId: queued.osmId,
+              name: queued.name,
+              latitude: queued.latitude,
+              longitude: queued.longitude,
+            ),
+            at: queued.checkedInAt,
+          ),
+        );
+      }
+      picker = FakePhotoPicker();
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.5;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(database),
+            visitsProvider.overrideWithValue(const AsyncData([])),
+            homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
+            wishesProvider.overrideWithValue(const AsyncData([])),
+            activeCheckinProvider.overrideWithValue(AsyncData(queued)),
+            documentsDirectoryProvider.overrideWithValue(createTempDirectory()),
+            photoPickerProvider.overrideWithValue(picker),
+            photoMetadataReaderProvider.overrideWithValue(
+              FakePhotoMetadataReader(),
+            ),
+            recordDraftStoreProvider.overrideWithValue(
+              MemoryRecordDraftStore(),
+            ),
+            notificationServiceProvider.overrideWithValue(notifications),
+            locationServiceProvider.overrideWithValue(FakeLocationService()),
+            showOnboardingOnLaunchProvider.overrideWithValue(false),
+            clockProvider.overrideWithValue(() => now),
+          ],
+          child: const RamenInChoApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Finder seal(String glyph) => find.descendant(
+      of: find.byType(RecordSealButton),
+      matching: find.text(glyph),
+    );
+
+    testWidgets('並んでいなければ「麺」。押すと「着丼した」と「いま並んでいる」を選べる', (tester) async {
+      await pumpShell(tester);
+
+      expect(seal('麺'), findsOneWidget);
+      expect(seal('着'), findsNothing);
+      expect(find.byType(CheckinBanner), findsNothing);
+
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.pumpAndSettle();
+      expect(find.text(ja.startEatenTitle), findsOneWidget);
+      expect(find.text(ja.startEatenBody), findsOneWidget);
+      expect(find.text(ja.startQueueTitle), findsOneWidget);
+      expect(find.text(ja.startQueueBody), findsOneWidget);
+
+      await tester.tap(find.text(ja.startQueueTitle));
+      await tester.pumpAndSettle();
+      expect(find.byType(CheckinScreen), findsOneWidget);
+      Navigator.of(tester.element(find.byType(CheckinScreen))).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.startEatenTitle));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordScreen), findsOneWidget);
+      // ふだんの記録では、カメラは自動で開かない。
+      expect(picker.cameraOpens, 0);
+    });
+
+    testWidgets('並んでいる間は「着」。どのタブでも上に並びの帯を出す', (tester) async {
+      await pumpShell(tester, queued: checkin);
+
+      expect(seal('着'), findsOneWidget);
+      expect(seal('麺'), findsNothing);
+      expect(find.byTooltip(ja.arriveSeal), findsOneWidget);
+      expect(find.text(ja.arriveSealLabel), findsOneWidget);
+      expect(find.text(ja.checkinBannerHint), findsOneWidget);
+
+      await tester.tap(find.text(ja.navShugyo));
+      await tester.pumpAndSettle();
+      expect(find.byType(CheckinBanner), findsOneWidget);
+      expect(find.text(ja.checkinBanner('並んだ店')), findsOneWidget);
+    });
+
+    testWidgets('「着」を押すとすぐカメラを開き、並んだ店と待ち時間が決まった記録画面になる', (tester) async {
+      await pumpShell(tester, queued: checkin);
+
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecordScreen), findsOneWidget);
+      expect(find.text(ja.startEatenTitle), findsNothing);
+      expect(picker.cameraOpens, 1);
+      expect(find.textContaining(ja.waitTime(35)), findsOneWidget);
+      final save = find.widgetWithText(AiFuda, ja.save);
+      expect(tester.widget<AiFuda>(save).onPressed, isNotNull);
+    });
   });
 
   group('連続記録', () {

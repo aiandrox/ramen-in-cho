@@ -96,6 +96,51 @@ void main() {
     expect(fromCheckin.isEmpty, isTrue);
   });
 
+  test('「着」を押した時刻と並びは、書き出して読み戻しても残る', () {
+    final checkin = Checkin(
+      shopId: 'shop-1',
+      osmId: 'node/9',
+      name: '並んだ店',
+      latitude: 35.0,
+      longitude: 139.0,
+      dataSource: const ShopSource(licenses: ['ODbL'], attributions: ['OSM']),
+      checkedInAt: DateTime(2026, 10, 5, 11),
+    );
+    const queued = ShopCandidate(name: '並んだ店');
+    final arrived = RecordDraft.fromState(
+      RecordState(
+        checkin: checkin,
+        checkinShop: queued,
+        selectedShop: queued,
+        arrivedAt: DateTime(2026, 10, 5, 11, 50),
+      ),
+    );
+    // 写真がまだでも、「着」を押していれば下書きに残す。
+    expect(arrived.isEmpty, isFalse);
+    expect(arrived.selectedShop, isNull);
+
+    final decoded = RecordDraft.fromJson(
+      jsonDecode(jsonEncode(arrived.toJson())),
+    )!;
+    expect(decoded.arrivedAt, DateTime(2026, 10, 5, 11, 50));
+    final restored = decoded.arrivedCheckin!;
+    expect(restored.shopId, 'shop-1');
+    expect(restored.osmId, 'node/9');
+    expect(restored.name, '並んだ店');
+    expect(restored.latitude, 35.0);
+    expect(restored.dataSource?.attributions, ['OSM']);
+    expect(restored.checkedInAt, DateTime(2026, 10, 5, 11));
+    expect(decoded.withPhotoPath('record_draft/b.jpg').arrivedAt, isNotNull);
+    expect(decoded.withoutArrival().isEmpty, isTrue);
+
+    // 並びの無い「着」の時刻だけは読まない。
+    final broken = RecordDraft.fromJson({
+      'arrivedAt': '2026-10-05T02:50:00.000Z',
+    })!;
+    expect(broken.arrivedAt, isNull);
+    expect(broken.isEmpty, isTrue);
+  });
+
   group('FileRecordDraftStore', () {
     late Directory documents;
     late FileRecordDraftStore store;

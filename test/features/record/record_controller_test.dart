@@ -706,6 +706,124 @@ void main() {
       expect(state().selectedShop, isNull);
     });
 
+    group('真ん中の「着」から', () {
+      final arrivedAt = _photoTime.subtract(const Duration(minutes: 10));
+
+      test('すぐにカメラを開き、写真をあとで撮っても「着」の時刻で待ち時間が決まる', () async {
+        await checkIn();
+
+        await controller().start(arrivedAt: arrivedAt);
+        // カメラは店の検索と並行して開くので、写真が入るまで待つ。
+        for (var i = 0; i < 100 && state().photoPath == null; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+
+        expect(picker.cameraOpens, 1);
+        expect(state().photoPath, isNotNull);
+        expect(state().isCheckinShopSelected, isTrue);
+        expect(await controller().save(), isNotNull);
+
+        final entry = (await visits()).single;
+        expect(entry.visit.eatenAt, arrivedAt);
+        expect(entry.visit.checkedInAt, checkedInAt);
+        expect(waitMinutes(entry.visit), 25);
+        expect(
+          await container.read(recordRepositoryProvider).activeCheckin(),
+          isNull,
+        );
+      });
+
+      test('カメラをやめても、写真なしで同じ待ち時間で保存できる', () async {
+        picker.cameraPath = null;
+        await checkIn();
+
+        await controller().start(arrivedAt: arrivedAt);
+        await pumpEventQueue();
+
+        expect(picker.cameraOpens, 1);
+        expect(state().photoPath, isNull);
+        expect(state().canSave, isTrue);
+        await controller().save();
+
+        final entry = (await visits()).single;
+        expect(entry.visit.photoPath, isNull);
+        expect(entry.visit.eatenAt, arrivedAt);
+        expect(waitMinutes(entry.visit), 25);
+      });
+
+      test('保存する前にアプリが終わっても、次に開くと「着」の時刻から続けられる', () async {
+        picker.cameraPath = null;
+        await checkIn();
+        await controller().start(arrivedAt: arrivedAt);
+        await pumpEventQueue();
+        expect(await controller().draftAwaitsArrivalPhoto(), isTrue);
+
+        container = newSession();
+        // もう一度「着」を押しても、先に押した時刻を使う。
+        await controller().start(arrivedAt: _photoTime);
+        await pumpEventQueue();
+
+        expect(state().arrivedAt, arrivedAt);
+        expect(state().isCheckinShopSelected, isTrue);
+        await controller().save();
+        expect(waitMinutes((await visits()).single.visit), 25);
+      });
+
+      test('アプリが終わっている間にチェックインが消えても、下書きの並びで待ち時間をつける', () async {
+        picker.cameraPath = null;
+        await checkIn();
+        await controller().start(arrivedAt: arrivedAt);
+        await pumpEventQueue();
+        await container.read(recordRepositoryProvider).cancelCheckin();
+
+        container = newSession();
+        await controller().start();
+        await pumpEventQueue();
+
+        expect(state().selectedShop!.name, '並んだ店');
+        await controller().save();
+        final entry = (await visits()).single;
+        expect(entry.shop.name, '並んだ店');
+        expect(entry.shop.osmId, 'node/9');
+        expect(waitMinutes(entry.visit), 25);
+      });
+
+      test('別の並びが始まっていれば、下書きの「着」は使わない', () async {
+        picker.cameraPath = null;
+        await checkIn();
+        await controller().start(arrivedAt: arrivedAt);
+        await pumpEventQueue();
+        await checkIn(at: _photoTime.subtract(const Duration(minutes: 5)));
+
+        container = newSession();
+        await controller().start();
+        await pumpEventQueue();
+
+        expect(state().arrivedAt, isNull);
+        expect(state().resumedFromDraft, isFalse);
+      });
+
+      test('別の店を選んで保存すると待ち時間はつかず、チェックインは続く', () async {
+        await checkIn();
+
+        await controller().start(arrivedAt: arrivedAt);
+        for (var i = 0; i < 100 && state().photoPath == null; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+        controller().selectShop(state().candidates.single);
+        await controller().save();
+
+        final entry = (await visits()).single;
+        expect(entry.shop.name, '麺屋テスト');
+        expect(entry.visit.checkedInAt, isNull);
+        expect(entry.visit.eatenAt, _photoTime);
+        expect(
+          await container.read(recordRepositoryProvider).activeCheckin(),
+          isNotNull,
+        );
+      });
+    });
+
     test('並んだ店が選ばれているだけなら、確認なしで戻れる', () async {
       picker.cameraPath = null;
       await checkIn();

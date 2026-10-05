@@ -81,14 +81,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _record() async {
     final repository = ref.read(recordRepositoryProvider);
-    // 監視の値は遅れて届くことがあるので、記録と並びは保存先から直接読み直して比べる。
-    final checkinBefore = await repository.watchActiveCheckin().first;
+    // 監視の値は遅れて届くことがあるので、記録は保存先から直接読み直して比べる。
     final visitsBefore = {
       for (final entry in await repository.watchVisits().first) entry.visit.id,
     };
     if (!mounted) return;
     await _open<void>(const RecordScreen());
-    final checkinAfter = await repository.watchActiveCheckin().first;
     final added = [
       for (final entry in await repository.watchVisits().first)
         if (!visitsBefore.contains(entry.visit.id)) entry.visit,
@@ -97,10 +95,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (added.isNotEmpty) {
       _visitId = added.first.id;
       _advance(OnboardingEvent.recorded);
-    } else if (checkinAfter != null &&
-        checkinAfter.checkedInAt != checkinBefore?.checkedInAt) {
-      // 記録の画面から「いま並んでいる」で並び始めたとき。
-      _advance(OnboardingEvent.checkedIn);
     }
   }
 
