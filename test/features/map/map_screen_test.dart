@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ramen_in_cho/features/map/map_camera.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/map/map_screen.dart';
+import 'package:ramen_in_cho/features/map/washi_map.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';

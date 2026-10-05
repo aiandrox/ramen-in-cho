@@ -1513,62 +1513,50 @@ abstract class AppLocalizations {
   /// No description provided for @homeBaseIntro.
   ///
   /// In ja, this message translates to:
-  /// **'ふだん暮らしている駅や街を拠点にします。拠点から80km以上離れた店で食べると「遠征」になります。拠点を変えても、変えた日から後の記録にだけ効きます。'**
+  /// **'地図を動かして、ふだん暮らしているあたりを真ん中の「拠」に合わせてください。家の場所でなくても、駅や街のあたりで十分です。拠点から80km以上離れた店で食べると「遠征」になります。変えても、変えた日から後の記録にだけ効きます。'**
   String get homeBaseIntro;
 
-  /// No description provided for @homeBaseSearchHint.
+  /// No description provided for @homeBaseUseCenter.
   ///
   /// In ja, this message translates to:
-  /// **'駅や市町村の名前（例: 横浜駅、札幌市）'**
-  String get homeBaseSearchHint;
+  /// **'ここを拠点にする'**
+  String get homeBaseUseCenter;
 
-  /// No description provided for @homeBaseSearch.
+  /// No description provided for @homeBaseCenterLabel.
   ///
   /// In ja, this message translates to:
-  /// **'探す'**
-  String get homeBaseSearch;
-
-  /// No description provided for @homeBaseSearchNote.
-  ///
-  /// In ja, this message translates to:
-  /// **'名前はそのまま入れてください（「新宿三丁目」と「新宿」は別の駅です）'**
-  String get homeBaseSearchNote;
+  /// **'地図の真ん中。ここが拠点になります'**
+  String get homeBaseCenterLabel;
 
   /// No description provided for @homeBaseUseHere.
   ///
   /// In ja, this message translates to:
-  /// **'現在地にする'**
+  /// **'現在地を拠点にする'**
   String get homeBaseUseHere;
 
-  /// No description provided for @homeBaseHereNameTitle.
+  /// No description provided for @homeBaseNameTitle.
   ///
   /// In ja, this message translates to:
-  /// **'この場所の呼び名'**
-  String get homeBaseHereNameTitle;
+  /// **'拠点の呼び名'**
+  String get homeBaseNameTitle;
 
-  /// No description provided for @homeBaseHereNameDefault.
+  /// No description provided for @homeBaseNameDefault.
   ///
   /// In ja, this message translates to:
-  /// **'現在地のあたり'**
-  String get homeBaseHereNameDefault;
+  /// **'このあたり'**
+  String get homeBaseNameDefault;
+
+  /// No description provided for @homeBaseNameHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'駅や街の名前など（例: 新宿、札幌）'**
+  String get homeBaseNameHint;
 
   /// No description provided for @homeBaseDecide.
   ///
   /// In ja, this message translates to:
   /// **'決める'**
   String get homeBaseDecide;
-
-  /// No description provided for @homeBaseNotFound.
-  ///
-  /// In ja, this message translates to:
-  /// **'見つかりませんでした。名前を変えて探すか、現在地にしてください'**
-  String get homeBaseNotFound;
-
-  /// No description provided for @homeBaseSearchFailed.
-  ///
-  /// In ja, this message translates to:
-  /// **'通信できませんでした。電波のよいところで探すか、現在地にしてください'**
-  String get homeBaseSearchFailed;
 
   /// No description provided for @homeBaseHereFailed.
   ///
@@ -1587,42 +1575,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'拠点を{name}にしました'**
   String homeBaseSaved(String name);
-
-  /// No description provided for @homeBaseKindStation.
-  ///
-  /// In ja, this message translates to:
-  /// **'駅'**
-  String get homeBaseKindStation;
-
-  /// No description provided for @homeBaseKindCity.
-  ///
-  /// In ja, this message translates to:
-  /// **'市'**
-  String get homeBaseKindCity;
-
-  /// No description provided for @homeBaseKindTown.
-  ///
-  /// In ja, this message translates to:
-  /// **'町'**
-  String get homeBaseKindTown;
-
-  /// No description provided for @homeBaseKindVillage.
-  ///
-  /// In ja, this message translates to:
-  /// **'村'**
-  String get homeBaseKindVillage;
-
-  /// No description provided for @homeBaseKindSuburb.
-  ///
-  /// In ja, this message translates to:
-  /// **'地区'**
-  String get homeBaseKindSuburb;
-
-  /// No description provided for @homeBaseDistance.
-  ///
-  /// In ja, this message translates to:
-  /// **'ここから約{km}km'**
-  String homeBaseDistance(int km);
 
   /// No description provided for @homeBaseHistoryTitle.
   ///

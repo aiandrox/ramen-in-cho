@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi.dart';
 import '../../theme/washi_buttons.dart';
+import '../../theme/washi_sheet.dart';
+import '../map/shop_pins.dart';
+import '../map/washi_map.dart';
 import '../quests/quest_seal.dart';
 import '../quests/quests.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
+import '../records/models.dart';
+import '../scoring/rank_labels.dart';
+import '../scoring/scoring_providers.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/location_service.dart';
-import '../shop_search/overpass_client.dart';
 import 'home_base_repository.dart';
-import 'place_search.dart';
 
-/// 拠点を決める画面。駅や市町村の名前で探すか、現在地にする。決めたら true を返して閉じる。
+/// 拠点を選ぶときの地図の倍率。駅や街のあたりが見分けられる広さ。
+const homeBasePickZoom = 13.0;
+
+/// 拠点も行った店も現在地も無いときに見せる、日本全体。
+const _japanCenter = LatLng(36.5, 137.0);
+const _japanZoom = 5.0;
+
+/// 拠点を決める画面。地図を動かして真ん中の「拠」の場所にするか、現在地にする。決めたら true を返して閉じる。
+/// 場所はどこにも送らない（地図の画像を取るときに表示範囲が伝わるだけ）。
 class HomeBasePickerScreen extends ConsumerStatefulWidget {
   const HomeBasePickerScreen({super.key});
 
@@ -24,17 +38,16 @@ class HomeBasePickerScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
-  final _controller = TextEditingController();
-  var _searching = false;
+  final _controller = MapController();
   var _saving = false;
-  List<PlaceCandidate>? _results;
-  String? _message;
+  var _locating = false;
+  var _userMoved = false;
   GeoPoint? _here;
 
   @override
   void initState() {
     super.initState();
-    _loadHere();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadHere());
   }
 
   @override
@@ -43,63 +56,72 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
     super.dispose();
   }
 
-  /// 候補を近い順に並べ、距離を添えるためだけに使う。許可をまだもらっていなければ聞かない。
+  /// 開いたときは許可を聞かない。拠点がまだ無く、地図を動かしていなければ現在地へ寄せる。
   Future<void> _loadHere() async {
     final location = ref.read(locationServiceProvider);
     if (!await location.isReady()) return;
     final here = await location.currentPosition(requestPermission: false);
-    if (mounted && here != null) setState(() => _here = here);
-  }
-
-  Future<void> _search() async {
-    final l10n = AppLocalizations.of(context);
-    final name = _controller.text;
-    if (placeSearchStem(name).isEmpty || _searching) return;
-    FocusScope.of(context).unfocus();
-    setState(() {
-      _searching = true;
-      _message = null;
-      _results = null;
-    });
-    try {
-      final results = await ref
-          .read(overpassClientProvider)
-          .searchPlaces(name, near: _here);
-      if (!mounted) return;
-      setState(() {
-        _results = results;
-        _message = results.isEmpty ? l10n.homeBaseNotFound : null;
-      });
-    } catch (e) {
-      debugPrint('Home base search failed: $e');
-      if (mounted) setState(() => _message = l10n.homeBaseSearchFailed);
-    } finally {
-      if (mounted) setState(() => _searching = false);
+    if (!mounted || here == null) return;
+    setState(() => _here = here);
+    if (ref.read(currentHomeBaseProvider) == null && !_userMoved) {
+      _controller.move(LatLng(here.latitude, here.longitude), homeBasePickZoom);
     }
   }
 
-  Future<void> _useHere() async {
+  Future<GeoPoint?> _locate() async {
+    setState(() => _locating = true);
+    try {
+      return await ref
+          .read(locationServiceProvider)
+          .currentPosition(requestPermission: true);
+    } finally {
+      if (mounted) setState(() => _locating = false);
+    }
+  }
+
+  Future<void> _moveToHere() async {
     final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    setState(() => _saving = true);
-    final here = await ref
-        .read(locationServiceProvider)
-        .currentPosition(requestPermission: true);
+    final here = await _locate();
     if (!mounted) return;
-    setState(() => _saving = false);
     if (here == null) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseHereFailed)));
+      _showMessage(l10n.homeBaseHereFailed);
       return;
     }
-    final name = await _askName();
-    if (name == null || !mounted) return;
-    await _save(name, here);
+    setState(() => _here = here);
+    _controller.move(LatLng(here.latitude, here.longitude), homeBasePickZoom);
   }
 
-  Future<String?> _askName() => showDialog<String>(
-    context: context,
-    builder: (_) => const _HereNameDialog(),
-  );
+  /// 地図が出ないとき（電波が無いなど）でも、現在地なら決められるようにする。
+  Future<void> _useHere() async {
+    final l10n = AppLocalizations.of(context);
+    final here = await _locate();
+    if (!mounted) return;
+    if (here == null) {
+      _showMessage(l10n.homeBaseHereFailed);
+      return;
+    }
+    await _choose(here);
+  }
+
+  Future<void> _useCenter() {
+    final center = _controller.camera.center;
+    return _choose(GeoPoint(center.latitude, center.longitude));
+  }
+
+  Future<void> _choose(GeoPoint location) async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => const _NameDialog(),
+    );
+    if (name == null || !mounted) return;
+    await _save(name, location);
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
 
   Future<void> _save(String name, GeoPoint location) async {
     final l10n = AppLocalizations.of(context);
@@ -127,112 +149,252 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
     }
   }
 
-  String _subtitle(AppLocalizations l10n, PlaceCandidate place) {
-    final here = _here;
-    return [
-      switch (place.kind) {
-        PlaceKind.station => l10n.homeBaseKindStation,
-        PlaceKind.city => l10n.homeBaseKindCity,
-        PlaceKind.town => l10n.homeBaseKindTown,
-        PlaceKind.village => l10n.homeBaseKindVillage,
-        PlaceKind.suburb => l10n.homeBaseKindSuburb,
-      },
-      ...place.operators,
-      if (here != null)
-        l10n.homeBaseDistance(
-          (distanceMeters(here, place.location) / 1000).round(),
-        ),
-    ].join('・');
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final history = ref.watch(homeBaseSettingsProvider).value ?? const [];
     final current = ref.watch(currentHomeBaseProvider);
-    final busy = _searching || _saving;
+    final pins = shopPins(ref.watch(scoredVisitsProvider));
+    final tilesEnabled = ref.watch(mapTilesEnabledProvider);
+    final here = _here;
+    final busy = _saving || _locating;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeBaseTitle)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+      body: Column(
         children: [
-          Text(l10n.homeBaseIntro, style: textTheme.bodyMedium),
-          const SizedBox(height: 12),
-          Text(
-            current == null
-                ? l10n.homeBaseNotSet
-                : l10n.homeBaseLine(current.name),
-            style: textTheme.titleMedium,
+          Expanded(
+            child: Stack(
+              children: [
+                FlutterMap(
+                  mapController: _controller,
+                  options: MapOptions(
+                    initialCenter: current == null
+                        ? _japanCenter
+                        : LatLng(current.latitude, current.longitude),
+                    initialZoom: current == null
+                        ? _japanZoom
+                        : homeBasePickZoom,
+                    initialCameraFit: current != null || pins.isEmpty
+                        ? null
+                        : CameraFit.coordinates(
+                            coordinates: [
+                              for (final pin in pins)
+                                LatLng(pin.latitude, pin.longitude),
+                            ],
+                            padding: const EdgeInsets.all(48),
+                            maxZoom: homeBasePickZoom,
+                          ),
+                    onPositionChanged: (_, hasGesture) {
+                      if (hasGesture) _userMoved = true;
+                    },
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    ),
+                  ),
+                  children: [
+                    if (tilesEnabled) const WashiTileLayer(),
+                    // 行った店を目印に選べるよう、地図のタブと同じ印を出す（ここでは押せない）。
+                    IgnorePointer(
+                      child: MarkerLayer(
+                        markers: [
+                          if (current != null)
+                            Marker(
+                              point: LatLng(
+                                current.latitude,
+                                current.longitude,
+                              ),
+                              width: 24,
+                              height: 24,
+                              child: HomeBaseMapPin(base: current),
+                            ),
+                          for (final pin in pins)
+                            Marker(
+                              point: LatLng(pin.latitude, pin.longitude),
+                              width: 44,
+                              height: 44,
+                              alignment: Alignment.topCenter,
+                              child: MapSealPin(
+                                color: pin.rank == null
+                                    ? Washi.faded
+                                    : Washi.shu,
+                                filled: true,
+                                label: switch (pin.rank) {
+                                  final rank? => shopRankLabel(l10n, rank),
+                                  null => null,
+                                },
+                              ),
+                            ),
+                          if (here != null)
+                            Marker(
+                              point: LatLng(here.latitude, here.longitude),
+                              width: 22,
+                              height: 22,
+                              child: const MapHereDot(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const IgnorePointer(child: Center(child: _CenterSeal())),
+                Positioned(
+                  left: 8,
+                  right: 8,
+                  top: 8,
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(
+                        l10n.homeBaseIntro,
+                        style: textTheme.bodySmall,
+                      ),
+                    ),
+                  ),
+                ),
+                const Positioned(left: 0, bottom: 0, child: MapAttribution()),
+                Positioned(
+                  right: 16,
+                  bottom: 24,
+                  child: SealFab(
+                    sumi: true,
+                    small: true,
+                    tooltip: l10n.mapMyLocation,
+                    onPressed: busy ? null : _moveToHere,
+                    child: const Icon(Icons.my_location),
+                  ),
+                ),
+                if (_locating)
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    child: LinearProgressIndicator(),
+                  ),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _controller,
-            enabled: !_saving,
-            textInputAction: TextInputAction.search,
-            onSubmitted: (_) => _search(),
-            decoration: InputDecoration(
-              hintText: l10n.homeBaseSearchHint,
-              helperText: l10n.homeBaseSearchNote,
-              helperMaxLines: 2,
-              suffixIcon: IconButton(
-                tooltip: l10n.homeBaseSearch,
-                icon: const Icon(Icons.search),
-                onPressed: busy ? null : _search,
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    current == null
+                        ? l10n.homeBaseNotSet
+                        : l10n.homeBaseLine(current.name),
+                    style: textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  AiFuda(
+                    expand: true,
+                    onPressed: busy ? null : _useCenter,
+                    child: Text(l10n.homeBaseUseCenter),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    children: [
+                      FudeLink(
+                        icon: const Icon(Icons.my_location),
+                        onPressed: busy ? null : _useHere,
+                        child: Text(l10n.homeBaseUseHere),
+                      ),
+                      if (history.isNotEmpty)
+                        FudeLink(
+                          icon: const Icon(Icons.history),
+                          onPressed: () => showWashiSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (_) => _HistorySheet(history: history),
+                          ),
+                          child: Text(l10n.homeBaseHistoryTitle),
+                        ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          SumiFuda(
-            expand: true,
-            icon: const Icon(Icons.my_location),
-            onPressed: busy ? null : _useHere,
-            child: Text(l10n.homeBaseUseHere),
-          ),
-          const SizedBox(height: 8),
-          if (_searching)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          if (_message case final message?)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+        ],
+      ),
+    );
+  }
+}
+
+/// 地図の真ん中に重ねる「拠」の印。この印の下の場所が拠点になる。
+class _CenterSeal extends StatelessWidget {
+  const _CenterSeal();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      label: l10n.homeBaseCenterLabel,
+      child: SizedBox.square(
+        dimension: 72,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(width: 72, height: 1.5, color: Washi.ink),
+            Container(width: 1.5, height: 72, color: Washi.ink),
+            Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Washi.page.withValues(alpha: 0.9),
+                border: Border.all(color: Washi.ink, width: 2),
+              ),
               child: Text(
-                message,
-                style: textTheme.bodyMedium?.copyWith(color: Washi.inkSoft),
-              ),
-            ),
-          for (final place in _results ?? const <PlaceCandidate>[])
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(place.name),
-              subtitle: Text(_subtitle(l10n, place)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: busy ? null : () => _save(place.name, place.location),
-            ),
-          if (_results?.isNotEmpty ?? false)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                l10n.mapAttribution,
-                style: textTheme.bodySmall?.copyWith(color: Washi.faded),
-              ),
-            ),
-          if (history.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Text(l10n.homeBaseHistoryTitle, style: textTheme.titleSmall),
-            for (final setting in history.reversed)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: Text(setting.name),
-                subtitle: Text(
-                  l10n.homeBaseHistoryFrom(formatDateTime(setting.setAt)),
+                l10n.homeBaseSealChar,
+                style: const TextStyle(
+                  fontFamily: Washi.brush,
+                  fontSize: 19,
+                  height: 1,
+                  color: Washi.ink,
                 ),
               ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// これまでの拠点（新しい順）。
+class _HistorySheet extends StatelessWidget {
+  const _HistorySheet({required this.history});
+
+  final List<HomeBaseSetting> history;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        children: [
+          Text(
+            l10n.homeBaseHistoryTitle,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          for (final setting in history.reversed)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(setting.name),
+              subtitle: Text(
+                l10n.homeBaseHistoryFrom(formatDateTime(setting.setAt)),
+              ),
+            ),
         ],
       ),
     );
@@ -268,18 +430,25 @@ Future<void> showHomeBaseHidenDialog(BuildContext context, DateTime setAt) {
   );
 }
 
-/// 現在地の拠点の呼び名を聞く。閉じる動きの間も入力欄が残るので、入力の中身は窓と一緒に片付ける。
-class _HereNameDialog extends StatefulWidget {
-  const _HereNameDialog();
+/// 拠点の呼び名を聞く。閉じる動きの間も入力欄が残るので、入力の中身は窓と一緒に片付ける。
+class _NameDialog extends StatefulWidget {
+  const _NameDialog();
 
   @override
-  State<_HereNameDialog> createState() => _HereNameDialogState();
+  State<_NameDialog> createState() => _NameDialogState();
 }
 
-class _HereNameDialogState extends State<_HereNameDialog> {
-  late final _controller = TextEditingController(
-    text: AppLocalizations.of(context).homeBaseHereNameDefault,
-  );
+class _NameDialogState extends State<_NameDialog> {
+  // 初めの呼び名は全体を選んでおき、打てばそのまま置き換わるようにする。
+  late final _controller = () {
+    final text = AppLocalizations.of(context).homeBaseNameDefault;
+    return TextEditingController.fromValue(
+      TextEditingValue(
+        text: text,
+        selection: TextSelection(baseOffset: 0, extentOffset: text.length),
+      ),
+    );
+  }();
 
   @override
   void dispose() {
@@ -291,11 +460,15 @@ class _HereNameDialogState extends State<_HereNameDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: Text(l10n.homeBaseHereNameTitle),
+      title: Text(l10n.homeBaseNameTitle),
       content: TextField(
         controller: _controller,
         autofocus: true,
         maxLength: 30,
+        decoration: InputDecoration(
+          helperText: l10n.homeBaseNameHint,
+          helperMaxLines: 2,
+        ),
       ),
       actions: [
         TextButton(
@@ -306,7 +479,7 @@ class _HereNameDialogState extends State<_HereNameDialog> {
           onPressed: () {
             final name = _controller.text.trim();
             Navigator.of(context)
-                .pop(name.isEmpty ? l10n.homeBaseHereNameDefault : name);
+                .pop(name.isEmpty ? l10n.homeBaseNameDefault : name);
           },
           child: Text(l10n.homeBaseDecide),
         ),

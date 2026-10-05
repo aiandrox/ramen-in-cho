@@ -814,34 +814,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeBaseIntro =>
-      'ふだん暮らしている駅や街を拠点にします。拠点から80km以上離れた店で食べると「遠征」になります。拠点を変えても、変えた日から後の記録にだけ効きます。';
+      '地図を動かして、ふだん暮らしているあたりを真ん中の「拠」に合わせてください。家の場所でなくても、駅や街のあたりで十分です。拠点から80km以上離れた店で食べると「遠征」になります。変えても、変えた日から後の記録にだけ効きます。';
 
   @override
-  String get homeBaseSearchHint => '駅や市町村の名前（例: 横浜駅、札幌市）';
+  String get homeBaseUseCenter => 'ここを拠点にする';
 
   @override
-  String get homeBaseSearch => '探す';
+  String get homeBaseCenterLabel => '地図の真ん中。ここが拠点になります';
 
   @override
-  String get homeBaseSearchNote => '名前はそのまま入れてください（「新宿三丁目」と「新宿」は別の駅です）';
+  String get homeBaseUseHere => '現在地を拠点にする';
 
   @override
-  String get homeBaseUseHere => '現在地にする';
+  String get homeBaseNameTitle => '拠点の呼び名';
 
   @override
-  String get homeBaseHereNameTitle => 'この場所の呼び名';
+  String get homeBaseNameDefault => 'このあたり';
 
   @override
-  String get homeBaseHereNameDefault => '現在地のあたり';
+  String get homeBaseNameHint => '駅や街の名前など（例: 新宿、札幌）';
 
   @override
   String get homeBaseDecide => '決める';
-
-  @override
-  String get homeBaseNotFound => '見つかりませんでした。名前を変えて探すか、現在地にしてください';
-
-  @override
-  String get homeBaseSearchFailed => '通信できませんでした。電波のよいところで探すか、現在地にしてください';
 
   @override
   String get homeBaseHereFailed => '現在地がわかりませんでした';
@@ -852,26 +846,6 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String homeBaseSaved(String name) {
     return '拠点を$nameにしました';
-  }
-
-  @override
-  String get homeBaseKindStation => '駅';
-
-  @override
-  String get homeBaseKindCity => '市';
-
-  @override
-  String get homeBaseKindTown => '町';
-
-  @override
-  String get homeBaseKindVillage => '村';
-
-  @override
-  String get homeBaseKindSuburb => '地区';
-
-  @override
-  String homeBaseDistance(int km) {
-    return 'ここから約${km}km';
   }
 
   @override

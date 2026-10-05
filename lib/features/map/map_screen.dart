@@ -25,30 +25,17 @@ import '../wishes/wishes.dart';
 import 'home_base_line.dart';
 import 'journey.dart';
 import 'map_camera.dart';
+import 'washi_map.dart';
 import '../shop_search/yahoo_local.dart';
 import 'shop_pins.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
-
-/// 地図の画像は OpenStreetMap のタイルサーバーから取る。送るのは表示範囲だけ（issue #8）。
-const _tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-/// テストでは地図の画像を取りに行かないよう、falseに差し替える。
-final mapTilesEnabledProvider = Provider<bool>((ref) => true);
 
 /// 「このあたりを探す」で探す半径。記録のときの候補（300m）より広く、歩いて行ける範囲。
 const nearbySearchRadiusMeters = 1000;
 
 /// 行った店が無く、現在地もわからないときに最初に見せる場所（東京駅）。
 const _fallbackCenter = LatLng(35.6812, 139.7671);
-
-/// 地図の色を8割ほど抜き、少し明るく暖かい色にする。
-const _washiTiles = ColorFilter.matrix(<double>[
-  0.50, 0.42, 0.08, 0, 30, //
-  0.15, 0.77, 0.08, 0, 26, //
-  0.15, 0.42, 0.43, 0, 14, //
-  0, 0, 0, 1, 0, //
-]);
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -325,16 +312,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
             children: [
-              if (tilesEnabled)
-                // 地図の色を抜いて和紙の色に寄せ、朱の印（ピン）が目立つようにする。
-                // タイルごとではなく、地図全体に1回だけかける（描画の負担を減らすため）。
-                ColorFiltered(
-                  colorFilter: _washiTiles,
-                  child: TileLayer(
-                    urlTemplate: _tileUrl,
-                    userAgentPackageName: 'com.aiandrox.ramen_in_cho',
-                  ),
-                ),
+              if (tilesEnabled) const WashiTileLayer(),
               if (_showJourney && shownStops.length > 1)
                 PolylineLayer(
                   polylines: [
@@ -385,7 +363,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       point: LatLng(base.latitude, base.longitude),
                       width: 24,
                       height: 24,
-                      child: _HomeBasePin(base: base),
+                      child: HomeBaseMapPin(base: base),
                     ),
                   for (final pin in pins)
                     Marker(
@@ -400,27 +378,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       point: LatLng(here.latitude, here.longitude),
                       width: 22,
                       height: 22,
-                      child: const _HereDot(),
+                      child: const MapHereDot(),
                     ),
                 ],
               ),
             ],
           ),
           // 出典は必要なものだけを小さく出す（部品名は出さない）。
-          Positioned(
-            left: 0,
-            bottom: 0,
-            child: ColoredBox(
-              color: Washi.paper.withValues(alpha: 0.85),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                child: Text(
-                  l10n.mapAttribution,
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-              ),
-            ),
-          ),
+          const Positioned(left: 0, bottom: 0, child: MapAttribution()),
           if (_nearby.isNotEmpty)
             Positioned(
               left: 8,
@@ -531,22 +496,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 }
 
-class _HereDot extends StatelessWidget {
-  const _HereDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E88E5),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 3),
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
-      ),
-    );
-  }
-}
-
 class _UnvisitedPin extends ConsumerWidget {
   const _UnvisitedPin({required this.shop, required this.here});
 
@@ -611,7 +560,7 @@ class _UnvisitedPin extends ConsumerWidget {
       child: Semantics(
         button: true,
         label: shop.name,
-        child: const _SealPin(color: Washi.faded, filled: true),
+        child: const MapSealPin(color: Washi.faded, filled: true),
       ),
     );
   }
@@ -636,7 +585,7 @@ class _Pin extends StatelessWidget {
         label: pin.shop.name,
         // 丸い印の頭に格の字を入れ、細い足の先を店の場所にする（字が場所に重ならないように）。
         // 行った店は朱で塗った印に、店ランク（易・厳・難・極）の字を入れる。
-        child: _SealPin(
+        child: MapSealPin(
           color: rank == null ? Washi.faded : Washi.shu,
           filled: true,
           label: rank == null ? null : shopRankLabel(l10n, rank),
@@ -702,44 +651,6 @@ class _PinDetails extends StatelessWidget {
   }
 }
 
-/// 今の拠点。店のピンと見分けられるよう、小さな墨の輪で出す。
-class _HomeBasePin extends StatelessWidget {
-  const _HomeBasePin({required this.base});
-
-  final HomeBaseSetting base;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return IgnorePointer(
-      child: Semantics(
-        label: l10n.homeBasePinLabel(base.name),
-        child: Center(
-          child: Container(
-            width: 20,
-            height: 20,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Washi.page,
-              border: Border.all(color: Washi.ink, width: 1.5),
-            ),
-            child: Text(
-              l10n.homeBaseSealChar,
-              style: const TextStyle(
-                fontFamily: Washi.brush,
-                fontSize: 12,
-                height: 1,
-                color: Washi.ink,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// 願を掛けた（まだ行っていない）店。輪郭だけの朱のピンに「願」の字。
 class _WishPin extends StatelessWidget {
   const _WishPin({required this.wish});
@@ -775,7 +686,7 @@ class _WishPin extends StatelessWidget {
       child: Semantics(
         button: true,
         label: l10n.mapWishedLabel(wish.name),
-        child: _SealPin(
+        child: MapSealPin(
           color: Washi.shu,
           filled: false,
           label: l10n.wishSealChar,
@@ -898,50 +809,6 @@ class _LoadingBadge extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// 地図の印のピン。上の丸に字を入れ、下の細い足の先が店の場所を指す。
-class _SealPin extends StatelessWidget {
-  const _SealPin({required this.color, required this.filled, this.label});
-
-  final Color color;
-  final bool filled;
-  final String? label;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = this.label;
-    return SizedBox(
-      width: 30,
-      height: 44,
-      child: Column(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: filled ? color : Washi.page,
-              border: Border.all(color: color, width: 2.5),
-            ),
-            child: label == null
-                ? null
-                : Text(
-                    label,
-                    style: TextStyle(
-                      fontFamily: Washi.brush,
-                      fontSize: 16,
-                      height: 1,
-                      color: filled ? Washi.page : color,
-                    ),
-                  ),
-          ),
-          Container(width: 2.5, height: 14, color: color),
-        ],
       ),
     );
   }
