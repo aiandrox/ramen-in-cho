@@ -56,8 +56,8 @@ describe('アプリと同じ解析', () => {
 
   it('OpenPOI と Yahoo! の保存した応答を読める', () => {
     expect(parseOpenPoiResponse(fixture('openpoi_shinjuku.json')).length).toBeGreaterThan(0);
-    const yahoo = parseYahooLocal(fixture('yahoo_local_atsugi.json'));
-    expect(yahoo[0].name).toBe('ラーメン豚山 本厚木店');
+    const yahoo = parseYahooLocal(fixture('yahoo_local_shinjuku.json'));
+    expect(yahoo[0].name).toBe('麺処 さくら 新宿店');
     expect(yahoo[0].dataSource?.attributions).toEqual(['Web Services by Yahoo! JAPAN']);
   });
 

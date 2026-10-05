@@ -17,7 +17,7 @@ import '../../support/l10n.dart';
 
 void main() {
   final a = buildShop(id: 'a', name: 'はやし田');
-  final b = buildShop(id: 'b', name: '藤ろう');
+  final b = buildShop(id: 'b', name: 'ふじみち');
   final today = DateTime(2026, 10, 3, 9);
 
   test('前の年の同じ月日に食べた1杯のうち、いちばん近い年のものを返す', () {

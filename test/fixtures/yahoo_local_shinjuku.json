@@ -4,19 +4,19 @@
     {
       "Id": "1",
       "Gid": "aaaa",
-      "Name": "ラーメン豚山 本厚木店",
-      "Geometry": {"Type": "point", "Coordinates": "139.3651,35.4398"},
+      "Name": "麺処 さくら 新宿店",
+      "Geometry": {"Type": "point", "Coordinates": "139.7006,35.6908"},
       "Category": [],
       "Property": {
-        "Address": "神奈川県厚木市中町2-1-1",
+        "Address": "東京都新宿区西新宿1-1-1",
         "Genre": [{"Code": "0106001", "Name": "ラーメン"}]
       }
     },
     {
       "Id": "2",
       "Gid": "bbbb",
-      "Name": "麺屋藤ろう",
-      "Geometry": {"Type": "point", "Coordinates": "139.3638,35.4391"},
+      "Name": "麺屋ふじみち",
+      "Geometry": {"Type": "point", "Coordinates": "139.6993,35.6901"},
       "Property": {
         "Address": "",
         "Genre": [{"Code": "0106001", "Name": "ラーメン"}]
@@ -24,10 +24,10 @@
     },
     {
       "Id": "4",
-      "Name": "食べ飲み放題 大衆居酒屋 とりいちず",
-      "Geometry": {"Type": "point", "Coordinates": "139.3640,35.4390"},
+      "Name": "食べ飲み放題 大衆居酒屋 つきみ",
+      "Geometry": {"Type": "point", "Coordinates": "139.6995,35.6900"},
       "Property": {
-        "Address": "神奈川県厚木市",
+        "Address": "東京都新宿区",
         "Genre": [{"Code": "0110"}, {"Code": "0106001"}]
       }
     },
@@ -35,7 +35,7 @@
       "Id": "3",
       "Gid": "cccc",
       "Name": "座標の無い店",
-      "Property": {"Address": "神奈川県厚木市"}
+      "Property": {"Address": "東京都新宿区"}
     }
   ]
 }

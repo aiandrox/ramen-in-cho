@@ -1,14 +1,6 @@
 {
   "points": [
     {
-      "id": "honatsugi",
-      "label": "本厚木駅",
-      "latitude": 35.4389,
-      "longitude": 139.364,
-      "radii": [300, 1000],
-      "expected": ["豚山", "晴っぴ", "藤ろう"]
-    },
-    {
       "id": "shinjuku",
       "label": "新宿駅西口",
       "latitude": 35.6909,

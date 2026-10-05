@@ -27,7 +27,7 @@ void main() {
         osmId: 'node/1',
         hoursConditions: {HoursCondition.fewDays, HoursCondition.lunchOnly},
         strategyMemo: '券売機は現金のみ',
-        area: '厚木市',
+        area: '新宿区',
         dataSource: const ShopSource(
           licenses: ['CC BY 4.0'],
           attributions: ['東京都新宿区食品等営業許可・届出一覧'],
@@ -69,7 +69,7 @@ void main() {
         HoursCondition.fewDays,
       });
       expect(restoredShop.strategyMemo, '券売機は現金のみ');
-      expect(restoredShop.area, '厚木市');
+      expect(restoredShop.area, '新宿区');
       expect(restoredShop.dataSource!.licenses, ['CC BY 4.0']);
       expect(restoredShop.dataSource!.attributions, ['東京都新宿区食品等営業許可・届出一覧']);
       expect(restoredShop.createdAt, DateTime(2026, 9, 1));
@@ -144,9 +144,9 @@ void main() {
               homeBases: [
                 HomeBaseSetting(
                   id: 'base',
-                  name: '厚木市',
-                  latitude: 35.44,
-                  longitude: 139.36,
+                  name: '札幌市',
+                  latitude: 43.06,
+                  longitude: 141.35,
                   setAt: DateTime(2026, 10, 5, 9),
                 ),
               ],
@@ -158,9 +158,9 @@ void main() {
 
       final base = decodeBackup(json).homeBases.single;
       expect(base.id, 'base');
-      expect(base.name, '厚木市');
-      expect(base.latitude, 35.44);
-      expect(base.longitude, 139.36);
+      expect(base.name, '札幌市');
+      expect(base.latitude, 43.06);
+      expect(base.longitude, 141.35);
       expect(base.setAt, DateTime(2026, 10, 5, 9));
     });
 

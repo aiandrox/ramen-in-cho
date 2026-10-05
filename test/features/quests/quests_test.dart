@@ -390,7 +390,7 @@ void main() {
     test('初めて拠点を決めた日時に会得する。あとで変えても会得の日は変わらない', () {
       final first = buildHomeBase(name: '横浜駅', setAt: DateTime(2026, 9, 5));
       final result = progress([
-        buildHomeBase(name: '厚木市', setAt: DateTime(2026, 10, 1)),
+        buildHomeBase(name: '札幌市', setAt: DateTime(2026, 10, 1)),
         first,
       ]);
 

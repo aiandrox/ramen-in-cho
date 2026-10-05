@@ -119,7 +119,7 @@ Shop（店）
   hoursConditions 攻略しにくさ（いくつでも）: lunchOnly（昼のみ）/ nightOnly（夜のみ）/ weekdaysOnly（平日のみ）/ weekendsOnly（土日のみ）/ fewDays（週3日以下）/ irregular（不定休）/ badAccess（アクセスが悪い）
   strategyMemo  店ごとの攻略メモ（記録ごとのメモとは別。任意）
   dataSource    OpenPOI で見つけた店の出所（licenses / attributions。それ以外の店は null）
-  area          店のある市区町村（「厚木市」など。位置から OpenPOI で調べる。わかるまでは null）
+  area          店のある市区町村（「新宿区」など。位置から OpenPOI で調べる。わかるまでは null）
   createdAt
 
 Wish（願掛け帳＝行きたい店。まだ行っていない店もあるので店の情報をそのまま持つ）
@@ -131,7 +131,7 @@ Wish（願掛け帳＝行きたい店。まだ行っていない店もあるの�
 
 HomeBaseSetting（拠点。利用者が決める。変えるたびに1件ずつ足し、消さない）
   id            UUID
-  name          画面に出す名前（「横浜駅」「厚木市」「現在地のあたり」など）
+  name          画面に出す名前（「横浜駅」「札幌市」「現在地のあたり」など）
   latitude / longitude
   setAt         決めた日時（この日時から後の記録にだけ効く）
 

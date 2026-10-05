@@ -274,8 +274,8 @@ void main() {
     final repository = RecordRepository(database);
 
     expect((await repository.allShops()).single.area, isNull);
-    await repository.setShopArea('shop', '厚木市');
-    expect((await repository.allShops()).single.area, '厚木市');
+    await repository.setShopArea('shop', '新宿区');
+    expect((await repository.allShops()).single.area, '新宿区');
   });
 
   test('バージョン7の願に店の条件の列を足し、願はそのまま残す', () async {

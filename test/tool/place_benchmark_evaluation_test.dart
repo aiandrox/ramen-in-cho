@@ -5,11 +5,11 @@ import '../../tool/place_benchmark/src/providers.dart';
 
 const _point = BenchmarkPoint(
   id: 'p',
-  label: '本厚木駅',
+  label: '新宿駅西口',
   latitude: 35.0,
   longitude: 139.0,
   radii: [300],
-  expected: ['豚山', '晴っぴ', 'AFURI'],
+  expected: ['豚山', 'はれのひ', 'AFURI'],
 );
 
 FoundPlace _place(String name, {bool closed = false}) =>
@@ -27,13 +27,13 @@ ProviderRun _run(List<FoundPlace> places, {String? error, int ms = 1000}) =>
 
 void main() {
   test('店名は、空白・全角英数字・大文字小文字・記号の違いを吸収して比べる', () {
-    expect(nameMatches('ラーメン豚山 本厚木店', '豚山'), isTrue);
+    expect(nameMatches('麺処 さくら 新宿店', 'さくら'), isTrue);
     expect(nameMatches('ＡＦＵＲＩ　新宿', 'afuri'), isTrue);
-    expect(nameMatches('麺屋・藤ろう', '麺屋藤ろう'), isTrue);
+    expect(nameMatches('麺屋・ふじみち', '麺屋ふじみち'), isTrue);
     expect(nameMatches('一風堂', '一蘭'), isFalse);
     expect(nameMatches('', '豚山'), isFalse);
     // 短い店名が正解に含まれるだけでは、同じ店とみなさない。
-    expect(nameMatches('麺屋', '麺屋藤ろう'), isFalse);
+    expect(nameMatches('麺屋', '麺屋ふじみち'), isFalse);
     // 長音記号は消さない（「ラーメン」と「ラメン」を取り違えない）。
     expect(normalizeName('ラーメン'), 'ラーメン');
   });
@@ -61,7 +61,7 @@ void main() {
 
     expect(summary.places, hasLength(2));
     expect(summary.hits, ['豚山']);
-    expect(summary.misses, ['晴っぴ', 'AFURI']);
+    expect(summary.misses, ['はれのひ', 'AFURI']);
     expect(summary.closedCount, 1);
     expect(summary.medianElapsed, const Duration(milliseconds: 3000));
     expect(summary.failures, 1);
@@ -85,7 +85,7 @@ void main() {
       summarize([_point], [_run(const [], error: 'HTTP 429')]),
     );
 
-    expect(report, contains('| 本厚木駅 | 300m | Google | 取得失敗 |'));
+    expect(report, contains('| 新宿駅西口 | 300m | Google | 取得失敗 |'));
   });
 
   test('ホットペッパーの半径は、決まった5段階のうち近いものにする', () {

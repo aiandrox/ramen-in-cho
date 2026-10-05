@@ -108,7 +108,7 @@ String normalizeName(String name) {
 }
 
 /// 見つかった店名に、正解リストの店名が含まれていれば同じ店とみなす。
-/// 逆向き（短い店名が正解に含まれる）は、「麺屋」だけで「麺屋藤ろう」に当たってしまうので数えない。
+/// 逆向き（短い店名が正解に含まれる）は、「麺屋」だけで「麺屋ふじみち」に当たってしまうので数えない。
 bool nameMatches(String found, String expected) {
   final a = normalizeName(found);
   final b = normalizeName(expected);
