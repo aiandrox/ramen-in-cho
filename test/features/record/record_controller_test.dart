@@ -9,6 +9,7 @@ import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
 import 'package:ramen_in_cho/features/record/record_controller.dart';
+import 'package:ramen_in_cho/features/record/record_draft.dart';
 import 'package:ramen_in_cho/features/record/record_state.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
@@ -33,6 +34,25 @@ void main() {
   late FakePhotoPicker picker;
   late FakePhotoMetadataReader metadata;
   late ProviderContainer container;
+  late AppDatabase database;
+
+  /// 記録画面を開き直したとき（前の画面の状態は残らず、documents と記録だけが残る）。
+  ProviderContainer newSession() {
+    final session = ProviderContainer(
+      overrides: [
+        appDatabaseProvider.overrideWithValue(database),
+        documentsDirectoryProvider.overrideWithValue(documents),
+        locationServiceProvider.overrideWithValue(location),
+        nearbyShopFinderProvider.overrideWithValue(overpass),
+        photoPickerProvider.overrideWithValue(picker),
+        photoMetadataReaderProvider.overrideWithValue(metadata),
+        clockProvider.overrideWithValue(() => _photoTime),
+      ],
+    );
+    addTearDown(session.dispose);
+    session.listen(recordControllerProvider, (_, _) {});
+    return session;
+  }
 
   setUp(() {
     documents = createTempDirectory();
@@ -50,20 +70,9 @@ void main() {
     );
     picker = FakePhotoPicker(cameraPath: photo.path, galleryPath: photo.path);
     metadata = FakePhotoMetadataReader();
-    container = ProviderContainer(
-      overrides: [
-        appDatabaseProvider.overrideWithValue(createTestDatabase()),
-        documentsDirectoryProvider.overrideWithValue(documents),
-        locationServiceProvider.overrideWithValue(location),
-        nearbyShopFinderProvider.overrideWithValue(overpass),
-        photoPickerProvider.overrideWithValue(picker),
-        photoMetadataReaderProvider.overrideWithValue(metadata),
-        clockProvider.overrideWithValue(() => _photoTime),
-      ],
-    );
-    addTearDown(container.dispose);
-    // autoDisposeのため、テスト中は購読して破棄されないようにする。
-    container.listen(recordControllerProvider, (_, _) {});
+    database = createTestDatabase();
+    // autoDisposeのため、テスト中は購読して破棄されないようにする（newSession の中で購読する）。
+    container = newSession();
   });
 
   RecordController controller() =>
@@ -751,5 +760,178 @@ void main() {
     expect(state().canSave, isTrue);
     final photos = Directory(p.join(documents.path, 'photos'));
     expect(photos.listSync(), isEmpty);
+    // 保存できなかったので、下書きは残る。
+    final draft = await container.read(recordDraftStoreProvider).load();
+    expect(draft?.manualName, '麺屋');
+    expect(File(draft!.photoPath!).existsSync(), isTrue);
+  });
+
+  group('下書き', () {
+    Directory draftPhotos() => Directory(
+      p.join(documents.path, FileRecordDraftStore.photoDirectoryName),
+    );
+    File draftFile() =>
+        File(p.join(documents.path, FileRecordDraftStore.fileName));
+
+    /// 書きかけの書き込みが終わるのを待つ（読み書きは順番に行われるため）。
+    Future<RecordDraft?> flushed(ProviderContainer c) =>
+        c.read(recordDraftStoreProvider).load();
+
+    test('保存せずに閉じても入力が残り、次に開くとそこから再開する', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller()
+        ..selectShop(state().candidates.single)
+        ..setRating(4)
+        ..setStyle(RamenStyle.iekei)
+        ..setLimited(true)
+        ..setMemo('かため')
+        ..setWaitMinutes(25)
+        ..setHoursConditions({HoursCondition.lunchOnly});
+      // 写真は一時ファイルではなく documents に写してある。
+      expect(p.isWithin(draftPhotos().path, state().photoPath!), isTrue);
+      await flushed(container);
+      container.dispose();
+
+      final next = newSession();
+      await next.read(recordControllerProvider.notifier).start();
+      final resumed = next.read(recordControllerProvider);
+
+      expect(resumed.resumedFromDraft, isTrue);
+      expect(File(resumed.photoPath!).readAsBytesSync(), [1, 2, 3]);
+      expect(resumed.photoTakenAt, _photoTime);
+      expect(resumed.photoFromCamera, isTrue);
+      // 検索の候補の同じ店に選び替え、同じ店が2つ並ばない。
+      expect(
+        identical(resumed.selectedShop, resumed.candidates.single),
+        isTrue,
+      );
+      expect(resumed.rating, 4);
+      expect(resumed.style, RamenStyle.iekei);
+      expect(resumed.isLimited, isTrue);
+      expect(resumed.memo, 'かため');
+      expect(resumed.manualWaitMinutes, 25);
+      expect(resumed.chosenHoursConditions, {HoursCondition.lunchOnly});
+
+      expect(
+        await next.read(recordControllerProvider.notifier).save(),
+        isNotNull,
+      );
+      final entry =
+          (await next.read(recordRepositoryProvider).watchVisits().first)
+              .single;
+      expect(entry.shop.name, '麺屋テスト');
+      expect(entry.visit.memo, 'かため');
+      expect(entry.visit.style, RamenStyle.iekei);
+    });
+
+    test('何も入れていなければ下書きは作らず、再開の案内も出さない', () async {
+      await controller().start();
+      await flushed(container);
+      expect(draftFile().existsSync(), isFalse);
+
+      controller().setManualName('麺');
+      await flushed(container);
+      expect(draftFile().existsSync(), isTrue);
+      controller().setManualName('');
+      await flushed(container);
+      expect(draftFile().existsSync(), isFalse);
+      container.dispose();
+
+      final next = newSession();
+      await next.read(recordControllerProvider.notifier).start();
+      expect(next.read(recordControllerProvider).resumedFromDraft, isFalse);
+    });
+
+    test('「着丼！」で保存すると下書きと下書きの写真は消え、記録の写真は残る', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller().setManualName('麺屋');
+
+      expect(await controller().save(), isNotNull);
+
+      expect(draftFile().existsSync(), isFalse);
+      expect(draftPhotos().listSync(), isEmpty);
+      final saved = (await visits()).single.visit.photoPath!;
+      expect(File(p.join(documents.path, saved)).readAsBytesSync(), [1, 2, 3]);
+
+      container.dispose();
+      final next = newSession();
+      await next.read(recordControllerProvider.notifier).start();
+      final fresh = next.read(recordControllerProvider);
+      expect(fresh.resumedFromDraft, isFalse);
+      expect(fresh.photoPath, isNull);
+      expect(fresh.manualName, isEmpty);
+    });
+
+    test('下書きを捨てると入力と下書きの写真が消え、記録済みの写真は消えない', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller().setManualName('前の店');
+      expect(await controller().save(), isNotNull);
+      final saved = (await visits()).single.visit.photoPath!;
+      container.dispose();
+
+      final next = newSession();
+      final nextController = next.read(recordControllerProvider.notifier);
+      await nextController.start();
+      await nextController.takePhoto();
+      nextController
+        ..setManualName('書きかけの店')
+        ..setMemo('メモ');
+      await flushed(next);
+      expect(draftPhotos().listSync(), hasLength(1));
+
+      await nextController.discardDraft();
+      await flushed(next);
+
+      final state = next.read(recordControllerProvider);
+      expect(state.photoPath, isNull);
+      expect(state.manualName, isEmpty);
+      expect(state.memo, isEmpty);
+      expect(state.resumedFromDraft, isFalse);
+      expect(state.candidates.map((c) => c.name), contains('麺屋テスト'));
+      expect(draftFile().existsSync(), isFalse);
+      expect(draftPhotos().listSync(), isEmpty);
+      expect(File(p.join(documents.path, saved)).existsSync(), isTrue);
+    });
+
+    test('撮り直すと前の下書きの写真は片付く', () async {
+      await controller().start();
+      await controller().takePhoto();
+      final first = state().photoPath!;
+      await controller().takePhoto();
+      await flushed(container);
+
+      expect(File(first).existsSync(), isFalse);
+      expect(draftPhotos().listSync().single.path, state().photoPath);
+    });
+
+    test('取り戻した写真で開くと、下書きの入力にその写真を合わせ、捨てても写真は残す', () async {
+      await controller().start();
+      controller().setManualName('書きかけの店');
+      await flushed(container);
+      container.dispose();
+
+      final next = newSession();
+      final nextController = next.read(recordControllerProvider.notifier);
+      await nextController.start(recoveredPhotoPath: picker.cameraPath);
+      var state = next.read(recordControllerProvider);
+      expect(state.resumedFromDraft, isTrue);
+      expect(state.manualName, '書きかけの店');
+      expect(state.photoPath, isNotNull);
+
+      await nextController.discardDraft();
+      await flushed(next);
+      state = next.read(recordControllerProvider);
+      expect(state.manualName, isEmpty);
+      expect(File(state.photoPath!).readAsBytesSync(), [1, 2, 3]);
+      final draft = await flushed(next);
+      expect(draft?.photoPath, state.photoPath);
+      expect(draft?.manualName, isEmpty);
+    });
   });
 }

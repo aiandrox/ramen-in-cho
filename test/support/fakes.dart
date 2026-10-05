@@ -9,6 +9,7 @@ import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
+import 'package:ramen_in_cho/features/record/record_draft.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
@@ -340,4 +341,22 @@ class FakeWishRepository implements WishRepository {
 
   @override
   Stream<List<Wish>> watchWishes() => const Stream.empty();
+}
+
+/// 下書きをメモリーに持つ（ウィジェットのテストの偽の時間ではファイルの読み書きが終わらないため）。
+class MemoryRecordDraftStore implements RecordDraftStore {
+  RecordDraft? draft;
+
+  @override
+  Future<RecordDraft?> load() async => draft;
+
+  @override
+  Future<String> keepPhoto(String sourcePath) async => sourcePath;
+
+  @override
+  Future<void> save(RecordDraft value) async =>
+      draft = value.isEmpty ? null : value;
+
+  @override
+  Future<void> clear({String? keepPhoto}) async => draft = null;
 }

@@ -155,16 +155,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get memoLabel => 'メモ';
 
   @override
-  String get discardTitle => '記録をやめますか？';
+  String get draftResumed => '下書きから再開しました';
 
   @override
-  String get discardMessage => '入力した内容は保存されません';
+  String get draftDiscard => '下書きを捨てて新しく';
 
   @override
-  String get discardConfirm => 'やめる';
+  String get draftDiscardTitle => '下書きを捨てますか？';
 
   @override
-  String get discardCancel => '続ける';
+  String get draftDiscardMessage => '入れた写真や店名などが消えます。記録した杯には影響しません';
+
+  @override
+  String get draftDiscardConfirm => '捨てる';
+
+  @override
+  String get draftDiscardCancel => '残す';
 
   @override
   String get cancel => 'キャンセル';

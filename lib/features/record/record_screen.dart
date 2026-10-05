@@ -92,26 +92,38 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     messenger.showSnackBar(SnackBar(content: Text(l10n.checkinDone(shopName))));
   }
 
-  Future<void> _confirmDiscard() async {
+  Future<void> _confirmDiscardDraft() async {
     final l10n = AppLocalizations.of(context);
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.discardTitle),
-        content: Text(l10n.discardMessage),
+        title: Text(l10n.draftDiscardTitle),
+        content: Text(l10n.draftDiscardMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.discardCancel),
+            child: Text(l10n.draftDiscardCancel),
           ),
           KeshiFuda(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.discardConfirm),
+            child: Text(l10n.draftDiscardConfirm),
           ),
         ],
       ),
     );
-    if (discard == true && mounted) Navigator.of(context).pop();
+    if (discard != true || !mounted) return;
+    _nameController.clear();
+    _memoController.clear();
+    _waitController.clear();
+    FocusScope.of(context).unfocus();
+    await ref.read(recordControllerProvider.notifier).discardDraft();
+  }
+
+  /// 下書きから再開したら、入力欄にも戻す。
+  void _fillFromDraft(RecordState state) {
+    _nameController.text = state.manualName;
+    _memoController.text = state.memo;
+    _waitController.text = state.manualWaitMinutes?.toString() ?? '';
   }
 
   void _selectShop(ShopCandidate shop) {
@@ -122,15 +134,13 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(recordControllerProvider);
-
-    return PopScope(
-      canPop: !state.hasInput,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _confirmDiscard();
-      },
-      child: _buildScaffold(context, state),
-    );
+    ref.listen(recordControllerProvider, (previous, next) {
+      if (next.resumedFromDraft && !(previous?.resumedFromDraft ?? false)) {
+        _fillFromDraft(next);
+      }
+    });
+    // 保存せずに閉じても、入力は下書きに残るので確かめずに閉じる。
+    return _buildScaffold(context, ref.watch(recordControllerProvider));
   }
 
   Widget _buildScaffold(BuildContext context, RecordState state) {
@@ -146,6 +156,11 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
+          // 下の部品の並びがずれないよう、消えても場所を1つ取っておく。
+          if (state.resumedFromDraft)
+            _DraftNotice(onDiscard: _confirmDiscardDraft)
+          else
+            const SizedBox.shrink(),
           // 何か入れたあとは食べた記録なので出さない（並び始めると入力が消えるため）。
           // 消えても下の部品の並びがずれないよう、場所は常に1つ取っておく。
           if (showCheckinStart)
@@ -242,6 +257,36 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
                 : Text(l10n.save),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _DraftNotice extends StatelessWidget {
+  const _DraftNotice({required this.onDiscard});
+
+  final VoidCallback onDiscard;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        children: [
+          Text(
+            l10n.draftResumed,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          FudeLink(
+            onPressed: onDiscard,
+            icon: const Icon(Icons.restart_alt),
+            child: Text(l10n.draftDiscard),
+          ),
+        ],
       ),
     );
   }

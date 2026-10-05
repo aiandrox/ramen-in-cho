@@ -370,29 +370,41 @@ abstract class AppLocalizations {
   /// **'メモ'**
   String get memoLabel;
 
-  /// No description provided for @discardTitle.
+  /// No description provided for @draftResumed.
   ///
   /// In ja, this message translates to:
-  /// **'記録をやめますか？'**
-  String get discardTitle;
+  /// **'下書きから再開しました'**
+  String get draftResumed;
 
-  /// No description provided for @discardMessage.
+  /// No description provided for @draftDiscard.
   ///
   /// In ja, this message translates to:
-  /// **'入力した内容は保存されません'**
-  String get discardMessage;
+  /// **'下書きを捨てて新しく'**
+  String get draftDiscard;
 
-  /// No description provided for @discardConfirm.
+  /// No description provided for @draftDiscardTitle.
   ///
   /// In ja, this message translates to:
-  /// **'やめる'**
-  String get discardConfirm;
+  /// **'下書きを捨てますか？'**
+  String get draftDiscardTitle;
 
-  /// No description provided for @discardCancel.
+  /// No description provided for @draftDiscardMessage.
   ///
   /// In ja, this message translates to:
-  /// **'続ける'**
-  String get discardCancel;
+  /// **'入れた写真や店名などが消えます。記録した杯には影響しません'**
+  String get draftDiscardMessage;
+
+  /// No description provided for @draftDiscardConfirm.
+  ///
+  /// In ja, this message translates to:
+  /// **'捨てる'**
+  String get draftDiscardConfirm;
+
+  /// No description provided for @draftDiscardCancel.
+  ///
+  /// In ja, this message translates to:
+  /// **'残す'**
+  String get draftDiscardCancel;
 
   /// No description provided for @cancel.
   ///
