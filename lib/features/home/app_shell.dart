@@ -10,6 +10,7 @@ import '../map/map_screen.dart';
 import '../shugyo/shugyo_screen.dart';
 import '../wishes/wish_list_screen.dart';
 import '../../theme/washi_buttons.dart';
+import '../../theme/washi_sheet.dart';
 import '../record/record_screen.dart';
 import '../onboarding/onboarding_flow.dart';
 import '../onboarding/onboarding_screen.dart';
@@ -36,6 +37,11 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   /// 下のタブで、真ん中の判子のために空けておく位置。
   static const _gap = 2;
+
+  /// 判子をタブの上から下げる分。
+  static const _sealDrop = 36.0;
+
+  final _sheetHost = GlobalKey<ShellSheetHostState>();
 
   @override
   void initState() {
@@ -70,6 +76,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   Future<void> _onSeal() async {
     final navigator = Navigator.of(context);
     if (ref.read(activeCheckinProvider).value != null) {
+      _sheetHost.currentState?.close();
       // 押した瞬間が待ち時間の終わり。写真はこのあと撮っても撮らなくてもよい。
       final arrivedAt = ref.read(clockProvider)();
       await navigator.push<void>(
@@ -77,7 +84,13 @@ class _AppShellState extends ConsumerState<AppShell> {
       );
       return;
     }
-    final choice = await showStartSheet(context);
+    final host = _sheetHost.currentState;
+    if (host?.openTag == startSheetTag) {
+      host!.close();
+      return;
+    }
+    host?.close();
+    final choice = await showStartSheet(context, host: host);
     if (!mounted) return;
     switch (choice) {
       case StartChoice.eaten:
@@ -128,14 +141,19 @@ class _AppShellState extends ConsumerState<AppShell> {
             child: MediaQuery.removePadding(
               context: context,
               removeTop: checkin != null,
-              child: tabs,
+              // 下から出る窓は、ここ（見出しと下のタブの間）に出す。
+              child: ShellSheetHost(
+                key: _sheetHost,
+                footerOverlap: (RecordSealButton.size - _sealDrop) / 2 + 8,
+                child: tabs,
+              ),
             ),
           ),
         ],
       ),
       floatingActionButton: Padding(
         // タブの上に半分ほどはみ出すように、少し下げる。
-        padding: const EdgeInsets.only(top: 36),
+        padding: const EdgeInsets.only(top: _sealDrop),
         child: RecordSealButton(
           glyph: checkin == null ? '麺' : '着',
           tooltip: checkin == null ? l10n.addRecord : l10n.arriveSeal,
@@ -147,6 +165,7 @@ class _AppShellState extends ConsumerState<AppShell> {
         // 真ん中は判子の場所として空けておく（押しても何もしない）。
         selectedIndex: index < _gap ? index : index + 1,
         onDestinationSelected: (selected) {
+          _sheetHost.currentState?.close();
           if (selected == _gap) return;
           ref
               .read(appTabProvider.notifier)

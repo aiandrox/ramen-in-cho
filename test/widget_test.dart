@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'dart:async';
 
@@ -330,6 +331,58 @@ void main() {
       expect(find.textContaining(ja.waitTime(35)), findsOneWidget);
       final save = find.widgetWithText(AiFuda, ja.save);
       expect(tester.widget<AiFuda>(save).onPressed, isNotNull);
+    });
+
+    testWidgets('「麺」の窓は下のタブと判子の下に出し、タブと判子は覆わない', (tester) async {
+      await pumpShell(tester);
+
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.pumpAndSettle();
+      expect(find.text(ja.startEatenTitle), findsOneWidget);
+      final navTop = tester.getTopLeft(find.byType(NavigationBar)).dy;
+      expect(tester.getBottomLeft(find.byType(BottomSheet)).dy, navTop);
+      // 見出し（タブの画面の AppBar）にもかからない。
+      expect(
+        tester.getTopLeft(find.byType(BottomSheet)).dy,
+        greaterThanOrEqualTo(kToolbarHeight),
+      );
+
+      // 判子をもう一度押すと閉じる。
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+
+      // 窓の外（暗くしたところ）を押すと閉じる。
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(400, kToolbarHeight + 16));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+
+      // 戻る操作でも、アプリを閉じずに窓だけを閉じる。
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.pumpAndSettle();
+      await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        SystemChannels.navigation.name,
+        SystemChannels.navigation.codec.encodeMethodCall(
+          const MethodCall('popRoute'),
+        ),
+        (_) {},
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(find.byType(RecordSealButton), findsOneWidget);
+
+      // 窓を開いたまま下のタブを押すと、窓を閉じてタブを切り替える。
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.navShugyo));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        3,
+      );
     });
   });
 

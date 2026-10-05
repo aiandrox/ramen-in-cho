@@ -222,7 +222,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   expedition.stops.map((s) => s.shop.name).join('・'),
                 ),
                 onTap: () {
-                  Navigator.of(context).pop();
+                  closeWashiSheet<void>(context);
                   _fitTo(expedition.stops);
                 },
               ),
@@ -537,7 +537,7 @@ class _UnvisitedPin extends ConsumerWidget {
                   icon: const Icon(Icons.bookmark_add),
                   child: Text(l10n.wishMakeButton),
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    closeWashiSheet<void>(context);
                     addWishFor(
                       context,
                       ref,
@@ -634,7 +634,7 @@ class _PinDetails extends StatelessWidget {
                 child: Text(l10n.mapOpenShopPage),
                 onPressed: () {
                   final navigator = Navigator.of(context);
-                  navigator.pop();
+                  closeWashiSheet<void>(context);
                   navigator.push(
                     MaterialPageRoute<void>(
                       builder: (_) =>

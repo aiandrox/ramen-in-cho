@@ -265,7 +265,7 @@ class _SpotDetails extends StatelessWidget {
               if (by != null)
                 SumiFuda(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    closeWashiSheet<void>(context);
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => VisitDetailScreen(visitId: by.visit.id),
