@@ -864,12 +864,12 @@ void _paintEnso(
   }
 }
 
-/// 願掛け帳で願を足す、しおりの形のボタン。真ん中の判子（記録）と取り違えないよう、丸にしない。
-class ShioriFab extends StatelessWidget {
-  const ShioriFab({super.key, required this.tooltip, required this.onPressed});
+/// 願掛け帳で願を足す、絵馬の形のボタン。真ん中の判子（記録）と取り違えないよう、丸にしない。
+class EmaFab extends StatelessWidget {
+  const EmaFab({super.key, required this.tooltip, required this.onPressed});
 
-  static const width = 46.0;
-  static const height = 66.0;
+  static const width = 60.0;
+  static const height = 58.0;
 
   final String tooltip;
   final VoidCallback? onPressed;
@@ -888,27 +888,36 @@ class ShioriFab extends StatelessWidget {
             children: [
               Positioned.fill(
                 child: InkWear(
-                  seed: inkSeed('shiori'),
+                  seed: inkSeed('ema'),
                   strength: 0.5,
                   child: CustomPaint(
-                    painter: const _ShioriPainter(),
+                    painter: const _EmaPainter(),
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: height * 0.22),
-                      child: Center(
-                        child: Icon(Icons.add, size: 26, color: Washi.page),
+                      padding: EdgeInsets.only(top: height * 0.34),
+                      child: const Center(
+                        child: Text(
+                          '願',
+                          style: TextStyle(
+                            fontFamily: Washi.brush,
+                            fontSize: 24,
+                            height: 1,
+                            color: Washi.page,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
               Positioned.fill(
+                top: height * 0.18,
                 child: Material(
                   type: MaterialType.transparency,
-                  shape: const _ShioriBorder(),
+                  shape: const _EmaBorder(),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
                     onTap: onPressed,
-                    customBorder: const _ShioriBorder(),
+                    customBorder: const _EmaBorder(),
                     splashColor: Washi.page.withValues(alpha: 0.2),
                   ),
                 ),
@@ -921,34 +930,34 @@ class ShioriFab extends StatelessWidget {
   }
 }
 
-/// しおりの形。上の角はわずかに丸め、下は燕尾に切り込む。
-Path _shioriPath(Rect rect) {
-  final r = rect.width * 0.08;
-  final notch = rect.height * 0.2;
+/// 絵馬の板。屋根のように上を山形にした五角形。
+Path _emaPath(Rect rect) {
+  final roof = rect.height * 0.3;
+  final r = rect.width * 0.06;
   return Path()
-    ..moveTo(rect.left, rect.top + r)
-    ..quadraticBezierTo(rect.left, rect.top, rect.left + r, rect.top)
-    ..lineTo(rect.right - r, rect.top)
-    ..quadraticBezierTo(rect.right, rect.top, rect.right, rect.top + r)
-    ..lineTo(rect.right, rect.bottom)
-    ..lineTo(rect.center.dx, rect.bottom - notch)
-    ..lineTo(rect.left, rect.bottom)
+    ..moveTo(rect.center.dx, rect.top)
+    ..lineTo(rect.right, rect.top + roof)
+    ..lineTo(rect.right, rect.bottom - r)
+    ..quadraticBezierTo(rect.right, rect.bottom, rect.right - r, rect.bottom)
+    ..lineTo(rect.left + r, rect.bottom)
+    ..quadraticBezierTo(rect.left, rect.bottom, rect.left, rect.bottom - r)
+    ..lineTo(rect.left, rect.top + roof)
     ..close();
 }
 
-class _ShioriBorder extends ShapeBorder {
-  const _ShioriBorder();
+class _EmaBorder extends ShapeBorder {
+  const _EmaBorder();
 
   @override
   EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
 
   @override
   Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
-      _shioriPath(rect);
+      _emaPath(rect);
 
   @override
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) =>
-      _shioriPath(rect);
+      _emaPath(rect);
 
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
@@ -957,26 +966,44 @@ class _ShioriBorder extends ShapeBorder {
   ShapeBorder scale(double t) => this;
 }
 
-class _ShioriPainter extends CustomPainter {
-  const _ShioriPainter();
+class _EmaPainter extends CustomPainter {
+  const _EmaPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final path = _shioriPath(rect);
+    // 板は紐の分だけ下げて描き、上に吊るし紐の輪を出す。
+    final board = Rect.fromLTRB(0, size.height * 0.18, size.width, size.height);
+    final path = _emaPath(board);
     canvas.drawShadow(path, Colors.black, 3, false);
     canvas.drawPath(path, Paint()..color = Washi.ai);
-    // 内側に淡い藍の細い線を引き、布のしおりの縁取りにする。
-    final inset = size.width * 0.12;
-    canvas.drawPath(
-      _shioriPath(rect.deflate(inset)).shift(Offset(0, -inset * 0.4)),
+    // 屋根の下に、淡い藍の細い線で屋根板の縁を引く。
+    final roofLine = board.top + board.height * 0.3 + 4;
+    canvas.drawLine(
+      Offset(board.left + 5, roofLine),
+      Offset(board.right - 5, roofLine),
       Paint()
         ..color = Washi.aiLight.withValues(alpha: 0.8)
-        ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2,
+    );
+    final cord = Paint()
+      ..color = Washi.ai
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    final top = board.top + board.height * 0.12;
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width * 0.38, top)
+        ..quadraticBezierTo(
+          size.width * 0.5,
+          -size.height * 0.08,
+          size.width * 0.62,
+          top,
+        ),
+      cord,
     );
   }
 
   @override
-  bool shouldRepaint(_ShioriPainter old) => false;
+  bool shouldRepaint(_EmaPainter old) => false;
 }
