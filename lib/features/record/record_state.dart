@@ -28,6 +28,7 @@ class RecordState {
     this.chosenHoursConditions,
     this.memo = '',
     this.manualWaitMinutes,
+    this.arrivedAt,
     this.isSaving = false,
     this.resumedFromDraft = false,
   });
@@ -65,6 +66,9 @@ class RecordState {
 
   /// あとから入れた待ち時間（分）。並んだ店を選んでいるときは使わない。
   final int? manualWaitMinutes;
+
+  /// 並んでいる最中に真ん中の「着」を押した時刻。並んだ店で食べた時刻になり、待ち時間はここで決まる。
+  final DateTime? arrivedAt;
   final bool isSaving;
 
   /// 前に保存せずに閉じたときの入力から再開したか。
@@ -113,6 +117,7 @@ class RecordState {
     Object? chosenHoursConditions = _unset,
     String? memo,
     Object? manualWaitMinutes = _unset,
+    Object? arrivedAt = _unset,
     bool? isSaving,
     bool? resumedFromDraft,
   }) {
@@ -148,6 +153,7 @@ class RecordState {
       manualWaitMinutes: manualWaitMinutes == _unset
           ? this.manualWaitMinutes
           : manualWaitMinutes as int?,
+      arrivedAt: arrivedAt == _unset ? this.arrivedAt : arrivedAt as DateTime?,
       isSaving: isSaving ?? this.isSaving,
       resumedFromDraft: resumedFromDraft ?? this.resumedFromDraft,
     );

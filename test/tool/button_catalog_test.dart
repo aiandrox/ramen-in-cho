@@ -121,8 +121,10 @@ Widget _panel({required bool night}) {
     _label('丸印（画面に浮かぶボタン）', night: night),
     Row(
       children: [
-        RecordSealButton(tooltip: '記録する', onPressed: _noop),
-        const SizedBox(width: 16),
+        RecordSealButton(glyph: '麺', tooltip: '記録する・並ぶ', onPressed: _noop),
+        const SizedBox(width: 8),
+        RecordSealButton(glyph: '着', tooltip: '着丼したら押す', onPressed: _noop),
+        const SizedBox(width: 8),
         ShioriFab(tooltip: '願を足す', onPressed: _noop),
         const SizedBox(width: 16),
         SealFab(

@@ -135,12 +135,6 @@ void main() {
     expect(picker.cameraOpens, 1);
   });
 
-  testWidgets('並んでいなければ「いま並んでいる」を出す', (tester) async {
-    await pumpScreen(tester);
-
-    expect(find.text(ja.checkinStart), findsOneWidget);
-  });
-
   testWidgets('店名を1文字入れても入力欄が作り直されない（変換中の文字が確定しない）', (tester) async {
     await pumpScreen(tester);
     final field = find.widgetWithText(TextField, ja.shopNameLabel);
@@ -155,7 +149,6 @@ void main() {
       find.descendant(of: field, matching: find.byType(EditableText)),
     );
     expect(identical(before, after), isTrue);
-    expect(find.text(ja.checkinStart), findsNothing);
   });
 
   testWidgets('検索に失敗しても、店名を入力して保存できる', (tester) async {

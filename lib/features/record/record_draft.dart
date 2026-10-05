@@ -33,11 +33,16 @@ class RecordDraft {
     this.chosenHoursConditions,
     this.memo = '',
     this.manualWaitMinutes,
+    this.arrivedAt,
+    this.arrivedCheckin,
   });
 
   /// 並んでいる店は下書きに入れない（開いたときの並びの状態から選び直す）。
+  /// ただし「着」を押したあとは、その並び（並んだ時刻と店）を一緒に残す。
+  /// 保存する前にアプリが終わっても、チェックインが期限切れで消えても、待ち時間を失わないため。
   factory RecordDraft.fromState(RecordState state) {
     final selected = state.selectedShop;
+    final arrivedAt = state.checkin == null ? null : state.arrivedAt;
     return RecordDraft(
       photoPath: state.photoPath,
       photoTakenAt: state.photoPath == null ? null : state.photoTakenAt,
@@ -52,6 +57,8 @@ class RecordDraft {
       chosenHoursConditions: state.chosenHoursConditions,
       memo: state.memo,
       manualWaitMinutes: state.manualWaitMinutes,
+      arrivedAt: arrivedAt,
+      arrivedCheckin: arrivedAt == null ? null : state.checkin,
     );
   }
 
@@ -70,6 +77,10 @@ class RecordDraft {
   final String memo;
   final int? manualWaitMinutes;
 
+  /// 「着」を押した時刻と、そのときの並び。
+  final DateTime? arrivedAt;
+  final Checkin? arrivedCheckin;
+
   bool get isEmpty =>
       photoPath == null &&
       selectedShop == null &&
@@ -79,7 +90,24 @@ class RecordDraft {
       !isLimited &&
       chosenHoursConditions == null &&
       memo.trim().isEmpty &&
-      manualWaitMinutes == null;
+      manualWaitMinutes == null &&
+      arrivedAt == null;
+
+  RecordDraft withoutArrival() => RecordDraft(
+    photoPath: photoPath,
+    photoTakenAt: photoTakenAt,
+    photoFromCamera: photoFromCamera,
+    photoDateFromPhoto: photoDateFromPhoto,
+    photoLocation: photoLocation,
+    selectedShop: selectedShop,
+    manualName: manualName,
+    rating: rating,
+    style: style,
+    isLimited: isLimited,
+    chosenHoursConditions: chosenHoursConditions,
+    memo: memo,
+    manualWaitMinutes: manualWaitMinutes,
+  );
 
   RecordDraft withPhotoPath(String? path) => RecordDraft(
     photoPath: path,
@@ -95,6 +123,8 @@ class RecordDraft {
     chosenHoursConditions: chosenHoursConditions,
     memo: memo,
     manualWaitMinutes: manualWaitMinutes,
+    arrivedAt: arrivedAt,
+    arrivedCheckin: arrivedCheckin,
   );
 
   Map<String, Object?> toJson() => {
@@ -114,6 +144,8 @@ class RecordDraft {
         : [for (final c in chosenHoursConditions!) c.name],
     'memo': memo,
     'manualWaitMinutes': manualWaitMinutes,
+    'arrivedAt': arrivedAt?.toUtc().toIso8601String(),
+    'arrivedCheckin': _checkinToJson(arrivedCheckin),
   };
 
   /// 読めない項目は空にして、読める分だけ戻す。形が丸ごと違えばnull。
@@ -122,6 +154,9 @@ class RecordDraft {
     final rating = _int(json['rating']);
     final wait = _int(json['manualWaitMinutes']);
     final photoPath = _string(json['photoPath']);
+    final arrivedAt = _dateTime(json['arrivedAt']);
+    final arrivedCheckin = _checkinFromJson(json['arrivedCheckin']);
+    final arrived = arrivedAt != null && arrivedCheckin != null;
     return RecordDraft(
       photoPath: photoPath,
       photoTakenAt: photoPath == null
@@ -138,8 +173,54 @@ class RecordDraft {
       chosenHoursConditions: _conditions(json['chosenHoursConditions']),
       memo: _string(json['memo']) ?? '',
       manualWaitMinutes: wait != null && wait > 0 ? wait : null,
+      arrivedAt: arrived ? arrivedAt : null,
+      arrivedCheckin: arrived ? arrivedCheckin : null,
     );
   }
+}
+
+DateTime? _dateTime(Object? value) =>
+    DateTime.tryParse(_string(value) ?? '')?.toLocal();
+
+Map<String, Object?>? _sourceToJson(ShopSource? source) => source == null
+    ? null
+    : {'licenses': source.licenses, 'attributions': source.attributions};
+
+ShopSource? _sourceFromJson(Object? json) => json is Map<String, dynamic>
+    ? ShopSource(
+        licenses: _strings(json['licenses']),
+        attributions: _strings(json['attributions']),
+      )
+    : null;
+
+Map<String, Object?>? _checkinToJson(Checkin? checkin) => checkin == null
+    ? null
+    : {
+        'shopId': checkin.shopId,
+        'osmId': checkin.osmId,
+        'name': checkin.name,
+        'latitude': checkin.latitude,
+        'longitude': checkin.longitude,
+        'dataSource': _sourceToJson(checkin.dataSource),
+        'checkedInAt': checkin.checkedInAt.toUtc().toIso8601String(),
+      };
+
+Checkin? _checkinFromJson(Object? json) {
+  if (json is! Map<String, dynamic>) return null;
+  final name = _string(json['name']);
+  final checkedInAt = _dateTime(json['checkedInAt']);
+  if (name == null || name.isEmpty || checkedInAt == null) return null;
+  final latitude = json['latitude'];
+  final longitude = json['longitude'];
+  return Checkin(
+    shopId: _string(json['shopId']),
+    osmId: _string(json['osmId']),
+    name: name,
+    latitude: latitude is num ? latitude.toDouble() : null,
+    longitude: longitude is num ? longitude.toDouble() : null,
+    dataSource: _sourceFromJson(json['dataSource']),
+    checkedInAt: checkedInAt,
+  );
 }
 
 Map<String, Object?>? _geoToJson(GeoPoint? point) => point == null
@@ -167,9 +248,7 @@ Map<String, Object?>? _shopToJson(ShopCandidate? shop) {
         ? null
         : [for (final c in conditions) c.name],
     'strategyMemo': shop.strategyMemo,
-    'dataSource': source == null
-        ? null
-        : {'licenses': source.licenses, 'attributions': source.attributions},
+    'dataSource': _sourceToJson(source),
     'wishId': shop.wishId,
     'conditionsFromMap': shop.conditionsFromMap,
   };
@@ -187,12 +266,7 @@ ShopCandidate? _shopFromJson(Object? json) {
     location: _geoFromJson(json['location']),
     hoursConditions: _conditions(json['hoursConditions']),
     strategyMemo: _string(json['strategyMemo']) ?? '',
-    dataSource: source is Map<String, dynamic>
-        ? ShopSource(
-            licenses: _strings(source['licenses']),
-            attributions: _strings(source['attributions']),
-          )
-        : null,
+    dataSource: _sourceFromJson(source),
     wishId: _string(json['wishId']),
     conditionsFromMap: json['conditionsFromMap'] == true,
   );

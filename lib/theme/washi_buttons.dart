@@ -637,16 +637,19 @@ class _SealDiscPainter extends CustomPainter {
       old.sumi != sumi || old.brush != brush;
 }
 
-/// 下のタブの真ん中に置く、記録を始める大きな判子。藍の丸に淡い藍の筆の円相、和紙色の「＋」。
+/// 下のタブの真ん中に置く、記録を始める大きな判子。藍の丸に淡い藍の筆の円相、和紙色の筆の字
+/// （ふだんは「麺」、並んでいる最中は「着」）。
 class RecordSealButton extends StatelessWidget {
   const RecordSealButton({
     super.key,
+    required this.glyph,
     required this.tooltip,
     required this.onPressed,
   });
 
   static const size = 72.0;
 
+  final String glyph;
   final String tooltip;
   final VoidCallback onPressed;
 
@@ -656,6 +659,8 @@ class RecordSealButton extends StatelessWidget {
       message: tooltip,
       child: Semantics(
         button: true,
+        excludeSemantics: true,
+        label: tooltip,
         child: DecoratedBox(
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
@@ -676,13 +681,22 @@ class RecordSealButton extends StatelessWidget {
                   child: InkWear(
                     seed: inkSeed('record-seal'),
                     strength: 0.6,
-                    child: const Stack(
+                    child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        Positioned.fill(
+                        const Positioned.fill(
                           child: CustomPaint(painter: _RecordSealPainter()),
                         ),
-                        Icon(Icons.add, size: 36, color: Washi.page),
+                        Text(
+                          glyph,
+                          textScaler: TextScaler.noScaling,
+                          style: const TextStyle(
+                            fontFamily: Washi.brush,
+                            fontSize: 34,
+                            height: 1,
+                            color: Washi.page,
+                          ),
+                        ),
                       ],
                     ),
                   ),

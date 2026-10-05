@@ -9,6 +9,7 @@ import '../records/clock.dart';
 import '../records/models.dart';
 import '../records/photo_storage.dart';
 import '../records/record_repository.dart';
+import '../records/wait_time.dart';
 import '../shop_search/found_shop.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/location_service.dart';
@@ -48,6 +49,12 @@ class RecordController extends Notifier<RecordState> {
   /// 開いたときに渡された写真（取り戻した写真・共有された写真）を写した先。
   String? _incomingPhoto;
 
+  /// 保存先にある並び。下書きから戻した並びとは区別する（下書きを捨てたら、こちらに戻す）。
+  Checkin? _activeCheckin;
+
+  /// この画面を開くときに「着」を押した時刻。
+  DateTime? _tappedArrivedAt;
+
   @override
   RecordState build() {
     listenSelf((_, next) => _writeDraft(next));
@@ -78,14 +85,31 @@ class RecordController extends Notifier<RecordState> {
     }
   }
 
-  /// 近くの店を探しはじめる。カメラは自動では開かず、利用者が写真の欄から選ぶ。
+  /// 「着」を押してカメラを開いたまま、写真がまだ入っていない下書きか
+  /// （カメラの最中にアプリが終わらされ、写真を取り戻したときはこの下書きの続きにする）。
+  Future<bool> draftAwaitsArrivalPhoto() async {
+    try {
+      final draft = await _draftStore.load();
+      return draft != null &&
+          draft.arrivedAt != null &&
+          draft.photoPath == null;
+    } catch (e) {
+      debugPrint('Draft load failed: $e');
+      return false;
+    }
+  }
+
+  /// 近くの店を探しはじめる。カメラは「着」から開いたときだけ自動で開き、ふだんは利用者が写真の欄から選ぶ。
   /// 保存せずに閉じた入力があれば、そこから再開する（[startOver]なら捨てて新しく始める）。
   /// [sharedPhoto]は、[recoveredPhotoPath]がほかのアプリから共有された写真のとき。
+  /// [arrivedAt]は、並んでいる最中に「着」を押した時刻。並んだ店を選び、すぐにカメラを開く。
   Future<void> start({
     String? recoveredPhotoPath,
     bool sharedPhoto = false,
     bool startOver = false,
+    DateTime? arrivedAt,
   }) async {
+    _tappedArrivedAt = arrivedAt;
     unawaited(_loadKnownShops());
     await _loadCheckin();
     if (!ref.mounted) return;
@@ -95,7 +119,23 @@ class RecordController extends Notifier<RecordState> {
       await _restoreDraft();
     }
     if (!ref.mounted) return;
+    // 下書きに前の「着」が残っていれば、そちらの時刻を使う（そのときに着丼していたため）。
+    final arrives =
+        arrivedAt != null && state.checkin != null && state.arrivedAt == null;
+    if (arrives) state = state.copyWith(arrivedAt: arrivedAt);
     _draftReady = true;
+    // カメラの最中にアプリが終わらされても「着」の時刻が残るよう、先に下書きへ書く。
+    if (arrives) {
+      final draft = RecordDraft.fromState(state);
+      _lastDraftJson = jsonEncode(draft.toJson());
+      try {
+        await _draftStore.save(draft);
+      } catch (e) {
+        debugPrint('Draft save failed: $e');
+      }
+      if (!ref.mounted) return;
+    }
+    if (arrivedAt != null && state.photoPath == null) unawaited(takePhoto());
     // 下書きの続きにするとき、共有された写真は元のアプリに残っているので、下書きの写真を優先する。
     // 取り戻した写真は、この下書きを書いている途中に撮った写真（ほかに控えが無い）なので入れ替える。
     final keepDraftPhoto = sharedPhoto && state.photoPath != null;
@@ -112,38 +152,63 @@ class RecordController extends Notifier<RecordState> {
   /// 並んでいる店があれば、その店を選んだ状態で始める。
   Future<void> _loadCheckin() async {
     try {
-      final repository = ref.read(recordRepositoryProvider);
-      final checkin = await repository.activeCheckin();
+      final checkin = await ref.read(recordRepositoryProvider).activeCheckin();
       if (!ref.mounted || checkin == null) return;
       if (isCheckinExpired(checkin, ref.read(clockProvider)())) return;
-      // 記録済みの店なら、攻略メモや営業の条件も引き継ぐため店から作る。
-      final known = checkin.shopId == null
-          ? null
-          : (await repository.allShops())
-                .where((shop) => shop.id == checkin.shopId)
-                .firstOrNull;
-      if (!ref.mounted) return;
-      final latitude = checkin.latitude;
-      final longitude = checkin.longitude;
-      final shop = known != null
-          ? ShopCandidate.fromShop(known)
-          : ShopCandidate(
-              shopId: checkin.shopId,
-              osmId: checkin.osmId,
-              name: checkin.name,
-              dataSource: checkin.dataSource,
-              location: latitude != null && longitude != null
-                  ? GeoPoint(latitude, longitude)
-                  : null,
-            );
-      state = state.copyWith(
-        checkin: checkin,
-        checkinShop: shop,
-        selectedShop: shop,
-      );
+      _activeCheckin = checkin;
+      await _useCheckin(checkin);
     } catch (e) {
       debugPrint('Checkin load failed: $e');
     }
+  }
+
+  Future<void> _useCheckin(Checkin checkin) async {
+    // 記録済みの店なら、攻略メモや営業の条件も引き継ぐため店から作る。
+    final known = checkin.shopId == null
+        ? null
+        : (await ref.read(recordRepositoryProvider).allShops())
+              .where((shop) => shop.id == checkin.shopId)
+              .firstOrNull;
+    if (!ref.mounted) return;
+    final latitude = checkin.latitude;
+    final longitude = checkin.longitude;
+    final shop = known != null
+        ? ShopCandidate.fromShop(known)
+        : ShopCandidate(
+            shopId: checkin.shopId,
+            osmId: checkin.osmId,
+            name: checkin.name,
+            dataSource: checkin.dataSource,
+            location: latitude != null && longitude != null
+                ? GeoPoint(latitude, longitude)
+                : null,
+          );
+    state = state.copyWith(
+      checkin: checkin,
+      checkinShop: shop,
+      selectedShop: shop,
+    );
+  }
+
+  /// 下書きの「着」を使えるか。同じ並びが続いていれば使い、並びが終わっていれば下書きの並びで続ける。
+  /// 別の並びが始まっていれば使わない。
+  Future<bool> _restoreArrival(RecordDraft draft) async {
+    final arrivedAt = draft.arrivedAt;
+    final arrival = draft.arrivedCheckin;
+    if (arrivedAt == null || arrival == null) return false;
+    final active = state.checkin;
+    if (active != null) return active.checkedInAt == arrival.checkedInAt;
+    if (arrivedAt.isBefore(arrival.checkedInAt) ||
+        isCheckinExpired(arrival, arrivedAt)) {
+      return false;
+    }
+    try {
+      await _useCheckin(arrival);
+    } catch (e) {
+      debugPrint('Arrival restore failed: $e');
+      return false;
+    }
+    return ref.mounted;
   }
 
   Future<void> _restoreDraft() async {
@@ -154,6 +219,8 @@ class RecordController extends Notifier<RecordState> {
       debugPrint('Draft load failed: $e');
     }
     if (!ref.mounted || draft == null || draft.isEmpty) return;
+    if (!await _restoreArrival(draft)) draft = draft.withoutArrival();
+    if (!ref.mounted || draft.isEmpty) return;
     _lastDraftJson = jsonEncode(draft.toJson());
     _restoredShop = draft.selectedShop;
     _photoFromDraft = draft.photoPath != null;
@@ -174,6 +241,7 @@ class RecordController extends Notifier<RecordState> {
       chosenHoursConditions: draft.chosenHoursConditions,
       memo: draft.memo,
       manualWaitMinutes: draft.manualWaitMinutes,
+      arrivedAt: draft.arrivedAt,
       resumedFromDraft: true,
     );
   }
@@ -184,6 +252,9 @@ class RecordController extends Notifier<RecordState> {
     final previous = state;
     final keepPhoto =
         _incomingPhoto != null && previous.photoPath == _incomingPhoto;
+    // 下書きから戻した並びは下書きと一緒に捨て、保存先の並びに戻す。
+    final active = _activeCheckin;
+    final checkinShop = active == null ? null : previous.checkinShop;
     _restoredShop = null;
     _lastDraftJson = null;
     // 消してから新しい入力を書くよう、先に頼んでおく。
@@ -199,9 +270,10 @@ class RecordController extends Notifier<RecordState> {
       searchStatus: previous.searchStatus,
       searchFailure: previous.searchFailure,
       candidates: previous.candidates,
-      checkin: previous.checkin,
-      checkinShop: previous.checkinShop,
-      selectedShop: previous.checkinShop,
+      checkin: active,
+      checkinShop: checkinShop,
+      selectedShop: checkinShop,
+      arrivedAt: active == null ? null : _tappedArrivedAt,
     );
     if (previous.photoLocation != null && state.photoLocation == null) {
       unawaited(searchShops(requestPermission: false, force: true));
@@ -422,8 +494,16 @@ class RecordController extends Notifier<RecordState> {
       final photoPath = draft.photoPath;
       if (photoPath != null) savedPhoto = await storage.save(photoPath);
       final now = ref.read(clockProvider)();
-      final eatenAt = draft.photoTakenAt ?? now;
-      final queuedAt = _checkedInAt(draft, eatenAt);
+      // 別の店を選んだときは「着」の時刻を使わない（並んでいる間に別の記録をすることもあるため）。
+      final atCheckinShop = draft.isCheckinShopSelected;
+      final times = recordTimes(
+        now: now,
+        photoTakenAt: draft.photoTakenAt,
+        arrivedAt: atCheckinShop ? draft.arrivedAt : null,
+        checkedInAt: atCheckinShop ? draft.checkin?.checkedInAt : null,
+      );
+      final eatenAt = times.eatenAt;
+      final queuedAt = times.checkedInAt;
       final manualWait = draft.manualWaitMinutes;
       final visit = await ref
           .read(recordRepositoryProvider)
@@ -457,14 +537,6 @@ class RecordController extends Notifier<RecordState> {
       if (ref.mounted) state = state.copyWith(isSaving: false);
       return null;
     }
-  }
-
-  /// 並んだ店を選んでいて、並び始めたあとに食べたときだけ待ち時間をつける
-  /// （並んでいる最中に、昔の写真から別の日の記録をすることもあるため）。
-  DateTime? _checkedInAt(RecordState draft, DateTime eatenAt) {
-    final checkedInAt = draft.checkin?.checkedInAt;
-    if (!draft.isCheckinShopSelected || checkedInAt == null) return null;
-    return eatenAt.isBefore(checkedInAt) ? null : checkedInAt;
   }
 
   /// 選び直していなければ、初めての店には候補に付いていた条件（願で入れた条件・地図の営業時間からの下書き）を使う。

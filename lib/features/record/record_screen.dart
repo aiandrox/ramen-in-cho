@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi.dart';
-import '../checkin/checkin_controller.dart';
 import '../checkin/checkin_rules.dart';
-import '../checkin/checkin_screen.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
 import '../records/labels.dart';
@@ -32,6 +30,7 @@ class RecordScreen extends ConsumerStatefulWidget {
     super.key,
     this.recoveredPhotoPath,
     this.sharedPhoto = false,
+    this.arrivedAt,
   });
 
   /// 開いたときに使う写真（取り戻した写真・ほかのアプリから共有された写真）。
@@ -39,6 +38,9 @@ class RecordScreen extends ConsumerStatefulWidget {
 
   /// [recoveredPhotoPath]がほかのアプリから共有された写真か。
   final bool sharedPhoto;
+
+  /// 並んでいる最中に真ん中の「着」を押した時刻。
+  final DateTime? arrivedAt;
 
   @override
   ConsumerState<RecordScreen> createState() => _RecordScreenState();
@@ -66,7 +68,13 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     final controller = ref.read(recordControllerProvider.notifier);
     final photo = widget.recoveredPhotoPath;
     var startOver = false;
-    if (photo != null && await controller.hasDraft()) {
+    // カメラの最中にアプリが終わらされて取り戻した写真は、「着」を押したときの下書きの続き。
+    final continuesArrival =
+        photo != null &&
+        !widget.sharedPhoto &&
+        await controller.draftAwaitsArrivalPhoto();
+    if (!mounted) return;
+    if (photo != null && !continuesArrival && await controller.hasDraft()) {
       if (!mounted) return;
       startOver = await _askStartOver();
       if (!mounted) return;
@@ -75,6 +83,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
       recoveredPhotoPath: photo,
       sharedPhoto: widget.sharedPhoto,
       startOver: startOver,
+      arrivedAt: widget.arrivedAt,
     );
   }
 
@@ -123,19 +132,6 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
         SnackBar(content: Text(AppLocalizations.of(context).recordSaveFailed)),
       );
     }
-  }
-
-  /// まだ食べていないので記録はせず、並び始めて印帳に戻る。
-  Future<void> _startCheckin() async {
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = AppLocalizations.of(context);
-    final shopName = await navigator.push<String>(
-      MaterialPageRoute(builder: (_) => const CheckinScreen()),
-    );
-    if (shopName == null || !mounted) return;
-    navigator.pop();
-    messenger.showSnackBar(SnackBar(content: Text(l10n.checkinDone(shopName))));
   }
 
   Future<void> _confirmDiscardDraft() async {
@@ -214,10 +210,6 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
 
   Widget _buildScaffold(BuildContext context, RecordState state) {
     final l10n = AppLocalizations.of(context);
-    final showCheckinStart =
-        !state.hasInput &&
-        ref.watch(activeCheckinProvider) is AsyncData<Checkin?> &&
-        ref.watch(activeCheckinProvider).value == null;
     final controller = ref.read(recordControllerProvider.notifier);
 
     return Scaffold(
@@ -228,20 +220,6 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
           // 下の部品の並びがずれないよう、消えても場所を1つ取っておく。
           if (state.resumedFromDraft)
             _DraftNotice(onDiscard: _confirmDiscardDraft)
-          else
-            const SizedBox.shrink(),
-          // 何か入れたあとは食べた記録なので出さない（並び始めると入力が消えるため）。
-          // 消えても下の部品の並びがずれないよう、場所は常に1つ取っておく。
-          if (showCheckinStart)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: SumiFuda(
-                expand: true,
-                onPressed: _startCheckin,
-                icon: const Icon(Icons.groups),
-                child: Text(l10n.checkinStart),
-              ),
-            )
           else
             const SizedBox.shrink(),
           _PhotoSection(state: state),
@@ -557,12 +535,7 @@ class _ShopSection extends ConsumerWidget {
                 ? state.isCheckinShopSelected
                 : identical(shop, selected),
             note: checkin != null && identical(shop, checkinShop)
-                ? l10n.checkinWaiting(
-                    checkinElapsedMinutes(
-                      checkin,
-                      state.photoTakenAt ?? ref.watch(currentTimeProvider),
-                    ),
-                  )
+                ? _checkinNote(l10n, checkin, ref)
                 : null,
             onTap: () => onSelect(shop),
           ),
@@ -626,6 +599,20 @@ class _ShopSection extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+
+  /// 「着」を押していれば待ち時間はもう決まっているので、その分数を出す。
+  String _checkinNote(AppLocalizations l10n, Checkin checkin, WidgetRef ref) {
+    final arrivedAt = state.arrivedAt;
+    if (arrivedAt != null) {
+      return l10n.waitTime(checkinElapsedMinutes(checkin, arrivedAt));
+    }
+    return l10n.checkinWaiting(
+      checkinElapsedMinutes(
+        checkin,
+        state.photoTakenAt ?? ref.watch(currentTimeProvider),
+      ),
     );
   }
 

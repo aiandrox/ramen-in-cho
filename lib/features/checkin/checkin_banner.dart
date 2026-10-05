@@ -148,6 +148,12 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
                           color: Washi.aiLight,
                         ),
                       ),
+                      Text(
+                        l10n.checkinBannerHint,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Washi.paper,
+                        ),
+                      ),
                       if (memo.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../checkin/checkin_banner.dart';
 import '../checkin/checkin_controller.dart';
 import '../checkin/queue_suggestion_card.dart';
 import '../notifications/notification_service.dart';
@@ -175,7 +174,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l10n = AppLocalizations.of(context);
     final visits = ref.watch(visitsProvider);
     final checkinState = ref.watch(activeCheckinProvider);
-    final checkin = checkinState.value;
 
     return Scaffold(
       // 印帳のページ（和紙）が浮いて見えるよう、机の色にする。
@@ -183,10 +181,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(backgroundColor: Washi.desk, title: Text(l10n.appName)),
       body: Column(
         children: [
-          // 並んでいる最中は、何より先に見えるよう上に固定する。
-          if (checkin != null)
-            CheckinBanner(checkin: checkin)
-          else if (checkinState.hasValue)
+          // 並んでいる最中の帯は、どのタブでも見えるよう外枠（app_shell.dart）に出す。
+          if (checkinState.hasValue && checkinState.value == null)
             const QueueSuggestionCard(),
           Expanded(child: _buildVisits(l10n, visits)),
         ],

@@ -1,9 +1,15 @@
 {
   "@@locale": "ja",
   "appName": "麺印帳",
-  "homeEmpty": "まだ記録がありません\n「＋」から最初の一杯を記録しましょう",
+  "homeEmpty": "まだ記録がありません\n真ん中の「麺」から最初の一杯を記録しましょう",
   "homeLoadFailed": "記録を読み込めませんでした",
-  "addRecord": "記録する",
+  "addRecord": "記録する・並ぶ",
+  "arriveSeal": "着丼したら押す",
+  "arriveSealLabel": "着丼",
+  "startEatenTitle": "着丼した",
+  "startEatenBody": "写真を撮って記録する",
+  "startQueueTitle": "いま並んでいる",
+  "startQueueBody": "待ち時間を測り始める",
   "recordTitle": "記録する",
   "recordSaveFailed": "保存できませんでした。もう一度お試しください",
   "save": "着丼！",
@@ -68,7 +74,7 @@
   "draftDiscardConfirm": "破棄して新しく記録する",
   "draftDiscardCancel": "下書きの続きから記録する",
   "leaveRecordTitle": "記録をやめますか？",
-  "leaveRecordMessage": "下書きに残すと、次に「＋」を押したときに続きから記録できます",
+  "leaveRecordMessage": "下書きに残すと、次に記録の画面を開いたときに続きから記録できます",
   "leaveRecordKeepDraft": "下書きに残してやめる",
   "leaveRecordDiscard": "破棄してやめる",
   "leaveRecordCancel": "続ける",
@@ -94,9 +100,8 @@
   "editShopRepickNone": "近くに候補が見つかりませんでした。店名で探してください",
   "editShopRepickByName": "店名で全国の店から探す",
   "limitedBadge": "限定",
-  "checkinButton": "並んだ",
   "checkinTitle": "並んだ店を選ぶ",
-  "checkinDone": "{shop} に並びました",
+  "checkinDone": "{shop} に並びました。着丼したら真ん中の「着」を押す",
   "@checkinDone": {
     "placeholders": {
       "shop": {"type": "String"}
@@ -121,7 +126,7 @@
       "minutes": {"type": "int"}
     }
   },
-  "checkinNotificationBody": "{time} から並んでいます。着丼したら「＋」で記録しましょう",
+  "checkinNotificationBody": "{time} から並んでいます。着丼したらアプリの真ん中の「着」を押しましょう",
   "@checkinNotificationBody": {
     "placeholders": {
       "time": {"type": "String"}
@@ -141,6 +146,7 @@
     }
   },
   "checkinCancel": "取り消す",
+  "checkinBannerHint": "着丼したら、真ん中の「着」を押す",
   "checkinCancelTitle": "チェックインを取り消しますか？",
   "checkinCancelMessage": "並んだ記録は残りません",
   "checkinKeep": "並び続ける",
@@ -626,7 +632,6 @@
   "shugyorokuEntryTitle": "{month}月{day}日　{shop}",
   "@shugyorokuEntryTitle": {"placeholders": {"month": {"type": "int"}, "day": {"type": "int"}, "shop": {"type": "String"}}},
   "settingsSection": "設定",
-  "checkinStart": "いま並んでいる",
   "moreActions": "そのほか",
   "statsBowls": "杯数",
   "statsBowlsLine": "今年 {thisYear}杯　通算 {total}杯",

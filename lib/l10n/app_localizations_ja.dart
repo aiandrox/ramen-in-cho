@@ -13,13 +13,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appName => '麺印帳';
 
   @override
-  String get homeEmpty => 'まだ記録がありません\n「＋」から最初の一杯を記録しましょう';
+  String get homeEmpty => 'まだ記録がありません\n真ん中の「麺」から最初の一杯を記録しましょう';
 
   @override
   String get homeLoadFailed => '記録を読み込めませんでした';
 
   @override
-  String get addRecord => '記録する';
+  String get addRecord => '記録する・並ぶ';
+
+  @override
+  String get arriveSeal => '着丼したら押す';
+
+  @override
+  String get arriveSealLabel => '着丼';
+
+  @override
+  String get startEatenTitle => '着丼した';
+
+  @override
+  String get startEatenBody => '写真を撮って記録する';
+
+  @override
+  String get startQueueTitle => 'いま並んでいる';
+
+  @override
+  String get startQueueBody => '待ち時間を測り始める';
 
   @override
   String get recordTitle => '記録する';
@@ -176,7 +194,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get leaveRecordTitle => '記録をやめますか？';
 
   @override
-  String get leaveRecordMessage => '下書きに残すと、次に「＋」を押したときに続きから記録できます';
+  String get leaveRecordMessage => '下書きに残すと、次に記録の画面を開いたときに続きから記録できます';
 
   @override
   String get leaveRecordKeepDraft => '下書きに残してやめる';
@@ -254,14 +272,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get limitedBadge => '限定';
 
   @override
-  String get checkinButton => '並んだ';
-
-  @override
   String get checkinTitle => '並んだ店を選ぶ';
 
   @override
   String checkinDone(String shop) {
-    return '$shop に並びました';
+    return '$shop に並びました。着丼したら真ん中の「着」を押す';
   }
 
   @override
@@ -298,7 +313,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String checkinNotificationBody(String time) {
-    return '$time から並んでいます。着丼したら「＋」で記録しましょう';
+    return '$time から並んでいます。着丼したらアプリの真ん中の「着」を押しましょう';
   }
 
   @override
@@ -316,6 +331,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get checkinCancel => '取り消す';
+
+  @override
+  String get checkinBannerHint => '着丼したら、真ん中の「着」を押す';
 
   @override
   String get checkinCancelTitle => 'チェックインを取り消しますか？';
@@ -1265,9 +1283,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsSection => '設定';
-
-  @override
-  String get checkinStart => 'いま並んでいる';
 
   @override
   String get moreActions => 'そのほか';
