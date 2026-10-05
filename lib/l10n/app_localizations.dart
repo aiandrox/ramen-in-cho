@@ -496,6 +496,42 @@ abstract class AppLocalizations {
   /// **'写真を読み込めませんでした'**
   String get editPhotoFailed;
 
+  /// No description provided for @editShopRepick.
+  ///
+  /// In ja, this message translates to:
+  /// **'店を選び直す'**
+  String get editShopRepick;
+
+  /// No description provided for @editShopRepickTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'どの店の記録ですか？'**
+  String get editShopRepickTitle;
+
+  /// No description provided for @editShopRepickNoLocation.
+  ///
+  /// In ja, this message translates to:
+  /// **'店の位置も現在地もわかりませんでした。店名で探してください'**
+  String get editShopRepickNoLocation;
+
+  /// No description provided for @editShopRepickFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'近くの店を検索できませんでした。店名で探すか、店名を書き換えてください'**
+  String get editShopRepickFailed;
+
+  /// No description provided for @editShopRepickNone.
+  ///
+  /// In ja, this message translates to:
+  /// **'近くに候補が見つかりませんでした。店名で探してください'**
+  String get editShopRepickNone;
+
+  /// No description provided for @editShopRepickByName.
+  ///
+  /// In ja, this message translates to:
+  /// **'店名で全国の店から探す'**
+  String get editShopRepickByName;
+
   /// No description provided for @limitedBadge.
   ///
   /// In ja, this message translates to:

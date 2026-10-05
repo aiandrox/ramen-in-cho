@@ -9,6 +9,9 @@ import 'package:ramen_in_cho/features/record/star_rating.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
+import 'package:ramen_in_cho/features/shop_search/geo.dart';
+import 'package:ramen_in_cho/features/shop_search/shop_candidate.dart';
+import 'package:ramen_in_cho/features/shop_search/shop_search_service.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
 import 'package:ramen_in_cho/features/visit_detail/visit_detail_screen.dart';
 import 'package:ramen_in_cho/theme/washi.dart';
@@ -23,6 +26,7 @@ import '../../support/l10n.dart';
 void main() {
   late Directory documents;
   late FakeRecordRepository repository;
+  late FakeShopSearchService searchService;
   final shop = buildShop(name: '麺屋テスト');
 
   VisitWithShop entry({
@@ -59,6 +63,7 @@ void main() {
           wishesProvider.overrideWithValue(const AsyncData([])),
           recordRepositoryProvider.overrideWithValue(repository),
           documentsDirectoryProvider.overrideWithValue(documents),
+          shopSearchServiceProvider.overrideWithValue(searchService),
         ],
         child: localizedApp(
           home: Builder(
@@ -94,6 +99,7 @@ void main() {
   setUp(() {
     documents = createTempDirectory();
     repository = FakeRecordRepository();
+    searchService = FakeShopSearchService(const ShopSearchResult());
   });
 
   testWidgets('記録の内容を表示する。初めての店では前回の記録を出さない', (tester) async {
@@ -326,6 +332,107 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.updates.single.changesPhoto, isFalse);
+  });
+
+  testWidgets('編集で店を選び直すと、選んだ店に付け替えて保存する', (tester) async {
+    searchService.result = const ShopSearchResult(
+      here: GeoPoint(35.0, 139.0),
+      candidates: [
+        ShopCandidate(
+          osmId: 'node/7',
+          name: '麺屋ただしい',
+          location: GeoPoint(35.0, 139.0),
+          distanceMeters: 40,
+          hoursConditions: {HoursCondition.nightOnly},
+          conditionsFromMap: true,
+        ),
+      ],
+    );
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),
+    ], 'v');
+
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ja.editShopRepick));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.editShopRepickTitle), findsOneWidget);
+    await tester.tap(find.text('麺屋ただしい'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<TextField>(find.widgetWithText(TextField, ja.editShopName))
+          .controller!
+          .text,
+      '麺屋ただしい',
+    );
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+
+    final update = repository.updates.single;
+    expect(update.pickedShop?.osmId, 'node/7');
+    expect(update.pickedShop?.name, '麺屋ただしい');
+    expect(update.pickedShop?.latitude, 35.0);
+    expect(update.hoursConditions, {HoursCondition.nightOnly});
+  });
+
+  testWidgets('選び直したあとで店名を書き換えたら、店名のほうで保存する', (tester) async {
+    searchService.result = const ShopSearchResult(
+      here: GeoPoint(35.0, 139.0),
+      candidates: [
+        ShopCandidate(
+          osmId: 'node/7',
+          name: '麺屋ただしい',
+          location: GeoPoint(35.0, 139.0),
+        ),
+      ],
+    );
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),
+    ], 'v');
+
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ja.editShopRepick));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('麺屋ただしい'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.editShopName),
+      '麺屋てにゅうりょく',
+    );
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+
+    final update = repository.updates.single;
+    expect(update.pickedShop, isNull);
+    expect(update.shopName, '麺屋てにゅうりょく');
+  });
+
+  testWidgets('通信できず候補が無くても、案内を出して店名で保存できる', (tester) async {
+    searchService.result = const ShopSearchResult(
+      here: GeoPoint(35.0, 139.0),
+      failure: ShopSearchFailure.searchFailed,
+    );
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),
+    ], 'v');
+
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ja.editShopRepick));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.editShopRepickFailed), findsOneWidget);
+    expect(find.text(ja.editShopRepickByName), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+    final update = repository.updates.single;
+    expect(update.pickedShop, isNull);
+    expect(update.shopName, '麺屋テスト');
   });
 
   testWidgets('編集して保存すると、変更した内容で更新して詳細に戻る', (tester) async {

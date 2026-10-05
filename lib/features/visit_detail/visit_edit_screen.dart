@@ -17,7 +17,9 @@ import '../records/visit_details_form.dart';
 import '../records/visit_photo.dart';
 import '../records/wait_time.dart';
 import '../../theme/washi_buttons.dart';
+import '../shop_search/shop_candidate.dart';
 import 'photo_edit.dart';
+import 'shop_repick_sheet.dart';
 
 class VisitEditScreen extends ConsumerStatefulWidget {
   const VisitEditScreen({super.key, required this.entry});
@@ -49,6 +51,9 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   );
   bool _isSaving = false;
   bool _isPickingPhoto = false;
+
+  /// 候補や店名検索で選び直した店。店名を書き換えたら外す。
+  ShopCandidate? _pickedShop;
 
   @override
   void dispose() {
@@ -88,6 +93,56 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   Future<void> _removePhoto() async {
     await _photo.remove();
     if (mounted) setState(() {});
+  }
+
+  Future<void> _repickShop() async {
+    final picked = await showShopRepick(
+      context,
+      shop: widget.entry.shop,
+      photoPath: _photo.current ?? widget.entry.visit.photoPath,
+      name: _nameController.text.trim(),
+    );
+    if (picked == null || !mounted) return;
+    final isCurrentShop = picked.shopId == widget.entry.shop.id;
+    setState(() {
+      _pickedShop = isCurrentShop ? null : picked;
+      _nameController.text = picked.name;
+      _hoursConditions = isCurrentShop
+          ? widget.entry.shop.hoursConditions
+          : picked.hoursConditions ?? const {};
+    });
+  }
+
+  void _onNameChanged(String name) {
+    setState(() {
+      if (_pickedShop?.name != name.trim()) _pickedShop = null;
+    });
+  }
+
+  /// 選び直した店が初めての店なら、記録画面と同じく候補に付いていた条件（願・地図の営業時間から）も渡す。
+  Set<HoursCondition>? _changedHoursConditions() {
+    final picked = _pickedShop;
+    final initial = picked == null
+        ? widget.entry.shop.hoursConditions
+        : picked.hoursConditions ?? const <HoursCondition>{};
+    if (!setEquals(_hoursConditions, initial)) return _hoursConditions;
+    return picked != null && picked.shopId == null
+        ? picked.hoursConditions
+        : null;
+  }
+
+  ShopInput? _pickedShopInput() {
+    final picked = _pickedShop;
+    if (picked == null) return null;
+    return ShopInput(
+      shopId: picked.shopId,
+      osmId: picked.osmId,
+      name: picked.name,
+      latitude: picked.location?.latitude,
+      longitude: picked.location?.longitude,
+      dataSource: picked.dataSource,
+      wishId: picked.wishId,
+    );
   }
 
   Future<void> _pickEatenAt() async {
@@ -139,10 +194,8 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
           .updateVisit(
             visitId: widget.entry.visit.id,
             shopName: _nameController.text,
-            hoursConditions:
-                setEquals(_hoursConditions, widget.entry.shop.hoursConditions)
-                ? null
-                : _hoursConditions,
+            hoursConditions: _changedHoursConditions(),
+            pickedShop: _pickedShopInput(),
             eatenAt: _eatenAt,
             checkedInAt: _checkedInAt(),
             rating: _rating,
@@ -193,7 +246,15 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
             controller: _nameController,
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(labelText: l10n.editShopName),
-            onChanged: (_) => setState(() {}),
+            onChanged: _onNameChanged,
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FudeLink(
+              icon: const Icon(Icons.storefront),
+              onPressed: _isSaving ? null : _repickShop,
+              child: Text(l10n.editShopRepick),
+            ),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
