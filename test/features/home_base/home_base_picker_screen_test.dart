@@ -1,8 +1,9 @@
-import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_picker_screen.dart';
@@ -167,5 +168,159 @@ void main() {
 
     expect(await database.select(database.homeBaseSettings).get(), isEmpty);
     expect(find.byType(HomeBasePickerScreen), findsOneWidget);
+  });
+
+  group('これまでの拠点を直す', () {
+    final shinjuku = buildHomeBase(
+      id: 'shinjuku',
+      name: '新宿',
+      latitude: 35.6909,
+      longitude: 139.7003,
+      setAt: DateTime(2026, 3, 1, 9),
+    );
+    final yokohama = buildHomeBase(
+      id: 'yokohama',
+      name: '横浜',
+      latitude: 35.4660,
+      longitude: 139.6223,
+      setAt: DateTime(2026, 6, 1, 9),
+    );
+
+    Future<void> openEdit(WidgetTester tester, String name) async {
+      await tester.tap(find.text(ja.homeBaseHistoryTitle));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+      expect(find.text(ja.homeBaseEditTitle), findsOneWidget);
+    }
+
+    Future<HomeBaseSetting?> saved(String id) => (database.select(
+      database.homeBaseSettings,
+    )..where((s) => s.id.equals(id))).getSingleOrNull();
+
+    testWidgets('新しい順に日付と呼び名を並べる', (tester) async {
+      location = FakeLocationService(position: sapporo, ready: false);
+      await pumpPicker(tester, settings: [shinjuku, yokohama]);
+
+      await tester.tap(find.text(ja.homeBaseHistoryTitle));
+      await tester.pumpAndSettle();
+
+      final newer = tester.getTopLeft(find.text('横浜')).dy;
+      final older = tester.getTopLeft(find.text('新宿')).dy;
+      expect(newer, lessThan(older));
+      expect(find.text(ja.homeBaseHistoryFrom('2026/6/1')), findsOneWidget);
+      expect(find.text(ja.homeBaseHistoryFrom('2026/3/1')), findsOneWidget);
+    });
+
+    testWidgets('日付を選ぶと、その日の0時から効くように直す', (tester) async {
+      location = FakeLocationService(position: sapporo, ready: false);
+      await pumpPicker(tester, settings: [shinjuku, yokohama]);
+      await openEdit(tester, '横浜');
+
+      await tester.tap(find.text(ja.homeBaseEditDate));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('20'));
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect((await saved('yokohama'))?.setAt, DateTime(2026, 6, 20));
+      expect((await saved('shinjuku'))?.setAt, shinjuku.setAt);
+      expect(find.text(ja.homeBaseHistoryFrom('2026/6/20')), findsOneWidget);
+    });
+
+    testWidgets('呼び名を直す', (tester) async {
+      location = FakeLocationService(position: sapporo, ready: false);
+      await pumpPicker(tester, settings: [shinjuku, yokohama]);
+      await openEdit(tester, '横浜');
+
+      await tester.tap(find.text(ja.homeBaseEditName));
+      await tester.pumpAndSettle();
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.controller!.text, '横浜');
+      await tester.enterText(find.byType(TextField), '横浜駅');
+      await tester.tap(find.text(ja.homeBaseDecide));
+      await tester.pumpAndSettle();
+
+      expect((await saved('yokohama'))?.name, '横浜駅');
+      expect(find.text('横浜駅'), findsOneWidget);
+    });
+
+    testWidgets('地図を動かして場所を直す', (tester) async {
+      location = FakeLocationService(position: sapporo, ready: false);
+      await pumpPicker(tester, settings: [shinjuku, yokohama]);
+      await openEdit(tester, '新宿');
+
+      await tester.tap(find.text(ja.homeBaseEditPlace));
+      await tester.pumpAndSettle();
+      expect(find.text(ja.homeBaseRelocateLine('新宿')), findsOneWidget);
+      expect(find.text(ja.homeBaseUseHere), findsNothing);
+      final controller = tester
+          .widget<FlutterMap>(find.byType(FlutterMap).last)
+          .mapController!;
+      expect(controller.camera.center.latitude, closeTo(35.6909, 1e-6));
+
+      controller.move(const LatLng(35.6896, 139.6917), controller.camera.zoom);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.homeBaseRelocateHere));
+      await tester.pumpAndSettle();
+
+      final moved = await saved('shinjuku');
+      expect(moved?.latitude, closeTo(35.6896, 1e-6));
+      expect(moved?.longitude, closeTo(139.6917, 1e-6));
+      expect(moved?.name, '新宿');
+      expect(moved?.setAt, shinjuku.setAt);
+      expect(find.text(ja.homeBaseEditTitle), findsNothing);
+      expect(find.byType(HomeBasePickerScreen), findsOneWidget);
+    });
+
+    testWidgets('消すときは、ひとつ前の拠点に戻ると伝えてから消す', (tester) async {
+      location = FakeLocationService(position: sapporo, ready: false);
+      await pumpPicker(tester, settings: [shinjuku, yokohama]);
+      await openEdit(tester, '横浜');
+
+      await tester.tap(find.text(ja.homeBaseDelete));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(ja.homeBaseDeleteToPrevious('2026/6/1', '新宿')),
+        findsOneWidget,
+      );
+      await tester.tap(find.text(ja.delete));
+      await tester.pumpAndSettle();
+
+      expect(await saved('yokohama'), isNull);
+      expect(await saved('shinjuku'), isNotNull);
+      expect(find.text(ja.homeBaseEditTitle), findsNothing);
+    });
+
+    testWidgets('ひとつしか無い拠点を消すときは、秘伝も無くなると伝える', (tester) async {
+      location = FakeLocationService(position: sapporo, ready: false);
+      await pumpPicker(tester, settings: [shinjuku]);
+      await openEdit(tester, '新宿');
+
+      await tester.tap(find.text(ja.homeBaseDelete));
+      await tester.pumpAndSettle();
+      expect(find.text(ja.homeBaseDeleteLast), findsOneWidget);
+
+      // やめれば消さない。
+      await tester.tap(find.text(ja.cancel));
+      await tester.pumpAndSettle();
+      expect(await saved('shinjuku'), isNotNull);
+
+      await tester.tap(find.text(ja.homeBaseDelete));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.delete));
+      await tester.pumpAndSettle();
+      expect(await database.select(database.homeBaseSettings).get(), isEmpty);
+    });
+
+    testWidgets('前に拠点が無ければ、次の拠点までは遠征にならないと伝える', (tester) async {
+      location = FakeLocationService(position: sapporo, ready: false);
+      await pumpPicker(tester, settings: [shinjuku, yokohama]);
+      await openEdit(tester, '新宿');
+
+      await tester.tap(find.text(ja.homeBaseDelete));
+      await tester.pumpAndSettle();
+      expect(find.text(ja.homeBaseDeleteToNone('2026/3/1')), findsOneWidget);
+    });
   });
 }

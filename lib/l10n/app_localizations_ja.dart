@@ -857,6 +857,65 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get homeBaseEditTitle => '拠点を直す';
+
+  @override
+  String get homeBaseEditDate => '日付（この日から効きます）';
+
+  @override
+  String get homeBaseEditName => '呼び名';
+
+  @override
+  String get homeBaseEditPlace => '場所';
+
+  @override
+  String get homeBaseEditPlaceHint => '地図を動かして直す';
+
+  @override
+  String homeBaseRelocateIntro(String name) {
+    return '地図を動かして、$nameの場所を真ん中の「拠」に合わせてください。';
+  }
+
+  @override
+  String homeBaseRelocateLine(String name) {
+    return '$nameの場所を直します';
+  }
+
+  @override
+  String get homeBaseRelocateHere => 'この場所に直す';
+
+  @override
+  String homeBaseRelocated(String name) {
+    return '$nameの場所を直しました';
+  }
+
+  @override
+  String get homeBaseDelete => 'この拠点を消す';
+
+  @override
+  String homeBaseDeleteConfirm(String name) {
+    return '拠点「$name」を消しますか？';
+  }
+
+  @override
+  String homeBaseDeleteToPrevious(String date, String previous) {
+    return '$dateから後の記録は、ひとつ前の拠点（$previous）から遠征かどうかを決め直します。';
+  }
+
+  @override
+  String homeBaseDeleteToNone(String date) {
+    return 'これより前の拠点が無いので、$dateから次の拠点までの記録は遠征になりません。';
+  }
+
+  @override
+  String get homeBaseDeleteLast => '拠点がひとつも無くなり、遠征になる記録も、秘伝「拠点を構える」も無くなります。';
+
+  @override
+  String homeBaseDeleted(String name) {
+    return '拠点「$name」を消しました';
+  }
+
+  @override
   String get homeBaseHidenGained => '秘伝「拠点を構える」を会得！\n修行タブの「型と秘伝」で見られます';
 
   @override
