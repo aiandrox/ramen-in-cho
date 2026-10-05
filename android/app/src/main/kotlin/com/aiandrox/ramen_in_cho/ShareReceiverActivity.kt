@@ -84,10 +84,7 @@ class ShareReceiverActivity : Activity() {
         ) ?: error("decode failed")
         val exif = ExifInterface(source.path)
         val scale = minOf(1f, MAX_SIZE.toFloat() / maxOf(decoded.width, decoded.height))
-        val matrix = Matrix().apply {
-            postScale(scale, scale)
-            postRotate(rotationOf(exif))
-        }
+        val matrix = orientationOf(exif).apply { postScale(scale, scale) }
         val bitmap = Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
         destination.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, it) }
         val copied = ExifInterface(destination.path)
@@ -95,13 +92,24 @@ class ShareReceiverActivity : Activity() {
         copied.saveAttributes()
     }
 
-    private fun rotationOf(exif: ExifInterface): Float =
+    // 写真の向き（回転・左右反転）を画素に焼き込む。縮めた写真には向きの情報を残さないため。
+    private fun orientationOf(exif: ExifInterface): Matrix = Matrix().apply {
         when (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-            ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-            ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-            else -> 0f
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> postScale(-1f, 1f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> postRotate(180f)
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> postScale(1f, -1f)
+            ExifInterface.ORIENTATION_TRANSPOSE -> {
+                postRotate(90f)
+                postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_90 -> postRotate(90f)
+            ExifInterface.ORIENTATION_TRANSVERSE -> {
+                postRotate(270f)
+                postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_270 -> postRotate(270f)
         }
+    }
 
     companion object {
         private const val TAG = "SharedPhoto"

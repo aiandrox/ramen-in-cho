@@ -87,8 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _recoverLostPhoto();
-      _receiveSharedPhoto();
+      _recoverLostPhoto().then((_) => _receiveSharedPhoto());
       _lifecycle;
       // 手で持つ店（ラーメン二郎の直系店など）の一覧を、1日1回までサーバーから取り直す。
       ref.read(curatedShopsProvider.notifier).refresh();
@@ -150,6 +149,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// ほかのアプリの「共有」から送られてきた写真で、記録を始める。
   Future<void> _receiveSharedPhoto() async {
+    // 記録画面などを開いている途中なら、書きかけの記録を上書きしないよう、印帳に戻ってから受け取る。
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
     final path = await ref.read(sharedPhotoReceiverProvider).take();
     if (path == null || !mounted) return;
     await _openRecord(recoveredPhotoPath: path);
