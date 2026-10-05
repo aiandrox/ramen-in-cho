@@ -1,17 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/washi.dart';
 import '../../l10n/app_localizations.dart';
+import '../record/photo_picker.dart';
 import '../record/star_rating.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
 import '../records/models.dart';
+import '../records/photo_storage.dart';
 import '../records/record_repository.dart';
 import '../records/visit_details_form.dart';
+import '../records/visit_photo.dart';
 import '../records/wait_time.dart';
 import '../../theme/washi_buttons.dart';
+import 'photo_edit.dart';
 
 class VisitEditScreen extends ConsumerStatefulWidget {
   const VisitEditScreen({super.key, required this.entry});
@@ -37,14 +43,51 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   late RamenStyle? _style = widget.entry.visit.style;
   late bool _isLimited = widget.entry.visit.isLimited;
   late Set<HoursCondition> _hoursConditions = widget.entry.shop.hoursConditions;
+  late final _photo = PhotoEdit(
+    ref.read(photoStorageProvider),
+    original: widget.entry.visit.photoPath,
+  );
   bool _isSaving = false;
+  bool _isPickingPhoto = false;
 
   @override
   void dispose() {
+    unawaited(_discardPhoto());
     _nameController.dispose();
     _memoController.dispose();
     _waitController.dispose();
     super.dispose();
+  }
+
+  Future<void> _discardPhoto() async {
+    try {
+      await _photo.discard();
+    } catch (e) {
+      debugPrint('Photo discard failed: $e');
+    }
+  }
+
+  Future<void> _changePhoto(Future<String?> Function(PhotoPicker) pick) async {
+    setState(() => _isPickingPhoto = true);
+    try {
+      final path = await pick(ref.read(photoPickerProvider));
+      if (path != null) await _photo.replace(path);
+      // 写真を選んでいる間に画面を閉じたら、コピーした写真を残さない。
+      if (!mounted) await _discardPhoto();
+    } catch (e) {
+      debugPrint('Photo change failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).editPhotoFailed)),
+        );
+      }
+    }
+    if (mounted) setState(() => _isPickingPhoto = false);
+  }
+
+  Future<void> _removePhoto() async {
+    await _photo.remove();
+    if (mounted) setState(() {});
   }
 
   Future<void> _pickEatenAt() async {
@@ -91,7 +134,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   Future<void> _save() async {
     setState(() => _isSaving = true);
     try {
-      await ref
+      final unusedPhoto = await ref
           .read(recordRepositoryProvider)
           .updateVisit(
             visitId: widget.entry.visit.id,
@@ -107,8 +150,15 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
             isLimited: _isLimited,
             hasTicket: widget.entry.visit.hasTicket,
             memo: _memoController.text.trim(),
+            changesPhoto: _photo.isChanged,
+            photoPath: _photo.current,
             now: ref.read(clockProvider)(),
           );
+      try {
+        await _photo.commit(unusedPhoto);
+      } catch (e) {
+        debugPrint('Old photo delete failed: $e');
+      }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       debugPrint('Visit update failed: $e');
@@ -130,6 +180,15 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
+          _PhotoSection(
+            photoPath: _photo.current,
+            enabled: !_isPickingPhoto && !_isSaving,
+            onTakePhoto: () => _changePhoto((picker) => picker.takePhoto()),
+            onPickFromGallery: () =>
+                _changePhoto((picker) => picker.pickFromGallery()),
+            onRemove: _removePhoto,
+          ),
+          const SizedBox(height: 8),
           TextField(
             controller: _nameController,
             textInputAction: TextInputAction.done,
@@ -176,13 +235,72 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
           child: AiFuda(
             expand: true,
             height: 56,
-            onPressed: _isSaving || _nameController.text.trim().isEmpty
+            onPressed:
+                _isSaving ||
+                    _isPickingPhoto ||
+                    _nameController.text.trim().isEmpty
                 ? null
                 : _save,
             child: Text(l10n.editSave),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _PhotoSection extends StatelessWidget {
+  const _PhotoSection({
+    required this.photoPath,
+    required this.enabled,
+    required this.onTakePhoto,
+    required this.onPickFromGallery,
+    required this.onRemove,
+  });
+
+  final String? photoPath;
+  final bool enabled;
+  final VoidCallback onTakePhoto;
+  final VoidCallback onPickFromGallery;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final hasPhoto = photoPath != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (hasPhoto)
+          PastedPhoto(
+            border: 6,
+            child: SizedBox(
+              height: 200,
+              child: VisitPhoto(photoPath: photoPath, cacheWidth: 800),
+            ),
+          ),
+        Wrap(
+          alignment: WrapAlignment.center,
+          children: [
+            FudeLink(
+              onPressed: enabled ? onTakePhoto : null,
+              icon: const Icon(Icons.photo_camera),
+              child: Text(hasPhoto ? l10n.retakePhoto : l10n.takePhoto),
+            ),
+            FudeLink(
+              onPressed: enabled ? onPickFromGallery : null,
+              icon: const Icon(Icons.photo_library),
+              child: Text(l10n.pickFromGallery),
+            ),
+            if (hasPhoto)
+              FudeLink(
+                onPressed: enabled ? onRemove : null,
+                icon: const Icon(Icons.hide_image_outlined),
+                child: Text(l10n.editRemovePhoto),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

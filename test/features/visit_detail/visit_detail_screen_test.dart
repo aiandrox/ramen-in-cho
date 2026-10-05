@@ -282,6 +282,52 @@ void main() {
     expect(find.byType(VisitDetailScreen), findsOneWidget);
   });
 
+  testWidgets('編集で写真を外して保存すると、写真なしで更新し前の写真を消す', (tester) async {
+    final old = File(p.join(documents.path, 'photos', 'old.jpg'))
+      ..createSync(recursive: true);
+    repository.unusedPhotoPath = 'photos/old.jpg';
+    await pumpDetail(tester, [
+      entry(
+        id: 'v',
+        eatenAt: DateTime(2026, 9, 30, 12),
+        photoPath: 'photos/old.jpg',
+      ),
+    ], 'v');
+
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ja.editRemovePhoto));
+    await tester.pump();
+    expect(find.text(ja.editRemovePhoto), findsNothing);
+    await tester.runAsync(() async {
+      await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pumpAndSettle();
+
+    final update = repository.updates.single;
+    expect(update.changesPhoto, isTrue);
+    expect(update.photoPath, isNull);
+    expect(old.existsSync(), isFalse);
+  });
+
+  testWidgets('編集で写真に触れなければ、写真は変えない', (tester) async {
+    await pumpDetail(tester, [
+      entry(
+        id: 'v',
+        eatenAt: DateTime(2026, 9, 30, 12),
+        photoPath: 'photos/old.jpg',
+      ),
+    ], 'v');
+
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+
+    expect(repository.updates.single.changesPhoto, isFalse);
+  });
+
   testWidgets('編集して保存すると、変更した内容で更新して詳細に戻る', (tester) async {
     await pumpDetail(tester, [
       entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),

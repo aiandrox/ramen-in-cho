@@ -206,6 +206,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editEatenAt => '食べた日時';
 
   @override
+  String get editRemovePhoto => '写真を外す';
+
+  @override
+  String get editPhotoFailed => '写真を読み込めませんでした';
+
+  @override
   String get limitedBadge => '限定';
 
   @override

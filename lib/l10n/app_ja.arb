@@ -78,6 +78,8 @@
   "editSaveFailed": "保存できませんでした。もう一度お試しください",
   "editShopName": "店名",
   "editEatenAt": "食べた日時",
+  "editRemovePhoto": "写真を外す",
+  "editPhotoFailed": "写真を読み込めませんでした",
   "limitedBadge": "限定",
   "checkinButton": "並んだ",
   "checkinTitle": "並んだ店を選ぶ",

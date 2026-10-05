@@ -472,6 +472,18 @@ abstract class AppLocalizations {
   /// **'食べた日時'**
   String get editEatenAt;
 
+  /// No description provided for @editRemovePhoto.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真を外す'**
+  String get editRemovePhoto;
+
+  /// No description provided for @editPhotoFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真を読み込めませんでした'**
+  String get editPhotoFailed;
+
   /// No description provided for @limitedBadge.
   ///
   /// In ja, this message translates to:
