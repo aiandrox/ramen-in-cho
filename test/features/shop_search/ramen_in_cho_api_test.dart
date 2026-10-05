@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:ramen_in_cho/features/shop_search/builtin_shops.dart';
 import 'package:ramen_in_cho/features/shop_search/curated_shops_store.dart';
@@ -160,6 +161,31 @@ void main() {
         (await store().load())!.fetchedAt,
         now.add(const Duration(days: 1)).toUtc(),
       );
+    });
+
+    test('前の版で保存したファイル（店の条件を捨てていた）は読まず、ETag を付けずに取り直す', () async {
+      File(p.join(documents.path, CuratedShopsStore.fileName))
+          .writeAsStringSync(
+            jsonEncode({
+              'fetchedAt': DateTime(2026, 10, 3).toUtc().toIso8601String(),
+              'etag': '"v1"',
+              'shops': [
+                {
+                  'name': 'ラーメン二郎 三田本店',
+                  'address': '東京都港区三田2-16-4',
+                  'latitude': 35.648045,
+                  'longitude': 139.741516,
+                  'status': 'open',
+                },
+              ],
+            }),
+          );
+      final saved = await store().load();
+      expect(saved, isNull);
+
+      await store().refreshIfStale(saved, DateTime(2026, 10, 3, 1));
+      expect(requests.single.headers['If-None-Match'], isNull);
+      expect((await store().load())!.etag, '"v1"');
     });
 
     test('取れなければnull（同梱分か保存分のまま）', () async {
