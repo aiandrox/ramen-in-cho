@@ -59,8 +59,14 @@ void main() {
     expect(find.text('はやし田'), findsOneWidget);
     expect(find.text(ja.wishFulfilledLine('2026/10/3', 32)), findsOneWidget);
 
+    final emaBefore = tester.getRect(find.byType(EmaFab));
     await tester.tap(find.byType(EmaFab));
     await tester.pumpAndSettle();
+    // 窓でキーボードが出ても、後ろの絵馬は持ち上がらない。
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(find.byType(EmaFab)), emaBefore);
     await tester.enterText(find.byType(TextField).first, '豚山');
     await tester.pump();
     await tester.tap(find.text(ja.wishAddButton).last);

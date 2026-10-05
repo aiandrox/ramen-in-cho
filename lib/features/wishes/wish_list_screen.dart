@@ -76,6 +76,8 @@ class WishListScreen extends ConsumerWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        // 願を掛ける窓でキーボードが出ても、後ろの画面（右下の絵馬）を持ち上げない。
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(l10n.wishTitle),
           bottom: TabBar(
@@ -108,11 +110,11 @@ class WishListScreen extends ConsumerWidget {
           ],
         ),
         // 真ん中の判子（記録）と取り違えないよう、丸ではなく絵馬の形にする。
-        // 判子が下のタブから上へはみ出す分だけ持ち上げ、右端に余白をとる。
+        // 判子が下のタブから上へはみ出す分を少しだけ避け、右端に余白をとる。
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(
             right: 4,
-            bottom: RecordSealButton.overhang,
+            bottom: RecordSealButton.overhang * 0.4,
           ),
           child: EmaFab(
             tooltip: l10n.wishAddTitle,

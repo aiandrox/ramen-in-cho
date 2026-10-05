@@ -172,6 +172,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       ],
     );
     return Scaffold(
+      // 窓（願を掛けるなど）でキーボードが出ても、後ろの下のタブと判子を持ち上げない。
+      resizeToAvoidBottomInset: false,
       // 並び始め・終わりでタブの画面が作り直されないよう、形は変えずに帯だけを出し入れする。
       body: Column(
         children: [
