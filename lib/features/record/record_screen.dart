@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../theme/safe_bottom.dart';
 import '../../theme/washi.dart';
 import '../checkin/checkin_rules.dart';
 import '../records/clock.dart';
@@ -289,8 +290,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.viewInsetsOf(context).bottom,
         ),
-        child: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: SafeBottomBar(
           child: AiFuda(
             expand: true,
             height: 60,

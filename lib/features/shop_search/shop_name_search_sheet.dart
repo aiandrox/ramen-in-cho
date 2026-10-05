@@ -185,7 +185,12 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
             if (_isSearching) const LinearProgressIndicator(),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+                padding: EdgeInsets.fromLTRB(
+                  8,
+                  8,
+                  8,
+                  16 + MediaQuery.paddingOf(context).bottom,
+                ),
                 children: [
                   if (_failed)
                     ListTile(title: Text(l10n.nameSearchFailed))

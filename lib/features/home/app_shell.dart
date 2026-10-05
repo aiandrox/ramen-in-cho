@@ -38,9 +38,6 @@ class _AppShellState extends ConsumerState<AppShell> {
   /// 下のタブで、真ん中の判子のために空けておく位置。
   static const _gap = 2;
 
-  /// 判子をタブの上から下げる分。
-  static const _sealDrop = 36.0;
-
   final _sheetHost = GlobalKey<ShellSheetHostState>();
 
   @override
@@ -144,7 +141,7 @@ class _AppShellState extends ConsumerState<AppShell> {
               // 下から出る窓は、ここ（見出しと下のタブの間）に出す。
               child: ShellSheetHost(
                 key: _sheetHost,
-                footerOverlap: (RecordSealButton.size - _sealDrop) / 2 + 8,
+                footerOverlap: RecordSealButton.overhang + 8,
                 child: tabs,
               ),
             ),
@@ -153,7 +150,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       ),
       floatingActionButton: Padding(
         // タブの上に半分ほどはみ出すように、少し下げる。
-        padding: const EdgeInsets.only(top: _sealDrop),
+        padding: const EdgeInsets.only(top: RecordSealButton.drop),
         child: RecordSealButton(
           glyph: checkin == null ? '麺' : '着',
           tooltip: checkin == null ? l10n.addRecord : l10n.arriveSeal,

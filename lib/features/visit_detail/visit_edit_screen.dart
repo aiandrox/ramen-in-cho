@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../theme/safe_bottom.dart';
 import '../../theme/washi.dart';
 import '../../l10n/app_localizations.dart';
 import '../record/photo_picker.dart';
@@ -291,8 +292,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.viewInsetsOf(context).bottom,
         ),
-        child: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: SafeBottomBar(
           child: AiFuda(
             expand: true,
             height: 56,

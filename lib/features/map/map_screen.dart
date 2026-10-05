@@ -385,7 +385,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ],
           ),
           // 出典は必要なものだけを小さく出す（部品名は出さない）。
-          const Positioned(left: 0, bottom: 0, child: MapAttribution()),
+          // 下のタブの真ん中の判子に隠れないよう、判子がはみ出す分だけ上げる。
+          const Positioned(
+            left: 0,
+            bottom: RecordSealButton.overhang + 4,
+            child: MapAttribution(),
+          ),
           if (_nearby.isNotEmpty)
             Positioned(
               left: 8,

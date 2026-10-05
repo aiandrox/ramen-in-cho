@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../theme/safe_bottom.dart';
 import '../../theme/washi.dart';
 import '../journal/journal.dart';
 import '../records/record_repository.dart';
@@ -130,8 +131,7 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
         ],
       ),
       // スマホの戻るボタンの帯に重ならないよう、画面の下に固定する。
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      bottomNavigationBar: SafeBottomBar(
         child: AiFuda(
           key: _buttonKey,
           expand: true,

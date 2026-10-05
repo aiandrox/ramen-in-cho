@@ -21,6 +21,7 @@ import '../wishes/wishes.dart';
 import '../inkan/inkan_stamp.dart';
 import '../records/visit_photo.dart';
 import '../scoring/points.dart';
+import '../../theme/safe_bottom.dart';
 import '../../theme/washi.dart';
 import '../../theme/washi_buttons.dart';
 
@@ -106,8 +107,7 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
           null => const Center(child: CircularProgressIndicator()),
         },
         // 共有は、結果を見ているどの時点でも押せるよう、下に固定して「印帳にもどる」と並べる。
-        bottomNavigationBar: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        bottomNavigationBar: SafeBottomBar(
           child: Row(
             children: [
               if (outcome != null) ...[
