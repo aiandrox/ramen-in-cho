@@ -157,7 +157,7 @@ class _AppShellState extends ConsumerState<AppShell> {
           onPressed: _onSeal,
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: const _SealLocation(),
       bottomNavigationBar: NavigationBar(
         // 真ん中は判子の場所として空けておく（押しても何もしない）。
         selectedIndex: index < _gap ? index : index + 1,
@@ -196,4 +196,17 @@ class _AppShellState extends ConsumerState<AppShell> {
       ),
     );
   }
+}
+
+/// 下のタブの真ん中に判子を据える。通知（SnackBar）が出ても判子を持ち上げず、通知のほうを判子の上に出す。
+class _SealLocation extends StandardFabLocation with FabCenterOffsetX {
+  const _SealLocation();
+
+  @override
+  double getOffsetY(
+    ScaffoldPrelayoutGeometry scaffoldGeometry,
+    double adjustment,
+  ) =>
+      scaffoldGeometry.contentBottom -
+      scaffoldGeometry.floatingActionButtonSize.height / 2;
 }

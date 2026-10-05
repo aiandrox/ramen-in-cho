@@ -115,6 +115,8 @@ ThemeData buildAppTheme() {
       ),
     ),
     snackBarTheme: const SnackBarThemeData(
+      // 浮かせて出すと、下のタブの判子を押し上げずにその上へ出る。
+      behavior: SnackBarBehavior.floating,
       backgroundColor: Washi.ink,
       contentTextStyle: TextStyle(fontFamily: Washi.mincho, color: Washi.paper),
     ),
