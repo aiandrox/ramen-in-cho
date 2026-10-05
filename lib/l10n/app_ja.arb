@@ -361,6 +361,7 @@
   "wishDeleteConfirm": "{name} の願を消しますか？",
   "@wishDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
   "wishFulfilled": "願成就",
+  "wishFulfilledSealChar": "叶",
   "wishFulfillPrompt": "{name} の願を、この一杯で叶えたことにしますか？",
   "@wishFulfillPrompt": {"placeholders": {"name": {"type": "String"}}},
   "wishFulfillButton": "叶えた",

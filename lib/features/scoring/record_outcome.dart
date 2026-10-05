@@ -1,3 +1,4 @@
+import '../journal/journal.dart';
 import '../quests/quests.dart';
 import '../records/models.dart';
 import 'points.dart';
@@ -16,6 +17,7 @@ class RecordOutcome {
     this.questLevelUps = const [],
     this.bestDailyStreakBefore = 0,
     this.bestDailyStreakAfter = 0,
+    this.journal = const [],
   });
 
   final ScoredVisit scored;
@@ -33,6 +35,9 @@ class RecordOutcome {
   bool get revealsHealthyLife =>
       bestDailyStreakBefore < healthyLifeDays &&
       bestDailyStreakAfter >= healthyLifeDays;
+
+  /// この1杯の道中記（店のページと同じく、ほかの記録も合わせて組み立てる）。
+  final List<String> journal;
 
   final AdventurerRank rankBefore;
   final AdventurerRank rankAfter;
@@ -72,5 +77,6 @@ RecordOutcome? computeRecordOutcome(
     ),
     bestDailyStreakBefore: bestDailyStreak(scoredOthers),
     bestDailyStreakAfter: bestDailyStreak(scoredAll),
+    journal: buildJournal(scored, scoredAll),
   );
 }

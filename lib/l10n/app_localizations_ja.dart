@@ -713,6 +713,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wishFulfilled => '願成就';
 
   @override
+  String get wishFulfilledSealChar => '叶';
+
+  @override
   String wishFulfillPrompt(String name) {
     return '$name の願を、この一杯で叶えたことにしますか？';
   }
