@@ -333,12 +333,30 @@ class _PhotoSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (hasPhoto)
-          PastedPhoto(
-            border: 6,
-            child: SizedBox(
-              height: 200,
-              child: VisitPhoto(photoPath: photoPath, cacheWidth: 800),
-            ),
+          Stack(
+            children: [
+              PastedPhoto(
+                border: 6,
+                child: SizedBox(
+                  height: 200,
+                  child: VisitPhoto(photoPath: photoPath, cacheWidth: 800),
+                ),
+              ),
+              Positioned(
+                top: 12,
+                right: 12,
+                child: IconButton.filled(
+                  onPressed: enabled ? onRemove : null,
+                  tooltip: l10n.editRemovePhoto,
+                  icon: const Icon(Icons.close, size: 20),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Washi.ink.withValues(alpha: 0.6),
+                    foregroundColor: Washi.page,
+                    minimumSize: const Size(36, 36),
+                  ),
+                ),
+              ),
+            ],
           ),
         Wrap(
           alignment: WrapAlignment.center,
@@ -353,12 +371,6 @@ class _PhotoSection extends StatelessWidget {
               icon: const Icon(Icons.photo_library),
               child: Text(l10n.pickFromGallery),
             ),
-            if (hasPhoto)
-              FudeLink(
-                onPressed: enabled ? onRemove : null,
-                icon: const Icon(Icons.hide_image_outlined),
-                child: Text(l10n.editRemovePhoto),
-              ),
           ],
         ),
       ],

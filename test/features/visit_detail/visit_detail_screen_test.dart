@@ -304,9 +304,9 @@ void main() {
 
     await openMenu(tester, ja.edit);
     await tester.pumpAndSettle();
-    await tester.tap(find.text(ja.editRemovePhoto));
+    await tester.tap(find.byTooltip(ja.editRemovePhoto));
     await tester.pump();
-    expect(find.text(ja.editRemovePhoto), findsNothing);
+    expect(find.byTooltip(ja.editRemovePhoto), findsNothing);
     await tester.runAsync(() async {
       await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
       await Future<void>.delayed(const Duration(milliseconds: 100));
