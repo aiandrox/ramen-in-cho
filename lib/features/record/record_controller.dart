@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,7 @@ import '../wishes/wish_repository.dart';
 import '../wishes/wishes.dart';
 import 'photo_metadata.dart';
 import 'photo_picker.dart';
+import 'record_draft.dart';
 import 'record_state.dart';
 
 final recordControllerProvider =
@@ -30,17 +32,53 @@ class RecordController extends Notifier<RecordState> {
   GeoPoint? _here;
   int _searchGeneration = 0;
 
+  /// 下書きを読み終えるまでは書かない（空の入力で下書きを消してしまうため）。
+  bool _draftReady = false;
+
+  /// 記録できたあとは下書きに書かない。
+  bool _draftClosed = false;
+  String? _lastDraftJson;
+
+  /// 下書きから戻した店。検索の候補に同じ店があれば、候補の方に選び替える。
+  ShopCandidate? _restoredShop;
+
+  /// 下書きから戻した写真を撮り直したら、前に開いたときの時刻ではなく今の時刻にする。
+  bool _photoFromDraft = false;
+
+  /// 開いたときに渡された写真（取り戻した写真・共有された写真）を写した先。
+  String? _incomingPhoto;
+
   @override
-  RecordState build() => const RecordState();
+  RecordState build() {
+    listenSelf((_, next) => _writeDraft(next));
+    return const RecordState();
+  }
+
+  RecordDraftStore get _draftStore => ref.read(recordDraftStoreProvider);
+
+  void _writeDraft(RecordState next) {
+    if (!_draftReady || _draftClosed) return;
+    final draft = RecordDraft.fromState(next);
+    final json = draft.isEmpty ? '' : jsonEncode(draft.toJson());
+    if (json == _lastDraftJson) return;
+    _lastDraftJson = json;
+    _draftStore.save(draft).catchError((Object e) {
+      debugPrint('Draft save failed: $e');
+    });
+  }
 
   /// 近くの店を探しはじめる。カメラは自動では開かず、利用者が写真の欄から選ぶ。
+  /// 保存せずに閉じた入力があれば、そこから再開する。
   Future<void> start({String? recoveredPhotoPath}) async {
     unawaited(_loadKnownShops());
     await _loadCheckin();
     if (!ref.mounted) return;
+    await _restoreDraft();
+    if (!ref.mounted) return;
+    _draftReady = true;
     if (recoveredPhotoPath != null) {
       // 取り戻した写真はカメラとギャラリーのどちらのものか区別できない。
-      await _setGalleryPhoto(recoveredPhotoPath);
+      await _setGalleryPhoto(recoveredPhotoPath, incoming: true);
       if (!ref.mounted) return;
     }
     final locationReady = await ref.read(locationServiceProvider).isReady();
@@ -85,6 +123,83 @@ class RecordController extends Notifier<RecordState> {
     }
   }
 
+  Future<void> _restoreDraft() async {
+    RecordDraft? draft;
+    try {
+      draft = await _draftStore.load();
+    } catch (e) {
+      debugPrint('Draft load failed: $e');
+    }
+    if (!ref.mounted || draft == null || draft.isEmpty) return;
+    _lastDraftJson = jsonEncode(draft.toJson());
+    _restoredShop = draft.selectedShop;
+    _photoFromDraft = draft.photoPath != null;
+    final typedName = draft.manualName.trim().isNotEmpty;
+    state = state.copyWith(
+      photoPath: draft.photoPath,
+      photoTakenAt: draft.photoTakenAt,
+      photoFromCamera: draft.photoFromCamera,
+      photoDateFromPhoto: draft.photoDateFromPhoto,
+      photoLocation: draft.photoLocation,
+      // 店名を打っていたときは、並んでいる店の選択も外れていた。
+      selectedShop:
+          draft.selectedShop ?? (typedName ? null : state.selectedShop),
+      manualName: draft.manualName,
+      rating: draft.rating,
+      style: draft.style,
+      isLimited: draft.isLimited,
+      chosenHoursConditions: draft.chosenHoursConditions,
+      memo: draft.memo,
+      manualWaitMinutes: draft.manualWaitMinutes,
+      resumedFromDraft: true,
+    );
+  }
+
+  /// 下書きを捨てて、何も入れていない状態からやり直す。
+  /// 開いたときに渡された写真（共有された写真など）は、新しい記録に使うので残す。
+  Future<void> discardDraft() async {
+    final previous = state;
+    final keepPhoto =
+        _incomingPhoto != null && previous.photoPath == _incomingPhoto;
+    _restoredShop = null;
+    _lastDraftJson = null;
+    // 消してから新しい入力を書くよう、先に頼んでおく。
+    final cleared = _draftStore.clear(
+      keepPhoto: keepPhoto ? previous.photoPath : null,
+    );
+    state = RecordState(
+      photoPath: keepPhoto ? previous.photoPath : null,
+      photoTakenAt: keepPhoto ? previous.photoTakenAt : null,
+      photoFromCamera: keepPhoto && previous.photoFromCamera,
+      photoDateFromPhoto: keepPhoto && previous.photoDateFromPhoto,
+      photoLocation: keepPhoto ? previous.photoLocation : null,
+      searchStatus: previous.searchStatus,
+      searchFailure: previous.searchFailure,
+      candidates: previous.candidates,
+      checkin: previous.checkin,
+      checkinShop: previous.checkinShop,
+      selectedShop: previous.checkinShop,
+    );
+    if (previous.photoLocation != null && state.photoLocation == null) {
+      unawaited(searchShops(requestPermission: false, force: true));
+    }
+    try {
+      await cleared;
+    } catch (e) {
+      debugPrint('Draft clear failed: $e');
+    }
+  }
+
+  /// 一時ファイルの写真を、下書きとして残せるよう documents に写す。写せなければそのまま使う。
+  Future<String> _keepPhoto(String path) async {
+    try {
+      return await _draftStore.keepPhoto(path);
+    } catch (e) {
+      debugPrint('Draft photo keep failed: $e');
+      return path;
+    }
+  }
+
   Future<void> _loadKnownShops() async {
     try {
       _knownShops = await ref.read(recordRepositoryProvider).allShops();
@@ -99,9 +214,11 @@ class RecordController extends Notifier<RecordState> {
   }
 
   Future<void> takePhoto() async {
-    final path = await ref.read(photoPickerProvider).takePhoto();
+    final taken = await ref.read(photoPickerProvider).takePhoto();
+    if (!ref.mounted || taken == null) return;
+    final path = await _keepPhoto(taken);
     if (!ref.mounted) return;
-    if (path != null) _setPhoto(path, fromCamera: true);
+    _setPhoto(path, fromCamera: true);
   }
 
   Future<void> pickFromGallery() async {
@@ -111,9 +228,12 @@ class RecordController extends Notifier<RecordState> {
   }
 
   /// 過去の写真から記録できるよう、写真の撮影日時を食べた日時にし、撮影場所で店を探す。
-  Future<void> _setGalleryPhoto(String path) async {
-    final metadata = await ref.read(photoMetadataReaderProvider).read(path);
+  Future<void> _setGalleryPhoto(String picked, {bool incoming = false}) async {
+    final metadata = await ref.read(photoMetadataReaderProvider).read(picked);
     if (!ref.mounted) return;
+    final path = await _keepPhoto(picked);
+    if (!ref.mounted) return;
+    if (incoming) _incomingPhoto = path;
     _setPhoto(path, fromCamera: false, metadata: metadata);
   }
 
@@ -131,11 +251,14 @@ class RecordController extends Notifier<RecordState> {
       // 前の写真の撮影日時を使っていたときは、今撮ったので今の時刻にする。
       photoTakenAt:
           takenAt ??
-          (state.photoDateFromPhoto ? now : state.photoTakenAt ?? now),
+          (state.photoDateFromPhoto || _photoFromDraft
+              ? now
+              : state.photoTakenAt ?? now),
       photoDateFromPhoto: takenAt != null,
       photoLocation: metadata.location,
       photoFromCamera: fromCamera,
     );
+    _photoFromDraft = false;
     final location = metadata.location;
     if (location != null || previousLocation != null) {
       unawaited(searchShops(requestPermission: false, force: true));
@@ -161,11 +284,33 @@ class RecordController extends Notifier<RecordState> {
         .search(requestPermission: requestPermission, near: near);
     if (!ref.mounted || generation != _searchGeneration) return;
     _here = result.here;
+    final restored = _restoredShop;
+    final selected = state.selectedShop;
+    final match = restored != null && identical(selected, restored)
+        ? result.candidates
+              .where((c) => _sameSavedShop(c, restored))
+              .firstOrNull
+        : null;
     state = state.copyWith(
       searchStatus: ShopSearchStatus.done,
       searchFailure: result.failure,
       candidates: result.candidates,
+      selectedShop: match ?? selected,
     );
+  }
+
+  /// 下書きから戻した店と、検索の候補が同じ店か（同じ店が2つ並ばないようにする）。
+  bool _sameSavedShop(ShopCandidate candidate, ShopCandidate restored) {
+    if (restored.shopId != null) return candidate.shopId == restored.shopId;
+    if (restored.osmId != null) return candidate.osmId == restored.osmId;
+    final a = candidate.location;
+    final b = restored.location;
+    return candidate.shopId == null &&
+        candidate.name == restored.name &&
+        a != null &&
+        b != null &&
+        a.latitude == b.latitude &&
+        a.longitude == b.longitude;
   }
 
   /// 店名で探すときに近い順に並べる基準（写真の撮影場所か現在地）。
@@ -262,6 +407,12 @@ class RecordController extends Notifier<RecordState> {
             memo: draft.memo.trim(),
             now: now,
           );
+      _draftClosed = true;
+      try {
+        await _draftStore.clear();
+      } catch (e) {
+        debugPrint('Draft clear failed: $e');
+      }
       return visit.id;
     } catch (e) {
       debugPrint('Record save failed: $e');

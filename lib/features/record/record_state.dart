@@ -29,9 +29,10 @@ class RecordState {
     this.memo = '',
     this.manualWaitMinutes,
     this.isSaving = false,
+    this.resumedFromDraft = false,
   });
 
-  /// image_pickerが返した一時ファイルのパス。
+  /// 写真のパス。ふつうは下書き用のフォルダに写したもの（record_draft.dart）。
   final String? photoPath;
   final DateTime? photoTakenAt;
   final bool photoFromCamera;
@@ -65,6 +66,9 @@ class RecordState {
   /// あとから入れた待ち時間（分）。並んだ店を選んでいるときは使わない。
   final int? manualWaitMinutes;
   final bool isSaving;
+
+  /// 前に保存せずに閉じたときの入力から再開したか。
+  final bool resumedFromDraft;
 
   Set<HoursCondition> get hoursConditions =>
       chosenHoursConditions ?? selectedShop?.hoursConditions ?? const {};
@@ -110,6 +114,7 @@ class RecordState {
     String? memo,
     Object? manualWaitMinutes = _unset,
     bool? isSaving,
+    bool? resumedFromDraft,
   }) {
     return RecordState(
       photoPath: photoPath == _unset ? this.photoPath : photoPath as String?,
@@ -144,6 +149,7 @@ class RecordState {
           ? this.manualWaitMinutes
           : manualWaitMinutes as int?,
       isSaving: isSaving ?? this.isSaving,
+      resumedFromDraft: resumedFromDraft ?? this.resumedFromDraft,
     );
   }
 }
