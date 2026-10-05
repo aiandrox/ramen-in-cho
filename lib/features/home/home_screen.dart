@@ -11,6 +11,7 @@ import '../checkin/queue_suggestion_card.dart';
 import '../notifications/notification_service.dart';
 import '../record/photo_picker.dart';
 import '../record/record_screen.dart';
+import '../record/shared_photo.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
 import '../records/record_repository.dart';
@@ -37,6 +38,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scroll = ScrollController();
+  late final _lifecycle = AppLifecycleListener(onResume: _receiveSharedPhoto);
   final _headerKey = GlobalKey();
   double _headerHeight = 0;
   String? _floatingMonth;
@@ -50,6 +52,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void dispose() {
     _hideMonth?.cancel();
+    _lifecycle.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -84,7 +87,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _recoverLostPhoto();
+      _recoverLostPhoto().then((_) => _receiveSharedPhoto());
+      _lifecycle;
       // 手で持つ店（ラーメン二郎の直系店など）の一覧を、1日1回までサーバーから取り直す。
       ref.read(curatedShopsProvider.notifier).refresh();
       // 通知の文言に画面の言語設定を使うため、最初の描画のあとで見張りはじめる。
@@ -139,6 +143,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _recoverLostPhoto() async {
     final path = await ref.read(photoPickerProvider).retrieveLostPhoto();
+    if (path == null || !mounted) return;
+    await _openRecord(recoveredPhotoPath: path);
+  }
+
+  /// ほかのアプリの「共有」から送られてきた写真で、記録を始める。
+  Future<void> _receiveSharedPhoto() async {
+    // 記録画面などを開いている途中なら、書きかけの記録を上書きしないよう、印帳に戻ってから受け取る。
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
+    final path = await ref.read(sharedPhotoReceiverProvider).take();
     if (path == null || !mounted) return;
     await _openRecord(recoveredPhotoPath: path);
   }
