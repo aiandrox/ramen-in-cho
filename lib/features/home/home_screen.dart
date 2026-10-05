@@ -11,6 +11,7 @@ import '../checkin/queue_suggestion_card.dart';
 import '../notifications/notification_service.dart';
 import '../record/photo_picker.dart';
 import '../record/record_screen.dart';
+import '../record/shared_photo.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
 import '../records/record_repository.dart';
@@ -85,6 +86,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _recoverLostPhoto();
+      _receiveSharedPhoto();
+      ref.read(sharedPhotoReceiverProvider).listen(_receiveSharedPhoto);
       // 手で持つ店（ラーメン二郎の直系店など）の一覧を、1日1回までサーバーから取り直す。
       ref.read(curatedShopsProvider.notifier).refresh();
       // 通知の文言に画面の言語設定を使うため、最初の描画のあとで見張りはじめる。
@@ -139,6 +142,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _recoverLostPhoto() async {
     final path = await ref.read(photoPickerProvider).retrieveLostPhoto();
+    if (path == null || !mounted) return;
+    await _openRecord(recoveredPhotoPath: path);
+  }
+
+  /// ほかのアプリの「共有」から送られてきた写真で、記録を始める。
+  Future<void> _receiveSharedPhoto() async {
+    final path = await ref.read(sharedPhotoReceiverProvider).take();
     if (path == null || !mounted) return;
     await _openRecord(recoveredPhotoPath: path);
   }
