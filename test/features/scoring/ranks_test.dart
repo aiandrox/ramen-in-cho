@@ -72,14 +72,14 @@ void main() {
       final hard = buildShop(id: 'hard', isFamous: true);
       final ranks = shopRanks(
         scoreVisits([
-          // 20, 10, 10, 10（合計50でも最高は20）
+          // 15, 10, 10, 10（合計45でも最高は15）
           for (var d = 1; d <= 4; d++) buildEntry(shop: often, eatenAt: day(d)),
-          // 10 + 初訪問 10 + 限定 20 + 待ち 5 + 名店 15 = 60
+          // 10 + 初訪問 5 + 限定 20 + 待ち 10 + 名店 15 = 60
           buildEntry(
             shop: hard,
             eatenAt: day(5),
             isLimited: true,
-            waitMinutes: 10,
+            waitMinutes: 20,
           ),
         ]),
       );

@@ -20,7 +20,8 @@ import '../../support/l10n.dart';
 void main() {
   final shop = buildShop(id: 'a', name: '麺屋あさひ');
   final visits = [
-    buildEntry(shop: shop, eatenAt: DateTime(2025, 5, 1, 12)),
+    // 2025年の1杯（初訪問・10分待ち）で五級に届き、2026年には段位が上がらない。
+    buildEntry(shop: shop, eatenAt: DateTime(2025, 5, 1, 12), waitMinutes: 10),
     buildEntry(
       shop: shop,
       eatenAt: DateTime(2026, 3, 5, 12),

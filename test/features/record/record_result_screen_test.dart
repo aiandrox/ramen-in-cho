@@ -68,7 +68,7 @@ void main() {
       longitude: 139.7006,
       area: '新宿区',
     );
-    // 10 + 待ち 15 + 限定 20 + 初訪問 10 + 初めての都道府県 30 + 初めての市区町村 10 + 名店 15 = 110
+    // 10 + 待ち 15 + 限定 20 + 初訪問 5 + 初めての都道府県 10 + 初めての市区町村 5 + 名店 15 = 80
     final entry = buildEntry(
       shop: famous,
       eatenAt: day(1),
@@ -84,7 +84,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(InkanStamp), findsOneWidget);
-    expect(find.text(ja.pointsGained(110)), findsOneWidget);
+    expect(find.text(ja.pointsGained(80)), findsOneWidget);
     expect(find.text(ja.pointsBase), findsOneWidget);
     expect(find.text(ja.pointsWait(35)), findsOneWidget);
     // 待ち時間と名店が、どちらも +15。
@@ -92,7 +92,9 @@ void main() {
     expect(find.text(ja.isLimited), findsOneWidget);
     expect(find.text(ja.pointsFirstVisit), findsOneWidget);
     expect(find.text(ja.pointsNewPrefecture('東京都')), findsOneWidget);
-    expect(find.text(ja.pointsGained(30)), findsOneWidget);
+    // 基本と初めての都道府県が +10、初訪問と初めての市区町村が +5。
+    expect(find.text(ja.pointsGained(10)), findsNWidgets(2));
+    expect(find.text(ja.pointsGained(5)), findsNWidgets(2));
     expect(find.text(ja.pointsNewArea('新宿区')), findsOneWidget);
     expect(find.text(ja.pointsFamous), findsOneWidget);
     // 0点の項目は出さない。
@@ -101,7 +103,7 @@ void main() {
 
     expect(find.text(ja.pointsRetry), findsNothing);
 
-    // 110点は四級（65）を越えるが、1杯で上がるのは五級だけ。
+    // 80点は四級（65）を越えるが、1杯で上がるのは五級だけ。
     expect(find.text(ja.rankUpKyu), findsOneWidget);
     expect(find.text(ja.rankKyu('五')), findsWidgets);
     expect(find.text(masterWords(AdventurerRank.kyu5)), findsOneWidget);
@@ -123,14 +125,14 @@ void main() {
 
   testWidgets('ランクが上がったら知らせる', (tester) async {
     final rare = buildShop(id: 'rare', isFamous: true);
-    // 10 + 初訪問 10 + 限定 20 + 待ち 50 + 名店 15 = 105
+    // 10 + 初訪問 5 + 限定 20 + 待ち 50 + 名店 15 = 100
     final big = buildEntry(
       shop: rare,
       eatenAt: day(1),
       isLimited: true,
       waitMinutes: 100,
     );
-    // 10 + 20 + 10 = 40 → 累計 145
+    // 10 + 20 + 5 = 35 → 累計 135
     final reaches = buildEntry(
       shop: buildShop(id: 'shop'),
       eatenAt: day(2),
@@ -244,8 +246,8 @@ void main() {
   });
 
   testWidgets('どこかをタップすると、演出を飛ばして最後の状態になる', (tester) async {
-    // 10 + 20 + 10 = 40
-    final entry = buildEntry(eatenAt: day(1), isLimited: true);
+    // 10 + 限定 20 + 初訪問 5 + 待ち 5 = 40
+    final entry = buildEntry(eatenAt: day(1), isLimited: true, waitMinutes: 10);
     await pumpResult(tester, [entry], entry.visit.id, settle: false);
     await tester.pump(const Duration(milliseconds: 50));
     // 師匠のひとことは、段位が上がってから筆で書く。
@@ -274,7 +276,7 @@ void main() {
     tester.platformDispatcher.accessibilityFeaturesTestValue =
         const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
-    final entry = buildEntry(eatenAt: day(1));
+    final entry = buildEntry(eatenAt: day(1), isLimited: true);
     await pumpResult(tester, [entry], entry.visit.id, settle: false);
     await tester.pump();
 

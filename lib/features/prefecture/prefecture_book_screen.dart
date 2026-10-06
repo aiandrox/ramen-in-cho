@@ -203,7 +203,6 @@ class PrefectureBowlsScreen extends ConsumerWidget {
                   scored.shop.name,
                 ),
               ),
-              subtitle: Text(l10n.pointsGained(scored.points.total)),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => VisitDetailScreen(visitId: scored.visit.id),

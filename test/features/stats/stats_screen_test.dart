@@ -83,7 +83,7 @@ void main() {
         eatenAt: DateTime(2026, 9, 2, 12),
         style: RamenStyle.miso,
       ),
-      // 10 + 初訪問 10 + 限定 20 + 朝ラー 10 + 名店 15 = 65 → Sランク
+      // 10 + 初訪問 5 + 限定 20 + 朝ラー 10 + 名店 15 = 60 → Sランク
       buildEntry(shop: rare, eatenAt: DateTime(2026, 9, 3, 9), isLimited: true),
     ]);
 
@@ -100,8 +100,8 @@ void main() {
     expect(find.text('名店の印の店'), findsOneWidget);
     expect(find.text(ja.shopRankS), findsOneWidget);
     expect(find.text(ja.shopRankC), findsOneWidget);
-    expect(find.text(ja.statsBestPoints(65)), findsOneWidget);
-    expect(find.text(ja.statsBestPoints(20)), findsOneWidget);
+    expect(find.text(ja.statsBestPoints(60)), findsOneWidget);
+    expect(find.text(ja.statsBestPoints(15)), findsOneWidget);
 
     expect(find.text(ja.statsBests), findsOneWidget);
     expect(find.text(ja.bestHighestPoints), findsOneWidget);

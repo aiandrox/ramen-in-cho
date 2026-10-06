@@ -70,9 +70,11 @@ void main() {
       );
       // 10 + 10(29分) = 20点
       expect(inkanShapeFor(scoredWith(waitMinutes: 29)), InkanShape.circle);
-      // 10 + 20 + 10 = 40点
+      // 10 + 5(10分) + 20 + 5 = 40点
       expect(
-        inkanShapeFor(scoredWith(isLimited: true, isFirstVisit: true)),
+        inkanShapeFor(
+          scoredWith(waitMinutes: 10, isLimited: true, isFirstVisit: true),
+        ),
         InkanShape.square,
       );
       // 10 + 30(60分) + 20 = 60点

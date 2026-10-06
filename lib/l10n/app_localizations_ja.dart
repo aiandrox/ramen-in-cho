@@ -591,9 +591,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopFamousToggle => '名店の印をつける';
 
   @override
-  String get shopFamousHint => '自分が名店と思う店に。この店で食べるたびに修行点 +15';
-
-  @override
   String get shopMemoEmpty => 'まだありません';
 
   @override

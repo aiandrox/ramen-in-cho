@@ -19,10 +19,10 @@ void main() {
     expect(history.single.reachedAt, isNull);
   });
 
-  test('入門は最初の記録の日。1杯目（20点）で五級、累計が65点を越えた1杯で四級に上がる', () {
+  test('入門は最初の記録の日。1杯目（20点以上）で五級、累計が65点を越えた1杯で四級に上がる', () {
     final a = buildShop(id: 'a');
-    // 初訪問 20 点 → 五級（20）。限定 30 点ずつで 50 → 80 点 → 四級（65）。
-    final first = buildEntry(shop: a, eatenAt: day(1));
+    // 10分待ちの初訪問 20 点 → 五級（20）。限定 30 点ずつで 50 → 80 点 → 四級（65）。
+    final first = buildEntry(shop: a, eatenAt: day(1), waitMinutes: 10);
     final second = buildEntry(shop: a, eatenAt: day(2), isLimited: true);
     final third = buildEntry(shop: a, eatenAt: day(3), isLimited: true);
     final scored = scoreVisits([third, first, second]);

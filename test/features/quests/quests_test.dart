@@ -219,13 +219,13 @@ void main() {
 
   test('大物討伐は、1杯で60点以上のSランクの店の数', () {
     final rare = buildShop(id: 'rare', isFamous: true);
-    // 10 + 初訪問 10 + 限定 20 + 待ち 5 + 名店 15 = 60
+    // 10 + 初訪問 5 + 限定 20 + 待ち 10 + 名店 15 = 60
     final progress = _progress('boss', [
       buildEntry(
         shop: rare,
         eatenAt: _day(1),
         isLimited: true,
-        waitMinutes: 10,
+        waitMinutes: 20,
       ),
     ]);
 

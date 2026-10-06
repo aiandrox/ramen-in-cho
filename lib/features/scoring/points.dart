@@ -68,7 +68,7 @@ class PointsBreakdown {
 const basePoints = 10;
 const waitBonusPerTenMinutes = 5;
 const limitedBonus = 20;
-const firstVisitBonus = 10;
+const firstVisitBonus = 5;
 const retryBonus = 15;
 
 /// 押さなくても、記録の時刻からつく上乗せ。
@@ -83,8 +83,8 @@ const expeditionTiers = [
 ];
 
 /// その都道府県・市区町村で初めて食べた1杯。
-const newPrefectureBonus = 30;
-const newAreaBonus = 10;
+const newPrefectureBonus = 10;
+const newAreaBonus = 5;
 
 /// 常連: その店で5杯目に+10、10杯目からは10杯ごとに+20。
 const regularFifthBonus = 10;
