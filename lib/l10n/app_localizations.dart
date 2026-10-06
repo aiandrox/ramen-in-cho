@@ -2368,6 +2368,96 @@ abstract class AppLocalizations {
   /// **'これまでの一杯を、物語で読み返す'**
   String get shugyorokuOpen;
 
+  /// No description provided for @prefectureBookTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'都道府県の印帳'**
+  String get prefectureBookTitle;
+
+  /// No description provided for @prefectureBookOpen.
+  ///
+  /// In ja, this message translates to:
+  /// **'四十七の印を集める'**
+  String get prefectureBookOpen;
+
+  /// No description provided for @prefectureBookProgress.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} / 47'**
+  String prefectureBookProgress(int count);
+
+  /// No description provided for @prefectureBookNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'店の位置から都道府県を決めます。位置のわからない店は入りません'**
+  String get prefectureBookNote;
+
+  /// No description provided for @prefectureBookRegionHokkaido.
+  ///
+  /// In ja, this message translates to:
+  /// **'北海道'**
+  String get prefectureBookRegionHokkaido;
+
+  /// No description provided for @prefectureBookRegionTohoku.
+  ///
+  /// In ja, this message translates to:
+  /// **'東北'**
+  String get prefectureBookRegionTohoku;
+
+  /// No description provided for @prefectureBookRegionKanto.
+  ///
+  /// In ja, this message translates to:
+  /// **'関東'**
+  String get prefectureBookRegionKanto;
+
+  /// No description provided for @prefectureBookRegionChubu.
+  ///
+  /// In ja, this message translates to:
+  /// **'中部'**
+  String get prefectureBookRegionChubu;
+
+  /// No description provided for @prefectureBookRegionKinki.
+  ///
+  /// In ja, this message translates to:
+  /// **'近畿'**
+  String get prefectureBookRegionKinki;
+
+  /// No description provided for @prefectureBookRegionChugoku.
+  ///
+  /// In ja, this message translates to:
+  /// **'中国'**
+  String get prefectureBookRegionChugoku;
+
+  /// No description provided for @prefectureBookRegionShikoku.
+  ///
+  /// In ja, this message translates to:
+  /// **'四国'**
+  String get prefectureBookRegionShikoku;
+
+  /// No description provided for @prefectureBookRegionKyushu.
+  ///
+  /// In ja, this message translates to:
+  /// **'九州・沖縄'**
+  String get prefectureBookRegionKyushu;
+
+  /// No description provided for @prefectureBookFirst.
+  ///
+  /// In ja, this message translates to:
+  /// **'初 {date}'**
+  String prefectureBookFirst(String date);
+
+  /// No description provided for @prefectureBookBowls.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count}杯'**
+  String prefectureBookBowls(int count);
+
+  /// No description provided for @prefectureBookEntry.
+  ///
+  /// In ja, this message translates to:
+  /// **'{date}　{shop}'**
+  String prefectureBookEntry(String date, String shop);
+
   /// No description provided for @shugyorokuEmpty.
   ///
   /// In ja, this message translates to:

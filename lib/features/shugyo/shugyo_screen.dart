@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/washi.dart';
 import '../journal/shugyoroku_screen.dart';
 import '../map/home_base_line.dart';
+import '../prefecture/prefecture_book_screen.dart';
 import '../quests/quest_list_screen.dart';
 import '../review/year_review_entry.dart';
 import '../scoring/rank_progress.dart';
@@ -56,6 +57,7 @@ class ShugyoScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => open(const ShugyorokuScreen()),
           ),
+          const PrefectureBookEntry(),
           const YearReviewEntry(),
           const SizedBox(height: 32),
           const StatsSections(),
