@@ -127,39 +127,138 @@ class MapSealPin extends StatelessWidget {
   final String? label;
 
   @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 30,
+    height: 44,
+    child: Column(
+      children: [
+        MapSealHead(color: color, filled: filled, label: label),
+        Container(width: 2.5, height: 14, color: color),
+      ],
+    ),
+  );
+}
+
+/// 印のピンの頭（丸と字）。一覧の行の頭にも使う。
+class MapSealHead extends StatelessWidget {
+  const MapSealHead({
+    super.key,
+    required this.color,
+    required this.filled,
+    this.label,
+    this.size = 30,
+  });
+
+  final Color color;
+  final bool filled;
+  final String? label;
+  final double size;
+
+  @override
   Widget build(BuildContext context) {
     final label = this.label;
-    return SizedBox(
-      width: 30,
-      height: 44,
-      child: Column(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: filled ? color : Washi.page,
-              border: Border.all(color: color, width: 2.5),
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: filled ? color : Washi.page,
+        border: Border.all(color: color, width: size / 12),
+      ),
+      child: label == null
+          ? null
+          : Text(
+              label,
+              style: TextStyle(
+                fontFamily: Washi.brush,
+                fontSize: size * 16 / 30,
+                height: 1,
+                color: filled ? Washi.page : color,
+              ),
             ),
-            child: label == null
-                ? null
-                : Text(
-                    label,
-                    style: TextStyle(
-                      fontFamily: Washi.brush,
-                      fontSize: 16,
-                      height: 1,
-                      color: filled ? Washi.page : color,
-                    ),
-                  ),
+    );
+  }
+}
+
+/// 重なったピンをまとめた印。藍の丸に軒数を筆の字で入れる（まだ行っていない店だけなら灰色）。
+/// 行った店を含めば朱の点、願を含めば朱の輪を右上に添える。
+class MapClusterSeal extends StatelessWidget {
+  const MapClusterSeal({
+    super.key,
+    required this.count,
+    required this.hasVisited,
+    required this.hasWish,
+  });
+
+  final int count;
+  final bool hasVisited;
+  final bool hasWish;
+
+  static const size = 44.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = hasVisited || hasWish ? Washi.ai : Washi.faded;
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              margin: const EdgeInsets.all(4),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color,
+                border: Border.all(color: Washi.page, width: 2),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x40000000), blurRadius: 3),
+                ],
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  fontFamily: Washi.brush,
+                  fontSize: count >= 100 ? 13 : 17,
+                  height: 1,
+                  color: Washi.page,
+                ),
+              ),
+            ),
           ),
-          Container(width: 2.5, height: 14, color: color),
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasWish) const _ClusterDot(filled: false),
+                if (hasVisited) const _ClusterDot(filled: true),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+class _ClusterDot extends StatelessWidget {
+  const _ClusterDot({required this.filled});
+
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 12,
+    height: 12,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: filled ? Washi.shu : Washi.page,
+      border: Border.all(color: filled ? Washi.page : Washi.shu, width: 2),
+    ),
+  );
 }
 
 /// 場所を選ぶ地図で、目印に出す行った店の印（地図のタブと同じ。押せない）。

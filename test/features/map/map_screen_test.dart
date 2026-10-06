@@ -9,6 +9,7 @@ import 'package:ramen_in_cho/features/map/journey.dart';
 import 'package:ramen_in_cho/features/map/map_camera.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/map/map_screen.dart';
+import 'package:ramen_in_cho/features/map/pin_clusters.dart';
 import 'package:ramen_in_cho/features/map/washi_map.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
@@ -40,7 +41,7 @@ void main() {
         FoundShop(
           osmId: 'node/2',
           name: 'まだ行っていない店',
-          location: GeoPoint(35.002, 139.0),
+          location: GeoPoint(35.006, 139.0),
         ),
       ],
     );
@@ -118,7 +119,7 @@ void main() {
           id: 'retreated',
           name: 'まだ行っていない店',
           osmId: 'node/2',
-          latitude: 35.002,
+          latitude: 35.006,
           longitude: 139.0,
         ),
         result: VisitResult.retreated,
@@ -190,6 +191,100 @@ void main() {
     await tester.tap(find.text(ja.journeyExpeditions));
     await tester.pumpAndSettle();
     expect(find.text(ja.journeyExpeditionsNone), findsOneWidget);
+  });
+
+  testWidgets('重なるピンはまとめて軒数を出し、タップで寄ると分かれる', (tester) async {
+    await pumpMap(tester, [
+      buildEntry(
+        shop: buildShop(
+          id: 'a',
+          name: '一番の店',
+          latitude: 35.0,
+          longitude: 139.0,
+        ),
+      ),
+      buildEntry(
+        shop: buildShop(
+          id: 'b',
+          name: '二番の店',
+          latitude: 35.0005,
+          longitude: 139.0,
+        ),
+      ),
+    ]);
+    expect(camera(tester).zoom, neighborhoodZoom);
+    expect(find.bySemanticsLabel(ja.mapClusterLabel(2)), findsOneWidget);
+    expect(find.bySemanticsLabel('一番の店'), findsNothing);
+
+    await tester.tap(find.bySemanticsLabel(ja.mapClusterLabel(2)));
+    await tester.pumpAndSettle();
+
+    expect(camera(tester).zoom, greaterThan(neighborhoodZoom + 1));
+    expect(find.bySemanticsLabel(ja.mapClusterLabel(2)), findsNothing);
+    expect(find.bySemanticsLabel('一番の店'), findsOneWidget);
+    expect(find.bySemanticsLabel('二番の店'), findsOneWidget);
+  });
+
+  testWidgets('同じ場所の店は、寄りきったら中の店を一覧で見せる', (tester) async {
+    await pumpMap(tester, [
+      for (final id in ['a', 'b'])
+        buildEntry(
+          shop: buildShop(
+            id: id,
+            name: '同じビルの店$id',
+            latitude: 35.0003,
+            longitude: 139.0,
+          ),
+        ),
+    ]);
+    final cluster = find.bySemanticsLabel(ja.mapClusterLabel(2));
+
+    await tester.tap(cluster);
+    await tester.pumpAndSettle();
+    expect(camera(tester).zoom, clusterFitMaxZoom);
+    expect(find.text(ja.mapClusterTitle(2)), findsNothing);
+
+    await tester.tap(cluster);
+    await tester.pumpAndSettle();
+    expect(find.text(ja.mapClusterTitle(2)), findsOneWidget);
+    expect(find.text('同じビルの店a'), findsOneWidget);
+    expect(find.text('同じビルの店b'), findsOneWidget);
+  });
+
+  testWidgets('一覧で地図の店を近い順に見て絞り込み、タップでその店へ寄って詳しく見せる', (tester) async {
+    await pumpMap(tester, [
+      buildEntry(
+        shop: buildShop(
+          id: 'v',
+          name: 'ラーメン一番',
+          osmId: 'node/1',
+          latitude: 35.001,
+          longitude: 139.0,
+        ),
+      ),
+    ]);
+    await tester.tap(find.byTooltip(ja.mapSearchHere));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip(ja.mapListButton));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.mapListTitle(2)), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('ラーメン一番')).dy,
+      lessThan(tester.getTopLeft(find.text('まだ行っていない店').first).dy),
+    );
+
+    await tester.tap(find.text(ja.mapListFilterUnvisited));
+    await tester.pumpAndSettle();
+    expect(find.text('ラーメン一番'), findsNothing);
+
+    // 店名と「まだ行っていない店」の札が同じ字なので、先に出る店名の行を押す。
+    await tester.tap(find.text('まだ行っていない店').first);
+    await tester.pumpAndSettle();
+
+    expect(camera(tester).center.latitude, closeTo(35.006, 1e-6));
+    expect(camera(tester).zoom, greaterThanOrEqualTo(17));
+    expect(find.text(ja.wishMakeButton), findsOneWidget);
   });
 
   group('旅路の再生を止める', () {

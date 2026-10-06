@@ -582,6 +582,25 @@
       "date": {"type": "String"}
     }
   },
+  "mapListButton": "地図の店の一覧",
+  "mapListTitle": "地図の店 {count}軒",
+  "@mapListTitle": {"placeholders": {"count": {"type": "int"}}},
+  "mapClusterTitle": "このあたりの店 {count}軒",
+  "@mapClusterTitle": {"placeholders": {"count": {"type": "int"}}},
+  "mapClusterLabel": "{count}軒の店。タップで寄ります",
+  "@mapClusterLabel": {"placeholders": {"count": {"type": "int"}}},
+  "mapListSortHint": "地図の真ん中から近い順",
+  "mapListFilterAll": "すべて",
+  "mapListFilterVisited": "行った店",
+  "mapListFilterUnvisited": "まだ",
+  "mapListFilterWished": "願",
+  "mapListEmpty": "この中に当てはまる店はありません",
+  "mapListVisited": "行った店",
+  "mapFamous": "名店",
+  "mapListMeters": "{meters}m",
+  "@mapListMeters": {"placeholders": {"meters": {"type": "int"}}},
+  "mapListKilometers": "{km}km",
+  "@mapListKilometers": {"placeholders": {"km": {"type": "String"}}},
   "mapShopRank": "店ランク {rank}",
   "@mapShopRank": {
     "placeholders": {

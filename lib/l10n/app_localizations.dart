@@ -2254,6 +2254,90 @@ abstract class AppLocalizations {
   /// **'最後に行った日 {date}'**
   String mapLastVisit(String date);
 
+  /// No description provided for @mapListButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図の店の一覧'**
+  String get mapListButton;
+
+  /// No description provided for @mapListTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図の店 {count}軒'**
+  String mapListTitle(int count);
+
+  /// No description provided for @mapClusterTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'このあたりの店 {count}軒'**
+  String mapClusterTitle(int count);
+
+  /// No description provided for @mapClusterLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count}軒の店。タップで寄ります'**
+  String mapClusterLabel(int count);
+
+  /// No description provided for @mapListSortHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図の真ん中から近い順'**
+  String get mapListSortHint;
+
+  /// No description provided for @mapListFilterAll.
+  ///
+  /// In ja, this message translates to:
+  /// **'すべて'**
+  String get mapListFilterAll;
+
+  /// No description provided for @mapListFilterVisited.
+  ///
+  /// In ja, this message translates to:
+  /// **'行った店'**
+  String get mapListFilterVisited;
+
+  /// No description provided for @mapListFilterUnvisited.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ'**
+  String get mapListFilterUnvisited;
+
+  /// No description provided for @mapListFilterWished.
+  ///
+  /// In ja, this message translates to:
+  /// **'願'**
+  String get mapListFilterWished;
+
+  /// No description provided for @mapListEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'この中に当てはまる店はありません'**
+  String get mapListEmpty;
+
+  /// No description provided for @mapListVisited.
+  ///
+  /// In ja, this message translates to:
+  /// **'行った店'**
+  String get mapListVisited;
+
+  /// No description provided for @mapFamous.
+  ///
+  /// In ja, this message translates to:
+  /// **'名店'**
+  String get mapFamous;
+
+  /// No description provided for @mapListMeters.
+  ///
+  /// In ja, this message translates to:
+  /// **'{meters}m'**
+  String mapListMeters(int meters);
+
+  /// No description provided for @mapListKilometers.
+  ///
+  /// In ja, this message translates to:
+  /// **'{km}km'**
+  String mapListKilometers(String km);
+
   /// No description provided for @mapShopRank.
   ///
   /// In ja, this message translates to:

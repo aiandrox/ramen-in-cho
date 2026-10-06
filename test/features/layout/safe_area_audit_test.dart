@@ -194,9 +194,11 @@ final List<_Screen> _screens = [
       await tester.tap(find.byTooltip(ja.mapSearchHere));
       await _settle(tester);
       await audit('周辺を探したあと');
-      await tester.tap(
-        find.byWidgetPredicate((w) => w.runtimeType.toString() == '_Pin').first,
-      );
+      // 店が重なるとピンはまとまるので、一覧から行った店を開く。
+      await tester.tap(find.byTooltip(ja.mapListButton));
+      await _settle(tester);
+      await audit('地図の店の一覧');
+      await tester.tap(find.text('麺屋テスト'));
       await _settle(tester);
       await audit('行った店の窓');
       tester.state<ShellSheetHostState>(find.byType(ShellSheetHost)).close();
