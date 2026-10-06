@@ -71,7 +71,7 @@ const limitedBonus = 20;
 const firstVisitBonus = 10;
 const retryBonus = 15;
 
-/// 押さなくても、記録の時刻と場所から自動でつく難しさ。
+/// 押さなくても、記録の時刻からつく上乗せ。
 const earlyBonus = 10;
 const lateNightBonus = 10;
 

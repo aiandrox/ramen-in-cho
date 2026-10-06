@@ -45,8 +45,8 @@ const _regions = <Region, (String, String, String)>{
   Region.okinawa: ('沖縄', '南国の花（デイゴ。八枚の花びら）', '沖縄県'),
 };
 
-/// 格ごとの見本の修行点（易・厳・難・極の境の内側）。
-const _grades = [('易', 20), ('厳', 30), ('難', 45), ('極', 70)];
+/// 格ごとの見本の修行点（良・秀・妙・極の境の内側）。
+const _grades = [('良', 20), ('秀', 30), ('妙', 45), ('極', 70)];
 
 /// 描き方のファイルの指紋（FNV-1a）。
 String sourceFingerprint() {
@@ -69,7 +69,7 @@ String catalogMarkdown() {
       '- 外枠は `lib/features/inkan/region_frame.dart`、格の飾りは `lib/features/inkan/inkan_stamp.dart` の `RegionalInkanPainter`',
     )
     ..writeln(
-      '- 格（易・厳・難・極）の飾りは外枠の上に重ねる: 易＝細い枠 / 厳＝二重枠と点の輪 / 難＝三重枠と点線と四隅の菱形 / 極＝朱塗りと金の輪と外側の点',
+      '- 格（良・秀・妙・極。1杯の修行点の高さ）の飾りは外枠の上に重ねる: 良＝細い枠 / 秀＝二重枠と点の輪 / 妙＝三重枠と点線と四隅の菱形 / 極＝朱塗りと金の輪と外側の点',
     )
     ..writeln('- 印の下に短い都道府県名（「東京」「北海道」など）を入れる。都道府県のわからない店は、今までの丸・角の印のまま')
     ..writeln('- 撤退の印も地方の形で灰色に塗る')

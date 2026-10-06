@@ -64,7 +64,7 @@ class InkanStamp extends StatelessWidget {
       InkanShape.filled => Washi.page,
       _ => Washi.shu,
     };
-    // 上に難しさ（易・厳・難・極）。再挑戦成功なら「雪辱」も添える。
+    // 上に格（良・秀・妙・極）。再挑戦成功なら「雪辱」も添える。
     final rank = shopRankLabel(l10n, shopRankFor(scored.points.total));
     final top = isRetreat
         ? null
@@ -201,7 +201,7 @@ class InkanStamp extends StatelessWidget {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Padding(
-                    // 丸い印は上下に余裕があるので、難しさの字を足しても他の字は小さくしない。
+                    // 丸い印は上下に余裕があるので、格の字を足しても他の字は小さくしない。
                     padding: EdgeInsets.symmetric(
                       horizontal: size * (region == null ? 0.08 : 0.16),
                       vertical: size * (region == null ? 0.04 : 0.18),
@@ -242,7 +242,7 @@ class _InkanPainter extends CustomPainter {
     Paint fill([Color? color]) => Paint()..color = color ?? ink;
 
     switch (shape) {
-      // 易: 細い丸だけ。
+      // 良: 細い丸だけ。
       case InkanShape.circle:
         canvas.drawCircle(
           center,
@@ -376,7 +376,7 @@ class _InkanPainter extends CustomPainter {
   bool shouldRepaint(_InkanPainter oldDelegate) => oldDelegate.shape != shape;
 }
 
-/// 地方の外枠に、格の飾り（易＝細い枠・厳＝二重枠と点の輪・難＝三重枠と点線と四隅の菱形・極＝朱塗りと金の輪）を重ねる。
+/// 地方の外枠に、格の飾り（良＝細い枠・秀＝二重枠と点の輪・妙＝三重枠と点線と四隅の菱形・極＝朱塗りと金の輪）を重ねる。
 class RegionalInkanPainter extends CustomPainter {
   const RegionalInkanPainter(this.region, this.shape);
 
