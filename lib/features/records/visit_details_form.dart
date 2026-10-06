@@ -5,7 +5,7 @@ import '../../l10n/app_localizations.dart';
 import 'models.dart';
 import 'style_tiles.dart';
 
-/// 系統・限定・メモの入力欄。記録画面と編集画面で共有する。
+/// 系統・限定・待ち時間・「この一杯について」・「店の覚え書き」の入力欄。記録画面と編集画面で共有する。
 class VisitDetailsForm extends StatelessWidget {
   const VisitDetailsForm({
     super.key,
@@ -17,6 +17,8 @@ class VisitDetailsForm extends StatelessWidget {
     required this.onMemoChanged,
     this.waitController,
     this.onWaitChanged,
+    this.shopMemoController,
+    this.onShopMemoChanged,
   });
 
   final RamenStyle? style;
@@ -29,6 +31,10 @@ class VisitDetailsForm extends StatelessWidget {
   /// 待ち時間（分）の入力欄。nullなら出さない（並んだ時刻から自動で計算するときなど）。
   final TextEditingController? waitController;
   final ValueChanged<int?>? onWaitChanged;
+
+  /// 店の覚え書き（店ごと）の入力欄。nullなら出さない（店がまだ決まっていないときなど）。
+  final TextEditingController? shopMemoController;
+  final ValueChanged<String>? onShopMemoChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +76,30 @@ class VisitDetailsForm extends StatelessWidget {
           controller: memoController,
           minLines: 2,
           maxLines: 4,
-          decoration: InputDecoration(labelText: l10n.memoLabel),
+          decoration: InputDecoration(
+            labelText: l10n.memoLabel,
+            hintText: l10n.memoHint,
+            helperText: l10n.memoHelper,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+          ),
           onChanged: onMemoChanged,
         ),
+        if (shopMemoController case final controller?) ...[
+          const SizedBox(height: 16),
+          TextField(
+            controller: controller,
+            minLines: 2,
+            maxLines: 4,
+            decoration: InputDecoration(
+              labelText: l10n.shopMemoSection,
+              hintText: l10n.shopMemoHint,
+              helperText: l10n.shopMemoHelper,
+              helperMaxLines: 2,
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+            ),
+            onChanged: onShopMemoChanged,
+          ),
+        ],
         const SizedBox(height: 8),
       ],
     );

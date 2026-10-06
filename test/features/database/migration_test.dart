@@ -124,7 +124,7 @@ void main() {
     );
   });
 
-  test('バージョン3の店に、攻略メモの列を足す', () async {
+  test('バージョン3の店に、店の覚え書きの列を足す', () async {
     final seconds = DateTime(2026, 10, 1).millisecondsSinceEpoch ~/ 1000;
     final database = AppDatabase(
       NativeDatabase.memory(

@@ -435,6 +435,7 @@ void main() {
       required String shopName,
       int? rating = 4,
       String memo = '',
+      String? shopMemo,
     }) => repository.updateVisit(
       visitId: visit.id,
       shopName: shopName,
@@ -445,8 +446,23 @@ void main() {
       isLimited: visit.isLimited,
       hasTicket: visit.hasTicket,
       memo: memo,
+      shopMemo: shopMemo,
       now: DateTime(2026, 10, 1),
     );
+
+    test('店の覚え書きを渡すと、記録と一緒に店の覚え書きも書き換える。渡さなければそのまま', () async {
+      final visit = await save(const ShopInput(name: '麺屋'));
+      await repository.setShopMemo(visit.shopId, '券売機は現金のみ');
+
+      await update(visit, shopName: '麺屋', memo: '麺かため');
+      var entry = (await repository.watchVisits().first).single;
+      expect(entry.visit.memo, '麺かため');
+      expect(entry.shop.strategyMemo, '券売機は現金のみ');
+
+      await update(visit, shopName: '麺屋', shopMemo: ' 11時前に着けば一巡目 ');
+      entry = (await repository.watchVisits().first).single;
+      expect(entry.shop.strategyMemo, '11時前に着けば一巡目');
+    });
 
     Future<Visit> saveWithPhoto(String name, String? photoPath) =>
         repository.saveEatenVisit(
@@ -948,7 +964,7 @@ void main() {
     });
   });
 
-  test('店の攻略メモを保存でき、記録を読むと店と一緒に出る', () async {
+  test('店の覚え書きを保存でき、記録を読むと店と一緒に出る', () async {
     final visit = await save(const ShopInput(name: '麺屋'));
 
     await repository.setShopMemo(visit.shopId, ' 券売機は現金のみ ');

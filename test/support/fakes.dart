@@ -112,6 +112,7 @@ typedef VisitUpdate = ({
   ShopInput? pickedShop,
   bool changesPhoto,
   String? photoPath,
+  String? shopMemo,
 });
 
 /// 画面のテスト用。driftを通さずに、呼ばれた内容だけを覚える。
@@ -136,6 +137,7 @@ class FakeRecordRepository implements RecordRepository {
     ShopInput? pickedShop,
     bool changesPhoto = false,
     String? photoPath,
+    String? shopMemo,
     required DateTime now,
   }) async {
     final error = this.error;
@@ -153,6 +155,7 @@ class FakeRecordRepository implements RecordRepository {
       pickedShop: pickedShop,
       changesPhoto: changesPhoto,
       photoPath: photoPath,
+      shopMemo: shopMemo,
     ));
     return unusedPhotoPath;
   }

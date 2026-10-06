@@ -596,7 +596,7 @@ void main() {
       expect(waitMinutes(entry.visit), 35);
     });
 
-    test('記録済みの店に並んでいるときは、その店の攻略メモも引き継ぐ', () async {
+    test('記録済みの店に並んでいるときは、その店の覚え書きも引き継ぐ', () async {
       final repository = container.read(recordRepositoryProvider);
       final first = await repository.saveEatenVisit(
         shop: const ShopInput(name: '行きつけの店'),
@@ -827,6 +827,7 @@ void main() {
         ..setStyle(RamenStyle.iekei)
         ..setLimited(true)
         ..setMemo('かため')
+        ..setShopMemo('券売機は現金のみ')
         ..setWaitMinutes(25);
       // 写真は一時ファイルではなく documents に写してある。
       expect(p.isWithin(draftPhotos().path, state().photoPath!), isTrue);
@@ -848,6 +849,7 @@ void main() {
       expect(resumed.style, RamenStyle.iekei);
       expect(resumed.isLimited, isTrue);
       expect(resumed.memo, 'かため');
+      expect(resumed.shopMemo, '券売機は現金のみ');
       expect(resumed.manualWaitMinutes, 25);
 
       expect(
@@ -858,6 +860,7 @@ void main() {
           (await next.read(recordRepositoryProvider).watchVisits().first)
               .single;
       expect(entry.shop.name, '麺屋テスト');
+      expect(entry.shop.strategyMemo, '券売機は現金のみ');
       expect(entry.visit.memo, 'かため');
       expect(entry.visit.style, RamenStyle.iekei);
     });
@@ -1073,6 +1076,101 @@ void main() {
       expect(draftFile().existsSync(), isFalse);
       expect(draftPhotos().listSync(), isEmpty);
       expect(File(p.join(documents.path, saved)).readAsBytesSync(), [1, 2, 3]);
+    });
+  });
+
+  group('店の覚え書き', () {
+    Future<String> knownShop(String name, String memo) async {
+      final repository = container.read(recordRepositoryProvider);
+      final visit = await repository.saveEatenVisit(
+        shop: ShopInput(name: name),
+        eatenAt: DateTime(2026, 9, 1),
+        now: DateTime(2026, 9, 1),
+      );
+      await repository.setShopMemo(visit.shopId, memo);
+      return visit.shopId;
+    }
+
+    Future<Shop> savedShop(String name) async => (await visits())
+        .firstWhere((e) => e.shop.name == name && e.visit.memo == 'かため')
+        .shop;
+
+    test('初めての店を選んで書くと、新しい店と一緒に保存する', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller()
+        ..selectShop(state().candidates.single)
+        ..setMemo('かため');
+      expect(state().shopMemo, '');
+
+      controller().setShopMemo(' 券売機は現金のみ ');
+      expect(await controller().save(), isNotNull);
+
+      final shop = await savedShop('麺屋テスト');
+      expect(shop.strategyMemo, '券売機は現金のみ');
+    });
+
+    test('記録済みの店を選ぶと、その店の覚え書きが入り、書き換えると店に保存する', () async {
+      await knownShop('行きつけの店', '11時前に着けば一巡目');
+      await controller().start();
+      await pumpEventQueue();
+
+      controller().setManualName('行きつけ');
+      controller().selectShop(state().nameMatches.single);
+      expect(state().shopMemo, '11時前に着けば一巡目');
+
+      controller()
+        ..setMemo('かため')
+        ..setShopMemo('11時前に着けば一巡目。券売機は現金のみ');
+      expect(await controller().save(), isNotNull);
+
+      final shop = await savedShop('行きつけの店');
+      expect(shop.strategyMemo, '11時前に着けば一巡目。券売機は現金のみ');
+    });
+
+    test('記録済みの店の名前を打つと、その店の覚え書きが入り、触らなければそのまま', () async {
+      await knownShop('行きつけの店', '11時前に着けば一巡目');
+      await controller().start();
+      await pumpEventQueue();
+
+      controller().setManualName('行きつけ');
+      expect(state().shopMemo, '');
+      controller()
+        ..setManualName('行きつけの店')
+        ..setMemo('かため');
+      expect(state().shopMemo, '11時前に着けば一巡目');
+      expect(state().shopMemoEdited, isFalse);
+      expect(await controller().save(), isNotNull);
+
+      final shop = await savedShop('行きつけの店');
+      expect(shop.strategyMemo, '11時前に着けば一巡目');
+    });
+
+    test('店を選び替えると、書きかけを捨ててその店の覚え書きに入れ替える', () async {
+      await knownShop('行きつけの店', '11時前に着けば一巡目');
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+
+      controller().setManualName('行きつけ');
+      final known = state().nameMatches.single;
+      controller()
+        ..selectShop(known)
+        ..setShopMemo('書きかけ');
+      expect(state().shopMemoEdited, isTrue);
+
+      controller().selectShop(state().candidates.single);
+      expect(state().shopMemo, '');
+      expect(state().shopMemoEdited, isFalse);
+
+      controller().selectShop(known);
+      expect(state().shopMemo, '11時前に着けば一巡目');
+
+      // 店名を打ち始めて選んだ店が外れたら、空から書く。
+      controller().setManualName('別の店');
+      expect(state().selectedShop, isNull);
+      expect(state().shopMemo, '');
     });
   });
 }

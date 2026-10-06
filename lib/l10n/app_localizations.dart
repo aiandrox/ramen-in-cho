@@ -361,8 +361,20 @@ abstract class AppLocalizations {
   /// No description provided for @memoLabel.
   ///
   /// In ja, this message translates to:
-  /// **'メモ'**
+  /// **'この一杯について'**
   String get memoLabel;
+
+  /// No description provided for @memoHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'麺かため。前よりスープが濃い'**
+  String get memoHint;
+
+  /// No description provided for @memoHelper.
+  ///
+  /// In ja, this message translates to:
+  /// **'この日の一杯の感想'**
+  String get memoHelper;
 
   /// No description provided for @draftResumed.
   ///
@@ -1093,8 +1105,14 @@ abstract class AppLocalizations {
   /// No description provided for @shopMemoSection.
   ///
   /// In ja, this message translates to:
-  /// **'この店の攻略メモ'**
+  /// **'店の覚え書き'**
   String get shopMemoSection;
+
+  /// No description provided for @shopMemoHelper.
+  ///
+  /// In ja, this message translates to:
+  /// **'次に来るときのために、店のことを書いておく'**
+  String get shopMemoHelper;
 
   /// No description provided for @shopFamousToggle.
   ///
@@ -1117,19 +1135,19 @@ abstract class AppLocalizations {
   /// No description provided for @shopMemoHint.
   ///
   /// In ja, this message translates to:
-  /// **'開店の何分前に着けばいいか、券売機、整理券の配り方など'**
+  /// **'券売機は現金のみ／11時前に着けば一巡目'**
   String get shopMemoHint;
 
   /// No description provided for @shopMemoEdit.
   ///
   /// In ja, this message translates to:
-  /// **'攻略メモを書く'**
+  /// **'店の覚え書きを書く'**
   String get shopMemoEdit;
 
   /// No description provided for @shopMemoInline.
   ///
   /// In ja, this message translates to:
-  /// **'攻略メモ: {memo}'**
+  /// **'店の覚え書き: {memo}'**
   String shopMemoInline(String memo);
 
   /// No description provided for @navWishes.

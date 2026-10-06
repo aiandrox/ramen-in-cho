@@ -179,7 +179,7 @@ class RecordController extends Notifier<RecordState> {
   }
 
   Future<void> _useCheckin(Checkin checkin) async {
-    // 記録済みの店なら、攻略メモも引き継ぐため店から作る。
+    // 記録済みの店なら、店の覚え書きも引き継ぐため店から作る。
     final known = checkin.shopId == null
         ? null
         : (await ref.read(recordRepositoryProvider).allShops())
@@ -203,6 +203,8 @@ class RecordController extends Notifier<RecordState> {
       checkin: checkin,
       checkinShop: shop,
       selectedShop: shop,
+      shopMemo: shop.strategyMemo,
+      shopMemoOriginal: shop.strategyMemo,
     );
   }
 
@@ -241,6 +243,9 @@ class RecordController extends Notifier<RecordState> {
     _restoredShop = draft.selectedShop;
     _photoFromDraft = draft.photoPath != null;
     final typedName = draft.manualName.trim().isNotEmpty;
+    final keepsShop = draft.selectedShop == null && !typedName;
+    final shopMemoEdited =
+        draft.shopMemo.trim() != draft.shopMemoOriginal.trim();
     state = state.copyWith(
       photoPath: draft.photoPath,
       photoTakenAt: draft.photoTakenAt,
@@ -256,6 +261,11 @@ class RecordController extends Notifier<RecordState> {
       style: draft.style,
       isLimited: draft.isLimited,
       memo: draft.memo,
+      // 覚え書きに触っていなければ、選んでいる店（並んでいる店など）の今の覚え書きを出す。
+      shopMemo: keepsShop && !shopMemoEdited ? state.shopMemo : draft.shopMemo,
+      shopMemoOriginal: keepsShop && !shopMemoEdited
+          ? state.shopMemoOriginal
+          : draft.shopMemoOriginal,
       manualWaitMinutes: draft.manualWaitMinutes,
       arrivedAt: draft.arrivedAt,
       resumedFromDraft: true,
@@ -289,6 +299,8 @@ class RecordController extends Notifier<RecordState> {
       checkin: active,
       checkinShop: checkinShop,
       selectedShop: checkinShop,
+      shopMemo: checkinShop?.strategyMemo ?? '',
+      shopMemoOriginal: checkinShop?.strategyMemo ?? '',
       arrivedAt: active == null ? null : _tappedArrivedAt,
     );
     // 写真ごと捨てたら、その写真で探した候補も消す（写真を選ぶまで探さない）。
@@ -447,22 +459,51 @@ class RecordController extends Notifier<RecordState> {
   /// 店名で探すときに近い順に並べる基準（写真の撮影場所か現在地）。
   GeoPoint? get searchCenter => state.photoLocation ?? _here ?? _quietHere;
 
+  /// 店を選び替えたら、店の覚え書きの欄はその店の覚え書きに入れ替える（前の店に書きかけた分は捨てる）。
   void selectShop(ShopCandidate shop) {
+    final memo = _shopMemoOf(shop);
     state = state.copyWith(
       selectedShop: shop,
       manualName: '',
       nameMatches: const [],
+      shopMemo: memo,
+      shopMemoOriginal: memo,
     );
   }
 
+  /// 選んだ店の覚え書き。願や検索の候補は覚え書きを持たないので、記録済みの店から引く。
+  String _shopMemoOf(ShopCandidate shop) {
+    if (shop.strategyMemo.isNotEmpty) return shop.strategyMemo;
+    final shopId = shop.shopId;
+    if (shopId == null) return '';
+    return _knownShops.where((s) => s.id == shopId).firstOrNull?.strategyMemo ??
+        '';
+  }
+
+  /// 店名を打っている間、覚え書きに触っていなければ、同じ名前の記録済みの店の覚え書きを入れておく
+  /// （保存で同じ店とわかったときに、見ていない覚え書きを上書きしないため）。
   void setManualName(String name) {
     final query = normalizeShopName(name);
     final deselects = query.isNotEmpty && state.selectedShop != null;
+    final refills =
+        deselects || (state.selectedShop == null && !state.shopMemoEdited);
+    final memo = refills ? _knownShopMemoByName(query) : null;
     state = state.copyWith(
       manualName: name,
       selectedShop: deselects ? null : state.selectedShop,
       nameMatches: query.isEmpty ? const [] : _nameMatches(query),
+      shopMemo: memo,
+      shopMemoOriginal: memo,
     );
+  }
+
+  String _knownShopMemoByName(String query) {
+    if (query.isEmpty) return '';
+    return _knownShops
+            .where((shop) => normalizeShopName(shop.name) == query)
+            .firstOrNull
+            ?.strategyMemo ??
+        '';
   }
 
   /// 店名を打っているときの候補。まだの願の店（位置のわからない店も）を先に出す。
@@ -499,6 +540,8 @@ class RecordController extends Notifier<RecordState> {
   void setLimited(bool value) => state = state.copyWith(isLimited: value);
 
   void setMemo(String memo) => state = state.copyWith(memo: memo);
+
+  void setShopMemo(String memo) => state = state.copyWith(shopMemo: memo);
 
   void setWaitMinutes(int? minutes) =>
       state = state.copyWith(manualWaitMinutes: minutes);
@@ -541,6 +584,8 @@ class RecordController extends Notifier<RecordState> {
             style: draft.style,
             isLimited: draft.isLimited,
             memo: draft.memo.trim(),
+            // 書き換えたときだけ店に書く（打った店名が記録済みの店でも、触らなければ前の覚え書きを残す）。
+            shopMemo: draft.shopMemoEdited ? draft.shopMemo.trim() : null,
             now: now,
           );
       _draftClosed = true;

@@ -172,6 +172,41 @@ void main() {
     expect(picker.cameraOpens, 1);
   });
 
+  testWidgets('店を選ぶと「店の覚え書き」の欄が出て、「この一杯について」と一緒に保存する', (tester) async {
+    picker.cameraPath = _photoFile();
+    await pumpScreen(tester);
+    expect(find.widgetWithText(TextField, ja.shopMemoSection), findsNothing);
+
+    await tester.tap(find.text(ja.takePhoto));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('麺屋テスト'));
+    await tester.pump();
+
+    final shopMemo = find.widgetWithText(TextField, ja.shopMemoSection);
+    await tester.ensureVisible(shopMemo);
+    expect(find.text(ja.shopMemoHelper), findsOneWidget);
+    expect(find.text(ja.memoHelper), findsOneWidget);
+    await tester.enterText(shopMemo, '券売機は現金のみ');
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.memoLabel),
+      '麺かため',
+    );
+    await tester.pump();
+
+    await tester.runAsync(() async {
+      await tester.tap(find.widgetWithText(AiFuda, ja.save));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final visits = await tester.runAsync(
+      () => RecordRepository(database).watchVisits().first,
+    );
+    expect(visits!.single.visit.memo, '麺かため');
+    expect(visits.single.shop.strategyMemo, '券売機は現金のみ');
+  });
+
   testWidgets('店名を1文字入れても入力欄が作り直されない（変換中の文字が確定しない）', (tester) async {
     await pumpScreen(tester);
     final field = find.widgetWithText(TextField, ja.shopNameLabel);

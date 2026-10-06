@@ -27,6 +27,8 @@ class RecordState {
     this.style,
     this.isLimited = false,
     this.memo = '',
+    this.shopMemo = '',
+    this.shopMemoOriginal = '',
     this.manualWaitMinutes,
     this.arrivedAt,
     this.isSaving = false,
@@ -63,6 +65,14 @@ class RecordState {
   final RamenStyle? style;
   final bool isLimited;
   final String memo;
+
+  /// 店の覚え書きの入力欄。店を選ぶたびに、その店の覚え書きに入れ替わる。
+  final String shopMemo;
+
+  /// [shopMemo]に入れた、選んだ店のもとの覚え書き。書き換えたときだけ店に保存する。
+  final String shopMemoOriginal;
+
+  bool get shopMemoEdited => shopMemo.trim() != shopMemoOriginal.trim();
 
   /// あとから入れた待ち時間（分）。並んだ店を選んでいるときは使わない。
   final int? manualWaitMinutes;
@@ -113,6 +123,8 @@ class RecordState {
     Object? style = _unset,
     bool? isLimited,
     String? memo,
+    String? shopMemo,
+    String? shopMemoOriginal,
     Object? manualWaitMinutes = _unset,
     Object? arrivedAt = _unset,
     bool? isSaving,
@@ -147,6 +159,8 @@ class RecordState {
       style: style == _unset ? this.style : style as RamenStyle?,
       isLimited: isLimited ?? this.isLimited,
       memo: memo ?? this.memo,
+      shopMemo: shopMemo ?? this.shopMemo,
+      shopMemoOriginal: shopMemoOriginal ?? this.shopMemoOriginal,
       manualWaitMinutes: manualWaitMinutes == _unset
           ? this.manualWaitMinutes
           : manualWaitMinutes as int?,

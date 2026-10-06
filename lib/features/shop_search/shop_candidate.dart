@@ -40,7 +40,7 @@ class ShopCandidate {
   final GeoPoint? location;
   final double? distanceMeters;
 
-  /// 記録済みの店の攻略メモ。
+  /// 記録済みの店の覚え書き。
   final String strategyMemo;
 
   final ShopSource? dataSource;

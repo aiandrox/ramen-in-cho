@@ -43,7 +43,7 @@ class Shop {
   /// 利用者が「名店」の印をつけた店か。食べるたびに修行点が上乗せされる。
   final bool isFamous;
 
-  /// 店ごとの攻略メモ（開店の何分前に着けばよいか、券売機など）。記録ごとのメモとは別。
+  /// 店の覚え書き（開店の何分前に着けばよいか、券売機など）。1杯ごとの「この一杯について」（Visit.memo）とは別。
   final String strategyMemo;
 
   /// OpenPOI で見つけた店の出所。OpenStreetMap の店・手入力の店は null。

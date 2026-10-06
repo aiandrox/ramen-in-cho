@@ -312,7 +312,9 @@ const verdicts = <int, Phrases>{
   1: Phrases('★1', ['これもまた修行。', '合わない味を知るのも道のうち。', '今日の味は、胸にしまう。']),
 };
 
-const memoQuote = Phrases('メモが20文字以内で1行（共有カードでは出さない）', ['――「{メモ}」と書き残す。']);
+const memoQuote = Phrases('「この一杯について」が20文字以内で1行（共有カードでは出さない）', [
+  '――「{メモ}」と書き残す。',
+]);
 
 // 締め
 
@@ -397,7 +399,7 @@ final journalCatalog = <PhraseSection>[
     longestWaitRecord,
   ], note: '当てはまるもののうち最初の1つ'),
   PhraseSection('★', [...verdicts.values], note: '★を付けた1杯'),
-  PhraseSection('メモ', [memoQuote]),
+  PhraseSection('この一杯について', [memoQuote]),
   PhraseSection('締め', [
     wishSameDayClosing,
     wishClosing,
