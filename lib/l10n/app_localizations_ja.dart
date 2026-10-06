@@ -1908,4 +1908,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get nameSearchPickOnMap => '見つからないときは、地図で場所を指す';
+
+  @override
+  String get locationSettings => '位置情報';
+
+  @override
+  String get locationAccessGranted => '使えます（アプリを使っている間だけ）。タップでスマホの設定を開く';
+
+  @override
+  String get locationAccessNotGranted => 'まだ許可されていません。タップで許可する';
+
+  @override
+  String get locationAccessDeniedForever => '許可されていません。タップでスマホの設定を開いて許可する';
+
+  @override
+  String get locationAccessServiceOff => 'スマホの位置情報がオフです。タップで設定を開く';
 }

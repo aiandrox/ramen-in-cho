@@ -8,6 +8,7 @@ import '../home_base/home_base_picker_screen.dart';
 import '../home_base/home_base_repository.dart';
 import '../notifications/notification_settings_screen.dart';
 import '../onboarding/onboarding_screen.dart';
+import 'location_access.dart';
 
 /// 設定。修行タブの右上の歯車から開く。
 class SettingsScreen extends ConsumerWidget {
@@ -38,6 +39,7 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => open(const HomeBasePickerScreen()),
           ),
+          const LocationAccessTile(),
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.notificationSettings),
