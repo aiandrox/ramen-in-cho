@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../theme/even_grid.dart';
 import '../../theme/washi.dart';
 import '../scoring/scoring_providers.dart';
 import '../visit_detail/visit_detail_screen.dart';
@@ -148,23 +149,13 @@ class _SpotGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final columns = ((width + _spacing) / (_minWidth + _spacing))
-            .floor()
-            .clamp(1, 99);
-        // 小数の誤差で最後の1つが次の行に落ちないよう、ごくわずかに詰める。
-        final itemWidth = (width - _spacing * (columns - 1)) / columns - 0.01;
-        return Wrap(
-          spacing: _spacing,
-          runSpacing: _spacing,
-          children: [
-            for (final progress in achieved)
-              _SpotSeal(progress: progress, width: itemWidth),
-          ],
-        );
-      },
+    return EvenGrid(
+      minItemWidth: _minWidth,
+      spacing: _spacing,
+      runSpacing: _spacing,
+      itemCount: achieved.length,
+      itemBuilder: (context, index, width) =>
+          _SpotSeal(progress: achieved[index], width: width),
     );
   }
 }

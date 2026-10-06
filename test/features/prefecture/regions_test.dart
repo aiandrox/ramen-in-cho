@@ -11,6 +11,7 @@ import 'package:ramen_in_cho/features/prefecture/regions.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/scoring/points.dart';
 import 'package:ramen_in_cho/features/scoring/scoring_providers.dart';
+import 'package:ramen_in_cho/theme/even_grid.dart';
 
 import '../../support/builders.dart';
 import '../../support/l10n.dart';
@@ -150,5 +151,45 @@ void main() {
       find.text(ja.prefectureBookEntry('2026/9/2', '仙台の二軒目')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('都道府県の升目は、スマホの幅いっぱいに右の空きなく並ぶ', (tester) async {
+    tester.view.physicalSize = const Size(393 * 3, 8000);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [scoredVisitsProvider.overrideWithValue(const [])],
+        child: localizedApp(home: const PrefectureBookScreen()),
+      ),
+    );
+
+    // 関東（7都県）の升目。
+    final grid = find.byType(EvenGrid).at(Region.kanto.index);
+    final wrap = tester.widget<Wrap>(
+      find.descendant(of: grid, matching: find.byType(Wrap)).first,
+    );
+    final rects = [
+      for (final child in wrap.children) tester.getRect(find.byWidget(child)),
+    ];
+    final firstRow = rects.where((r) => r.top == rects.first.top).toList();
+    final gridRect = tester.getRect(grid);
+
+    expect(firstRow.length, greaterThanOrEqualTo(4));
+    expect(firstRow.first.left, moreOrLessEquals(gridRect.left, epsilon: 0.5));
+    expect(firstRow.last.right, moreOrLessEquals(gridRect.right, epsilon: 1));
+    expect(gridRect.width, moreOrLessEquals(393 - 32, epsilon: 0.5));
+    expect(tester.takeException(), isNull);
+  });
+
+  test('升目の列の数は、いちばん狭い幅が入るだけ取り、余りは升目に配る', () {
+    final (columns, width) = EvenGrid.layout(361, prefectureTileMinWidth, 8);
+    expect(columns, 4);
+    expect(
+      width * columns + 8 * (columns - 1),
+      moreOrLessEquals(361, epsilon: 0.1),
+    );
+    expect(EvenGrid.layout(312, 96, 8).$1, 3);
+    expect(EvenGrid.layout(50, 96, 8).$1, 1);
   });
 }
