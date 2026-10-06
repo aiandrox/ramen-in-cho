@@ -39,6 +39,14 @@ class _NotificationSettingsScreenState
     if (mounted) setState(() => _permitted = permitted);
   }
 
+  /// まだ一度も尋ねていなければ OS に尋ね、それでも許可が無ければスマホの設定を開く。
+  /// iOS は一度も尋ねていないアプリの通知の項目を設定に出さないため。
+  Future<void> _allow() async {
+    await ref.read(notificationServiceProvider).requestPermission();
+    await _checkPermission();
+    if (_permitted == false) await openNotificationSettings();
+  }
+
   Future<void> _pickStreakTime(NotificationSettings settings) async {
     final time = await showTimePicker(
       context: context,
@@ -80,7 +88,7 @@ class _NotificationSettingsScreenState
                 title: Text(l10n.notificationNotPermitted),
                 subtitle: Text(l10n.notificationNotPermittedNote),
                 trailing: const Icon(Icons.open_in_new),
-                onTap: openNotificationSettings,
+                onTap: _allow,
               ),
             ),
           for (final kind in NotificationKind.values) ...[

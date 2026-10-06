@@ -98,6 +98,9 @@ void listenForNotifications(WidgetRef ref, AppLocalizations Function() l10n) {
     // 「今」は1分ごとに進むので、予約が変わらないときは問い合わせない。
     if (scheduled != null && listEquals(scheduled, next)) return;
     scheduled = next;
-    ref.read(notificationServiceProvider).replaceScheduled(next);
+    ref.read(notificationServiceProvider).replaceScheduled(next).then((ok) {
+      // 失敗したら、次に「今」が進んだときに予約し直す。
+      if (!ok && identical(scheduled, next)) scheduled = null;
+    });
   }, fireImmediately: true);
 }

@@ -28,7 +28,8 @@ abstract class NotificationService {
   Future<bool?> isPermitted();
 
   /// 予約済みの通知（並び中の通知を除く）を[notifications]に置き換える。
-  Future<void> replaceScheduled(List<ScheduledNotification> notifications);
+  /// 置き換えられなかったらfalse。
+  Future<bool> replaceScheduled(List<ScheduledNotification> notifications);
 }
 
 @immutable
@@ -195,14 +196,14 @@ class LocalNotificationService implements NotificationService {
     return null;
   }
 
-  Future<void> _replacing = Future.value();
+  Future<bool> _replacing = Future.value(true);
 
   // 続けて呼ばれても前の置き換えと混ざらないよう、1つずつ順に行う。
   @override
-  Future<void> replaceScheduled(List<ScheduledNotification> notifications) =>
+  Future<bool> replaceScheduled(List<ScheduledNotification> notifications) =>
       _replacing = _replacing.then((_) => _replace(notifications));
 
-  Future<void> _replace(List<ScheduledNotification> notifications) async {
+  Future<bool> _replace(List<ScheduledNotification> notifications) async {
     try {
       await _initialize();
       final keep = {for (final n in notifications) n.id};
@@ -231,8 +232,10 @@ class LocalNotificationService implements NotificationService {
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
       }
+      return true;
     } catch (e) {
       debugPrint('Notification schedule failed: $e');
+      return false;
     }
   }
 

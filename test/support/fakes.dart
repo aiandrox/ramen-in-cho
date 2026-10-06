@@ -305,11 +305,12 @@ class FakeNotificationService implements NotificationService {
   Future<bool?> isPermitted() async => permitted;
 
   @override
-  Future<void> replaceScheduled(
+  Future<bool> replaceScheduled(
     List<ScheduledNotification> notifications,
   ) async {
     replaceCount++;
     scheduled = notifications;
+    return true;
   }
 }
 
