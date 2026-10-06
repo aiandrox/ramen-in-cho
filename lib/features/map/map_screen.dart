@@ -61,13 +61,12 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// 旅路を見せる年。nullならすべての年。
   int? _journeyYear;
 
-  /// 旅路を再生しているときの店の並び。再生していなければnull。
-  List<JourneyStop>? _replayStops;
+  /// 旅路を再生しているときの段取り。再生していなければnull。
+  JourneyReplayPlan? _replayPlan;
   late final _replayController = AnimationController(vsync: this)
+    ..addListener(_followReplay)
     ..addStatusListener((status) {
-      if (status == AnimationStatus.completed && mounted) {
-        setState(_stopReplay);
-      }
+      if (status == AnimationStatus.completed && mounted) _finishReplay();
     });
 
   @override
@@ -154,24 +153,44 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   void _stopReplay() {
     _replayController.stop();
-    _replayStops = null;
+    _replayPlan = null;
   }
 
-  /// 1杯目から順に、線を筆で引くようにのばし、着いた店を1つずつ灯していく。
+  /// 終わったときと「止める」では、引き終えた旅路の全体を見せる。
+  void _finishReplay() {
+    final stops = _replayPlan?.stops;
+    setState(_stopReplay);
+    if (stops != null) _fitTo(stops);
+  }
+
+  /// 1杯目の店に寄せ、倍率を変えずに線の先を追って店から店へ進み、着いた店を1つずつ灯していく。
   /// 動きを減らす設定のときは、引き終えた旅路をそのまま見せる。
   void _replay(List<JourneyStop> stops) {
     _stopReplay();
     if (stops.isEmpty) return;
-    _fitTo(stops);
     if (MediaQuery.disableAnimationsOf(context)) {
+      _fitTo(stops);
       setState(() {});
       return;
     }
-    setState(() => _replayStops = stops);
+    final plan = JourneyReplayPlan(stops);
+    setState(() => _replayPlan = plan);
+    _moveTo(plan.cameraAt(0));
     _replayController
-      ..duration = journeyReplayDuration(stops.length)
+      ..duration = plan.duration
       ..forward(from: 0);
   }
+
+  void _followReplay() {
+    final plan = _replayPlan;
+    if (plan == null) return;
+    _moveTo(plan.cameraAt(_replayController.value));
+  }
+
+  void _moveTo(GeoPoint point) => _controller.move(
+    LatLng(point.latitude, point.longitude),
+    journeyFollowZoom,
+  );
 
   void _fitTo(List<JourneyStop> stops) {
     if (stops.isEmpty) return;
@@ -263,7 +282,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
             for (final stop in allStops)
               if (stop.eatenAt.year == _journeyYear) stop,
           ];
-    final replayStops = _replayStops;
+    final replayPlan = _replayPlan;
+    final replayStops = replayPlan?.stops;
     // 再生中は、旅路の店のピンだけを、線が着いた順に灯す。
     final pins = replayStops == null
         ? allPins
@@ -305,9 +325,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       padding: const EdgeInsets.all(48),
                       maxZoom: 16,
                     ),
-              // 再生中に地図に触れたら、再生をやめて引き終えた旅路を見せる。
-              onTap: (_, _) {
-                if (_replayStops != null) setState(_stopReplay);
+              // 再生中に地図に触れたら、追うのをやめて引き終えた旅路を見せる（地図はその場のまま）。
+              onPointerDown: (_, _) {
+                if (_replayPlan != null) setState(_stopReplay);
               },
               onPositionChanged: (_, hasGesture) {
                 if (hasGesture) _userMoved = true;
@@ -330,9 +350,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                   ? [for (final stop in stops) stop.location]
                                   : journeyLineTo(
                                       replayStops,
-                                      journeyReplayReach(
+                                      replayPlan!.reachAt(
                                         _replayController.value,
-                                        replayStops.length,
                                       ),
                                     ))
                             LatLng(point.latitude, point.longitude),
@@ -391,7 +410,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           ? _Pin(pin: pin)
                           : _LightingPin(
                               animation: _replayController,
-                              stops: replayStops,
+                              plan: replayPlan!,
                               order: replayStops.indexWhere(
                                 (stop) => stop.shop.id == pin.shop.id,
                               ),
@@ -455,9 +474,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       if (year == null || stop.eatenAt.year == year) stop,
                   ]);
                 },
-                onReplay: () => replayStops == null
-                    ? _replay(stops)
-                    : setState(_stopReplay),
+                onReplay: () =>
+                    replayPlan == null ? _replay(stops) : _finishReplay(),
                 onExpeditions: () =>
                     _showExpeditions(expeditions(scored, year: _journeyYear)),
               ),
@@ -850,13 +868,13 @@ class _LoadingBadge extends StatelessWidget {
 class _LightingPin extends StatelessWidget {
   const _LightingPin({
     required this.animation,
-    required this.stops,
+    required this.plan,
     required this.order,
     required this.child,
   });
 
   final Animation<double> animation;
-  final List<JourneyStop> stops;
+  final JourneyReplayPlan plan;
 
   /// 旅路の何番目に着く店か。
   final int order;
@@ -867,9 +885,10 @@ class _LightingPin extends StatelessWidget {
     animation: animation,
     child: child,
     builder: (context, child) {
-      final lit =
-          ((journeyReplayReach(animation.value, stops.length) - order) / 0.35)
-              .clamp(0.0, 1.0);
+      // 1杯目の店は、寄せたときから灯しておく。
+      final lit = order == 0
+          ? 1.0
+          : ((plan.reachAt(animation.value) - order) / 0.35).clamp(0.0, 1.0);
       if (lit == 0) return const SizedBox.shrink();
       final pop = Curves.easeOutBack.transform(lit);
       return Opacity(
