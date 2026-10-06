@@ -36,10 +36,10 @@ D1 のつなぎ（`DB`）は `wrangler.toml` に書いてあるので、デプ�
 
 ## App Check
 
-`/api/v1/...` は `functions/api/_middleware.ts` で Firebase App Check（プロジェクト `ramen-in-cho`）のトークンを確かめる。`wrangler.toml` の `APP_CHECK_ENFORCE` が `"false"` のうちは、トークンが無い・正しくない問い合わせも通し、ログ（`app check: missing` / `invalid`）に残すだけ。アプリからの問い合わせがほぼ `ok` になったのを確かめてから `"true"` にする。
+`/api/v1/...` は `functions/api/_middleware.ts` で Firebase App Check（プロジェクト `ramen-in-cho`）のトークンを確かめる。`wrangler.toml` の `APP_CHECK_ENFORCE` が `"false"` のうちは、トークンが無い・正しくない問い合わせも通し、ログ（`app check: missing` / `invalid`）に残すだけ。2026-10-06 に iPhone・Android（Mac から直接入れたもの）とも `ok` になったのを確かめ、`"true"`（断る）にした。断られてもアプリは端末から直接探す。
 
 - iOS: Firebase コンソール → App Check で App Attest を登録（チームIDが要る）。`ios/Runner/Runner.entitlements` に `com.apple.developer.devicecheck.appattest-environment` = `production` を入れ、Release・Profile にだけ付ける
-- Android: Firebase コンソール → App Check で Play Integrity を登録（署名の SHA-256 が要る）。Google Play から入れたアプリでないと通らないので、`adb install` で入れたアプリはデバッグ用トークンを使う
+- Android: Firebase コンソール → App Check で Play Integrity を登録。Firebase の Android アプリに、Play のアプリ署名鍵・アップロード鍵・この Mac の開発用の鍵の SHA-256 を登録してある。Play 以外から入れたアプリ（`adb install`）も通すため、Play Integrity の設定で `appIntegrity.allowUnrecognizedVersion` を true にしてある（登録した鍵で署名したものだけ通る）
 - トークンの有効期限（Token time to live）は iOS・Android とも1日。店の中は電波が弱く、取り直しで待たせないため（返すのは店の公開情報だけなので、長めでも困らない）
 - デバッグビルド: `--dart-define=APP_CHECK_DEBUG_TOKEN=<UUID>` で渡したトークンを、Firebase コンソール → App Check → アプリ → デバッグトークンの管理 に登録する
 
