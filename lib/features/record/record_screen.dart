@@ -246,27 +246,21 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
               onChanged: controller.setRating,
             ),
           ),
-          const SizedBox(height: 16),
-          _FoldSection(
-            initiallyExpanded: true,
-            title: l10n.optionalSection,
-            children: [
-              VisitDetailsForm(
-                style: state.style,
-                isLimited: state.isLimited,
-                memoController: _memoController,
-                onStyleChanged: controller.setStyle,
-                onLimitedChanged: controller.setLimited,
-                onMemoChanged: controller.setMemo,
-                // 並んだ店を選んでいれば、待ち時間は並んだ時刻から自動で計算する。
-                waitController: state.isCheckinShopSelected
-                    ? null
-                    : _waitController,
-                onWaitChanged: controller.setWaitMinutes,
-                shopMemoController: state.hasShop ? _shopMemoController : null,
-                onShopMemoChanged: controller.setShopMemo,
-              ),
-            ],
+          const SizedBox(height: 24),
+          VisitDetailsForm(
+            style: state.style,
+            isLimited: state.isLimited,
+            memoController: _memoController,
+            onStyleChanged: controller.setStyle,
+            onLimitedChanged: controller.setLimited,
+            onMemoChanged: controller.setMemo,
+            // 並んだ店を選んでいれば、待ち時間は並んだ時刻から自動で計算する。
+            waitController: state.isCheckinShopSelected
+                ? null
+                : _waitController,
+            onWaitChanged: controller.setWaitMinutes,
+            shopMemoController: state.hasShop ? _shopMemoController : null,
+            onShopMemoChanged: controller.setShopMemo,
           ),
         ],
       ),
@@ -321,41 +315,6 @@ class _DraftNotice extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// 開け閉めできる欄。入力欄の枠と紛れないよう、開いても上下に線を引かない。
-class _FoldSection extends StatelessWidget {
-  const _FoldSection({
-    required this.title,
-    this.initiallyExpanded = false,
-    required this.children,
-  });
-
-  final String title;
-  final bool initiallyExpanded;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return ExpansionTile(
-      initiallyExpanded: initiallyExpanded,
-      tilePadding: EdgeInsets.zero,
-      shape: const Border(),
-      collapsedShape: const Border(),
-      iconColor: Washi.ai,
-      collapsedIconColor: Washi.inkSoft,
-      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontFamily: Washi.brush,
-          fontSize: 20,
-          color: Washi.ink,
-        ),
-      ),
-      children: children,
     );
   }
 }

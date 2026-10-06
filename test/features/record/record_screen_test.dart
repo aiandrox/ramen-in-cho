@@ -19,6 +19,7 @@ import 'package:ramen_in_cho/features/record/record_result_screen.dart';
 import 'package:ramen_in_cho/features/record/record_screen.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
+import 'package:ramen_in_cho/features/records/visit_details_form.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/location_service.dart';
@@ -160,11 +161,11 @@ void main() {
     expect(visits.single.visit.rating, 4);
   });
 
-  testWidgets('開いただけではカメラを起動せず、ボタンを押すと起動する。くわしくは最初から開いている', (tester) async {
+  testWidgets('開いただけではカメラを起動せず、ボタンを押すと起動する。系統や感想の欄は最初から並んでいる', (tester) async {
     await pumpScreen(tester);
 
     expect(picker.cameraOpens, 0);
-    expect(find.text(ja.memoLabel), findsOneWidget);
+    expect(find.byKey(VisitDetailsForm.memoFieldKey), findsOneWidget);
 
     await tester.tap(find.text(ja.takePhoto));
     await tester.pumpAndSettle();
@@ -172,25 +173,25 @@ void main() {
     expect(picker.cameraOpens, 1);
   });
 
-  testWidgets('店を選ぶと「店の覚え書き」の欄が出て、「この一杯について」と一緒に保存する', (tester) async {
+  testWidgets('「店の覚え書き」は店を決めるまで押せず、決めると書けて「この一杯について」と一緒に保存する', (tester) async {
     picker.cameraPath = _photoFile();
     await pumpScreen(tester);
-    expect(find.widgetWithText(TextField, ja.shopMemoSection), findsNothing);
+    expect(find.byKey(VisitDetailsForm.shopMemoFieldKey), findsNothing);
+    final disabled = find.byKey(VisitDetailsForm.shopMemoDisabledFieldKey);
+    expect(tester.widget<TextField>(disabled).enabled, isFalse);
+    expect(find.text(ja.shopMemoNeedsShop), findsOneWidget);
 
     await tester.tap(find.text(ja.takePhoto));
     await tester.pumpAndSettle();
     await tester.tap(find.text('麺屋テスト'));
     await tester.pump();
 
-    final shopMemo = find.widgetWithText(TextField, ja.shopMemoSection);
+    final shopMemo = find.byKey(VisitDetailsForm.shopMemoFieldKey);
     await tester.ensureVisible(shopMemo);
     expect(find.text(ja.shopMemoHelper), findsOneWidget);
     expect(find.text(ja.memoHelper), findsOneWidget);
     await tester.enterText(shopMemo, '券売機は現金のみ');
-    await tester.enterText(
-      find.widgetWithText(TextField, ja.memoLabel),
-      '麺かため',
-    );
+    await tester.enterText(find.byKey(VisitDetailsForm.memoFieldKey), '麺かため');
     await tester.pump();
 
     await tester.runAsync(() async {

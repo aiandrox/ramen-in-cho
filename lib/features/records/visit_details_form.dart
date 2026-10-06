@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../theme/washi.dart';
 import 'models.dart';
 import 'style_tiles.dart';
 
 /// 系統・限定・待ち時間・「この一杯について」・「店の覚え書き」の入力欄。記録画面と編集画面で共有する。
+/// 開け閉めはせず、見出しをつけてそのまま並べる（どれも任意）。
 class VisitDetailsForm extends StatelessWidget {
   const VisitDetailsForm({
     super.key,
@@ -21,6 +23,11 @@ class VisitDetailsForm extends StatelessWidget {
     this.onShopMemoChanged,
   });
 
+  static const waitFieldKey = ValueKey('visitWaitField');
+  static const memoFieldKey = ValueKey('visitMemoField');
+  static const shopMemoFieldKey = ValueKey('visitShopMemoField');
+  static const shopMemoDisabledFieldKey = ValueKey('visitShopMemoDisabled');
+
   final RamenStyle? style;
   final bool isLimited;
   final TextEditingController memoController;
@@ -32,22 +39,22 @@ class VisitDetailsForm extends StatelessWidget {
   final TextEditingController? waitController;
   final ValueChanged<int?>? onWaitChanged;
 
-  /// 店の覚え書き（店ごと）の入力欄。nullなら出さない（店がまだ決まっていないときなど）。
+  /// 店の覚え書き（店ごと）の入力欄。nullなら、どの店のものか決まっていないので押せない欄にする。
   final TextEditingController? shopMemoController;
   final ValueChanged<String>? onShopMemoChanged;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
+    final shopMemo = shopMemoController;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(l10n.styleSection, style: textTheme.labelLarge),
-        const SizedBox(height: 6),
+        SectionTitle(l10n.styleSection, ruled: false),
         RamenStyleTiles(selected: style, onChanged: onStyleChanged),
-        const SizedBox(height: 4),
+        const SizedBox(height: 24),
+        SectionTitle(l10n.limitedSection, ruled: false),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.isLimited),
@@ -55,51 +62,61 @@ class VisitDetailsForm extends StatelessWidget {
           onChanged: onLimitedChanged,
         ),
         if (waitController case final controller?) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: 24),
+          SectionTitle(l10n.waitMinutesLabel, ruled: false),
           TextField(
+            key: waitFieldKey,
             controller: controller,
             keyboardType: TextInputType.number,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(3),
             ],
-            decoration: InputDecoration(
-              labelText: l10n.waitMinutesLabel,
-              suffixText: l10n.waitMinutesUnit,
-            ),
+            decoration: InputDecoration(suffixText: l10n.waitMinutesUnit),
             onChanged: (text) => onWaitChanged?.call(parseWaitMinutes(text)),
           ),
-          const SizedBox(height: 8),
         ],
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
+        SectionTitle(l10n.memoLabel, ruled: false),
         TextField(
+          key: memoFieldKey,
           controller: memoController,
           minLines: 2,
           maxLines: 4,
           decoration: InputDecoration(
-            labelText: l10n.memoLabel,
             hintText: l10n.memoHint,
             helperText: l10n.memoHelper,
-            floatingLabelBehavior: FloatingLabelBehavior.always,
           ),
           onChanged: onMemoChanged,
         ),
-        if (shopMemoController case final controller?) ...[
-          const SizedBox(height: 16),
+        const SizedBox(height: 24),
+        SectionTitle(l10n.shopMemoSection, ruled: false),
+        if (shopMemo != null)
           TextField(
-            controller: controller,
+            key: shopMemoFieldKey,
+            controller: shopMemo,
             minLines: 2,
             maxLines: 4,
             decoration: InputDecoration(
-              labelText: l10n.shopMemoSection,
               hintText: l10n.shopMemoHint,
               helperText: l10n.shopMemoHelper,
               helperMaxLines: 2,
-              floatingLabelBehavior: FloatingLabelBehavior.always,
             ),
             onChanged: onShopMemoChanged,
+          )
+        else
+          // 鍵を分けて作り直し、前の店の書きかけを押せない欄に持ち越さない。
+          TextField(
+            key: shopMemoDisabledFieldKey,
+            enabled: false,
+            minLines: 2,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: l10n.shopMemoNeedsShop,
+              helperText: l10n.shopMemoHelper,
+              helperMaxLines: 2,
+            ),
           ),
-        ],
         const SizedBox(height: 8),
       ],
     );
