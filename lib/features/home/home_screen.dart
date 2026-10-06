@@ -2,12 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../checkin/checkin_controller.dart';
 import '../checkin/queue_suggestion_card.dart';
-import '../notifications/notification_service.dart';
+import '../notifications/notification_scheduler.dart';
 import '../record/photo_picker.dart';
 import '../record/record_screen.dart';
 import '../record/shared_photo.dart';
@@ -21,12 +20,10 @@ import '../inkan/inkan_stamp.dart';
 import '../../theme/washi.dart';
 import '../scoring/rank_progress.dart';
 import '../shop_search/curated_shops_store.dart';
-import '../streak/streak.dart';
 import '../memory/memory_card.dart';
 import 'rating_prompt.dart';
 import '../scoring/scoring_providers.dart';
 import '../visit_detail/visit_detail_screen.dart';
-import '../words/words.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -91,53 +88,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // 手で持つ店（ラーメン二郎の直系店など）の一覧を、1日1回までサーバーから取り直す。
       ref.read(curatedShopsProvider.notifier).refresh();
       // 通知の文言に画面の言語設定を使うため、最初の描画のあとで見張りはじめる。
-      if (mounted) _listenForNotifications();
+      if (mounted) {
+        listenForNotifications(ref, () => AppLocalizations.of(context));
+      }
     });
-  }
-
-  void _listenForNotifications() {
-    // チェックインの始め方・終わり方（記録・撤退・取り消し・期限切れ）によらず、
-    // 並んでいる間だけ通知を出す。
-    ref.listenManual<AsyncValue<Checkin?>>(activeCheckinProvider, (
-      previous,
-      next,
-    ) {
-      if (next.isLoading) return;
-      final checkin = next.value;
-      final notifications = ref.read(notificationServiceProvider);
-      if (checkin == null || next.hasError) {
-        // 起動時に期限切れで取り消された場合なども、前の通知が残らないよう必ず消す。
-        notifications.cancelCheckin();
-        return;
-      }
-      if (previous?.value?.checkedInAt == checkin.checkedInAt &&
-          previous?.value?.name == checkin.name) {
-        return;
-      }
-      final l10n = AppLocalizations.of(context);
-      notifications.showCheckin(
-        title: l10n.checkinBanner(checkin.name),
-        body: l10n.checkinNotificationBody(
-          DateFormat.Hm().format(checkin.checkedInAt),
-        ),
-        checkedInAt: checkin.checkedInAt,
-      );
-    }, fireImmediately: true);
-    ref.listenManual<Streak>(streakProvider, (_, streak) {
-      final notifications = ref.read(notificationServiceProvider);
-      final now = ref.read(currentTimeProvider);
-      final remindAt = streakReminderTime(streak, now);
-      if (remindAt == null || !remindAt.isAfter(now)) {
-        notifications.cancelStreakReminder();
-        return;
-      }
-      final l10n = AppLocalizations.of(context);
-      notifications.scheduleStreakReminder(
-        at: remindAt,
-        title: l10n.streakReminderTitle(proseNumber(streak.weeks)),
-        body: streakReminderBody(remindAt),
-      );
-    }, fireImmediately: true);
   }
 
   Future<void> _recoverLostPhoto() async {
