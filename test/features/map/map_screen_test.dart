@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/map/journey.dart';
 import 'package:ramen_in_cho/features/map/map_camera.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/map/map_screen.dart';
@@ -178,6 +179,53 @@ void main() {
       buildEntry(shop: b, eatenAt: DateTime(2026, 1, 2, 12)),
       buildEntry(shop: c, eatenAt: DateTime(2026, 1, 3, 12)),
     ];
+
+    testWidgets('再生は1杯目の店に寄せ、倍率を変えずに次の店へ進み、終わると旅路の全体を見せる', (tester) async {
+      await pumpMap(tester, visits);
+      await tester.tap(find.byTooltip(ja.journeyToggle));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(ja.journeyReplay));
+      await tester.pump();
+      expect(camera(tester).zoom, journeyFollowZoom);
+      expect(camera(tester).center.latitude, closeTo(35.0, 1e-6));
+
+      final step = journeyStepDuration(1112);
+      await tester.pump(Duration(milliseconds: journeyStopPauseMs) + step ~/ 2);
+      expect(camera(tester).zoom, journeyFollowZoom);
+      expect(camera(tester).center.latitude, closeTo(35.005, 0.0005));
+
+      await tester.pump(step ~/ 2 + const Duration(milliseconds: 100));
+      expect(camera(tester).zoom, journeyFollowZoom);
+      expect(camera(tester).center.latitude, closeTo(35.01, 1e-6));
+
+      await tester.pumpAndSettle();
+      expect(find.text(ja.journeyReplay), findsOneWidget);
+      expect(camera(tester).zoom, isNot(journeyFollowZoom));
+      expect(camera(tester).center.latitude, closeTo(35.01, 0.005));
+    });
+
+    testWidgets('再生中に地図を指で動かすと、追うのをやめてその場にとどまる', (tester) async {
+      await pumpMap(tester, visits);
+      await tester.tap(find.byTooltip(ja.journeyToggle));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(ja.journeyReplay));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.drag(
+        find.byType(FlutterMap),
+        const Offset(0, 200),
+        warnIfMissed: false,
+      );
+      await tester.pump();
+      final moved = camera(tester).center;
+      await tester.pump(const Duration(seconds: 3));
+
+      expect(find.text(ja.journeyReplay), findsOneWidget);
+      expect(camera(tester).center, moved);
+      expect(camera(tester).zoom, journeyFollowZoom);
+    });
 
     testWidgets('「止める」で途中でやめ、引き終えた旅路に戻る', (tester) async {
       await pumpMap(tester, visits);

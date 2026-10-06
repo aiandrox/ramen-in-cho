@@ -163,17 +163,55 @@ void main() {
   });
 
   group('旅路の再生', () {
-    test('1区間は長くても0.7秒、店が多くても7秒に収める', () {
-      expect(journeyReplayDuration(1), const Duration(milliseconds: 300));
-      expect(journeyReplayDuration(2), const Duration(milliseconds: 1000));
-      expect(journeyReplayDuration(200), const Duration(seconds: 7));
+    test('1区間の長さは距離で決め、1.2〜2.8秒に収める', () {
+      expect(journeyStepDuration(0), const Duration(milliseconds: 1200));
+      expect(journeyStepDuration(1000), const Duration(milliseconds: 2000));
+      expect(journeyStepDuration(1999), const Duration(milliseconds: 2799));
+      expect(journeyStepDuration(2000), const Duration(milliseconds: 2800));
+      expect(journeyStepDuration(90000), const Duration(milliseconds: 2800));
     });
 
-    test('最初の店を灯す間は線をのばさず、終わりには最後の店に着く', () {
-      expect(journeyReplayReach(0, 3), 0);
-      expect(journeyReplayReach(0.1, 3), 0);
-      expect(journeyReplayReach(1, 3), 2);
-      expect(journeyReplayReach(1, 1), 0);
+    List<JourneyStop> stopsOf(List<Shop> shops) => journeyStops(
+      scored([
+        for (var i = 0; i < shops.length; i++)
+          buildEntry(shop: shops[i], eatenAt: day(1, i + 1)),
+      ]),
+    );
+
+    test('1杯目の店で止まり、1区間ずつ進んでは着いた店で止まる', () {
+      final plan = JourneyReplayPlan(stopsOf([home, near, far]));
+      final step1 = journeyStepDuration(1112).inMilliseconds;
+      final total = plan.duration.inMilliseconds;
+      const pause = journeyStopPauseMs;
+      expect(pause, 800);
+      expect(total, pause + step1 + pause + 2800 + pause);
+      double at(int ms) => ms / total;
+
+      expect(plan.reachAt(0), 0);
+      expect(plan.reachAt(at(pause)), 0);
+      expect(plan.reachAt(at(pause + step1 ~/ 2)), closeTo(0.5, 0.01));
+      expect(plan.reachAt(at(pause + step1)), 1);
+      expect(plan.reachAt(at(pause + step1 + 600)), 1);
+      expect(plan.reachAt(1), 2);
+      expect(JourneyReplayPlan(stopsOf([home])).reachAt(1), 0);
+    });
+
+    test('近い区間は線の先を追い、遠い区間は半分で次の店へ移る', () {
+      final plan = JourneyReplayPlan(stopsOf([home, near, far]));
+      final step1 = journeyStepDuration(1112).inMilliseconds;
+      final total = plan.duration.inMilliseconds;
+      double at(int ms) => ms / total;
+      const pause = journeyStopPauseMs;
+
+      expect(plan.cameraAt(0).latitude, 35.0);
+      expect(
+        plan.cameraAt(at(pause + step1 ~/ 2)).latitude,
+        closeTo(35.005, 0.0002),
+      );
+      final farStart = pause + step1 + pause;
+      expect(plan.cameraAt(at(farStart + 700)).latitude, 35.01);
+      expect(plan.cameraAt(at(farStart + 2000)).latitude, 35.8);
+      expect(plan.cameraAt(1).latitude, 35.8);
     });
 
     test('途中の区間は、着いた割合のところまで線を引く', () {

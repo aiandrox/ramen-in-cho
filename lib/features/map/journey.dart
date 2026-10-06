@@ -1,6 +1,7 @@
 import '../records/models.dart';
 import '../scoring/points.dart';
 import '../shop_search/geo.dart';
+import 'map_camera.dart';
 
 /// 旅路の1か所（食べた店）。
 class JourneyStop {
@@ -82,35 +83,75 @@ List<Expedition> expeditions(List<ScoredVisit> scored, {int? year}) {
   ]..sort((a, b) => b.day.compareTo(a.day));
 }
 
-/// 旅路を再生する長さ。最初の店を灯す間をおき、1区間ずつ筆で引くように線をのばす。
-/// 店が多くても [journeyReplayCap] に収め、少なくても1区間は短すぎないようにする。
-Duration journeyReplayDuration(int stops) {
-  if (stops <= 1) return const Duration(milliseconds: journeyReplayLeadMs);
-  final perSegment =
-      (journeyReplayCap.inMilliseconds - journeyReplayLeadMs) / (stops - 1);
-  final segment = perSegment.clamp(0.0, 700.0);
-  return Duration(
-    milliseconds: (journeyReplayLeadMs + segment * (stops - 1)).round(),
+/// 旅路の再生で、地図を寄せたまま変えない倍率（地図を開いたときの現在地のまわりと同じ）。
+const journeyFollowZoom = neighborhoodZoom;
+
+/// 1区間を進む長さの下限と上限。遠征のような遠い区間も、上限で切り上げる。
+const journeyStepMinMs = 1200;
+const journeyStepMaxMs = 2800;
+
+/// 店に着くたびに止まる長さ（1杯目の店も、ここから始める）。
+const journeyStopPauseMs = 800;
+
+/// これより遠い区間は、地図を流さずに、線が半分まで来たところで次の店へ移す。
+/// 寄せた倍率のまま遠くまで流すと、通り過ぎる地図の画像を大量に取りに行くため。
+const journeyPanLimitMeters = 10000.0;
+
+/// 1区間を進む長さ。近いほど短く、遠くても[journeyStepMaxMs]まで。
+Duration journeyStepDuration(double meters) => Duration(
+  milliseconds: (journeyStepMinMs + meters * 0.8)
+      .clamp(journeyStepMinMs, journeyStepMaxMs)
+      .round(),
+);
+
+/// 旅路の再生の段取り。1杯目の店で止まり、1区間ずつ線をのばしては着いた店で止まる。
+/// 進み具合[t]（0〜1）から、線の先と地図の真ん中を決める。
+class JourneyReplayPlan {
+  JourneyReplayPlan(this.stops)
+    : _stepMs = [
+        for (var i = 1; i < stops.length; i++)
+          journeyStepDuration(
+            distanceMeters(stops[i - 1].location, stops[i].location),
+          ).inMilliseconds,
+      ];
+
+  final List<JourneyStop> stops;
+  final List<int> _stepMs;
+
+  Duration get duration => Duration(
+    milliseconds:
+        journeyStopPauseMs +
+        _stepMs.fold(0, (sum, ms) => sum + ms + journeyStopPauseMs),
   );
-}
 
-const journeyReplayLeadMs = 300;
-const journeyReplayCap = Duration(seconds: 7);
+  /// 線の先がどこまで来たか。店の番号で数え、0〜店の数−1。
+  /// 1区間ごとに、出だしと着きをゆっくりにする（筆を置いて、引いて、止める）。
+  double reachAt(double t) {
+    var elapsed = t * duration.inMilliseconds - journeyStopPauseMs;
+    for (var i = 0; i < _stepMs.length; i++) {
+      if (elapsed <= 0) return i.toDouble();
+      if (elapsed < _stepMs[i]) {
+        final f = elapsed / _stepMs[i];
+        return i + f * f * (3 - 2 * f);
+      }
+      elapsed -= _stepMs[i] + journeyStopPauseMs;
+    }
+    return (stops.length - 1).toDouble();
+  }
 
-/// 再生の進み具合[t]（0〜1）で、線の先がどこまで来たか。店の番号で数え、0〜[stops]−1。
-/// 1区間ごとに、出だしと着きをゆっくりにする（筆を置いて、引いて、止める）。
-double journeyReplayReach(double t, int stops) {
-  if (stops <= 1) return 0;
-  final total = journeyReplayDuration(stops).inMilliseconds;
-  final drawn =
-      ((t * total - journeyReplayLeadMs) / (total - journeyReplayLeadMs)).clamp(
-        0.0,
-        1.0,
-      );
-  final x = drawn * (stops - 1);
-  final whole = x.floorToDouble();
-  final f = x - whole;
-  return whole + f * f * (3 - 2 * f);
+  /// 地図の真ん中に置く点。近い区間は線の先を追い、遠い区間は半分で次の店へ移る。
+  GeoPoint cameraAt(double t) {
+    final reach = reachAt(t);
+    final whole = reach.floor().clamp(0, stops.length - 1);
+    final f = reach - whole;
+    if (f == 0 || whole + 1 >= stops.length) return stops[whole].location;
+    final from = stops[whole].location;
+    final to = stops[whole + 1].location;
+    if (distanceMeters(from, to) > journeyPanLimitMeters) {
+      return f < 0.5 ? from : to;
+    }
+    return journeyLineTo(stops, reach).last;
+  }
 }
 
 /// 線の先が[reach]まで来たときの線の点。途中の区間は、その割合のところまで。
