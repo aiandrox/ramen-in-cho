@@ -69,16 +69,18 @@ void main() {
 
     test('店ごとに、合計ではなく最高ポイントで決まる', () {
       final often = buildShop(id: 'often');
-      final hard = buildShop(
-        id: 'hard',
-        hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-      );
+      final hard = buildShop(id: 'hard', isFamous: true);
       final ranks = shopRanks(
         scoreVisits([
           // 20, 10, 10, 10（合計50でも最高は20）
           for (var d = 1; d <= 4; d++) buildEntry(shop: often, eatenAt: day(d)),
-          // (10 + 10 + 20) × 2 = 80
-          buildEntry(shop: hard, eatenAt: day(5), isLimited: true),
+          // 10 + 初訪問 10 + 限定 20 + 待ち 5 + 名店 15 = 60
+          buildEntry(
+            shop: hard,
+            eatenAt: day(5),
+            isLimited: true,
+            waitMinutes: 10,
+          ),
         ]),
       );
 

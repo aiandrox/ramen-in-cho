@@ -59,7 +59,6 @@ ShopCandidate? queueSuggestion({
         name: wish.name,
         location: location,
         distanceMeters: distance,
-        hoursConditions: wishedConditions(wish),
         dataSource: wish.dataSource,
         wishId: wish.id,
       ),

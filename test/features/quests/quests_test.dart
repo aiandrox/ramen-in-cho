@@ -34,7 +34,7 @@ void main() {
       '一日二杯',
       '三度目の正直',
       '系統の探究',
-      '幻の店',
+      '名店の暖簾',
       '拠点を構える',
       '百日越しの願',
       '朝ラーの心得',
@@ -218,13 +218,15 @@ void main() {
   });
 
   test('大物討伐は、1杯で60点以上のSランクの店の数', () {
-    final rare = buildShop(
-      id: 'rare',
-      hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-    );
-    // (10 + 10 + 20) × 2 = 80
+    final rare = buildShop(id: 'rare', isFamous: true);
+    // 10 + 初訪問 10 + 限定 20 + 待ち 5 + 名店 15 = 60
     final progress = _progress('boss', [
-      buildEntry(shop: rare, eatenAt: _day(1), isLimited: true),
+      buildEntry(
+        shop: rare,
+        eatenAt: _day(1),
+        isLimited: true,
+        waitMinutes: 10,
+      ),
     ]);
 
     expect(progress.level, 1);
@@ -297,37 +299,22 @@ void main() {
       );
     });
 
-    test('幻の店は、営業の条件が2つ以上ある店で食べると達成', () {
-      final one = buildShop(
-        id: 'one',
-        hoursConditions: {HoursCondition.lunchOnly},
-      );
-      final two = buildShop(
-        id: 'two',
-        hoursConditions: {
-          HoursCondition.lunchOnly,
-          HoursCondition.weekdaysOnly,
-        },
-      );
+    test('名店の暖簾は、名店の印をつけた店で食べると達成。撤退では達成しない', () {
+      final famous = buildShop(id: 'famous', isFamous: true);
 
       expect(
-        _progress('rare_shop', [buildEntry(shop: one)]).isAchieved,
+        _progress('famous_shop', [buildEntry(shop: buildShop())]).isAchieved,
         isFalse,
       );
       expect(
-        _progress('rare_shop', [buildEntry(shop: two)]).isAchieved,
+        _progress('famous_shop', [
+          buildEntry(shop: famous, result: VisitResult.retreated),
+        ]).isAchieved,
+        isFalse,
+      );
+      expect(
+        _progress('famous_shop', [buildEntry(shop: famous)]).isAchieved,
         isTrue,
-      );
-    });
-
-    test('幻の店は、アクセスの悪さを営業の条件として数えない', () {
-      final access = buildShop(
-        hoursConditions: {HoursCondition.nightOnly, HoursCondition.badAccess},
-      );
-
-      expect(
-        _progress('rare_shop', [buildEntry(shop: access)]).isAchieved,
-        isFalse,
       );
     });
   });

@@ -1,14 +1,3 @@
-/// 店の「攻略しにくさ」（営業の条件とアクセス）。店ごとに当てはまるものをいくつでも付ける。
-enum HoursCondition {
-  lunchOnly,
-  nightOnly,
-  weekdaysOnly,
-  weekendsOnly,
-  fewDays,
-  irregular,
-  badAccess,
-}
-
 enum VisitResult { eaten, retreated }
 
 enum RamenStyle {
@@ -38,7 +27,7 @@ class Shop {
     this.latitude,
     this.longitude,
     this.osmId,
-    this.hoursConditions = const {},
+    this.isFamous = false,
     this.strategyMemo = '',
     this.dataSource,
     this.area,
@@ -50,7 +39,9 @@ class Shop {
   final double? latitude;
   final double? longitude;
   final String? osmId;
-  final Set<HoursCondition> hoursConditions;
+
+  /// 利用者が「名店」の印をつけた店か。食べるたびに修行点が上乗せされる。
+  final bool isFamous;
 
   /// 店ごとの攻略メモ（開店の何分前に着けばよいか、券売機など）。記録ごとのメモとは別。
   final String strategyMemo;
@@ -112,7 +103,6 @@ class Wish {
     this.note = '',
     required this.createdAt,
     this.fulfilledVisitId,
-    this.hoursConditions = const {},
   });
 
   final String id;
@@ -134,9 +124,6 @@ class Wish {
 
   /// この願が叶った1杯。まだならnull。
   final String? fulfilledVisitId;
-
-  /// 行く前に入れておく店の攻略しにくさ。まだ記録の無い店なら、初めて記録したときに店に引き継ぐ。
-  final Set<HoursCondition> hoursConditions;
 }
 
 /// 並んでいる最中の店。記録がまだ無い店のこともあるため、店の情報をそのまま持つ。

@@ -52,7 +52,6 @@ void main() {
         shop: entry.shop,
         points: calculatePoints(
           visit: entry.visit,
-          hoursConditions: const {},
           isFirstVisit: isFirstVisit,
           isRetrySuccess: false,
         ),

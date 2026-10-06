@@ -11,7 +11,7 @@ PointsBreakdown _points({
   bool hasTicket = false,
   bool isFirstVisit = false,
   bool isRetrySuccess = false,
-  Set<HoursCondition> hoursConditions = const {},
+  bool isFamous = false,
   VisitResult result = VisitResult.eaten,
 }) => calculatePoints(
   visit: buildVisit(
@@ -20,9 +20,9 @@ PointsBreakdown _points({
     isLimited: isLimited,
     hasTicket: hasTicket,
   ),
-  hoursConditions: hoursConditions,
   isFirstVisit: isFirstVisit,
   isRetrySuccess: isRetrySuccess,
+  isFamous: isFamous,
 );
 
 void main() {
@@ -31,7 +31,6 @@ void main() {
       final points = _points();
 
       expect(points.base, 10);
-      expect(points.subtotal, 10);
       expect(points.total, 10);
     });
 
@@ -53,102 +52,40 @@ void main() {
       expect(_points(waitMinutes: -30).waitBonus, 0);
     });
 
-    test('限定+20、初訪問+10、再挑戦成功+15。整理券は点にしない', () {
+    test('限定+20、初訪問+10、再挑戦成功+15、名店+15。整理券は点にしない', () {
       expect(_points(isLimited: true).total, 30);
       expect(_points(hasTicket: true).total, 10);
       expect(_points(isFirstVisit: true).total, 20);
       expect(_points(isRetrySuccess: true).total, 25);
+      expect(_points(isFamous: true).famousBonus, 15);
+      expect(_points(isFamous: true).total, 25);
     });
 
-    test('すべてのボーナスを合計する', () {
-      final points = _points(
-        waitMinutes: 45,
-        isLimited: true,
+    test('すべてのボーナスを足し合わせる（倍率はかけない）', () {
+      final points = calculatePoints(
+        visit: buildVisit(
+          eatenAt: DateTime(2026, 9, 30, 7),
+          waitMinutes: 45,
+          isLimited: true,
+        ),
         isFirstVisit: true,
         isRetrySuccess: true,
+        homeBaseMeters: 300000,
+        isNewPrefecture: true,
+        isNewArea: true,
+        countAtShop: 10,
+        streakWeeksBefore: 3,
+        isFamous: true,
       );
 
-      // 10 + 20 + 20 + 10 + 15
-      expect(points.subtotal, 75);
-      expect(points.total, 75);
-    });
-
-    test('攻略しにくさの倍率は、条件ごとの上乗せを足して合計にかける', () {
-      PointsBreakdown withConditions(Set<HoursCondition> conditions) =>
-          calculatePoints(
-            visit: buildVisit(isLimited: true),
-            hoursConditions: conditions,
-            isFirstVisit: false,
-            isRetrySuccess: false,
-          );
-
-      // 10 + 20 = 30
-      expect(withConditions(const {}).total, 30);
-      expect(withConditions({HoursCondition.lunchOnly}).total, 39);
-      expect(withConditions({HoursCondition.nightOnly}).total, 36);
-      expect(withConditions({HoursCondition.weekdaysOnly}).total, 45);
-      expect(withConditions({HoursCondition.weekendsOnly}).total, 36);
-      expect(withConditions({HoursCondition.fewDays}).total, 45);
-      expect(withConditions({HoursCondition.irregular}).total, 45);
-      expect(withConditions({HoursCondition.badAccess}).total, 45);
-      // ×(1 + 0.5 + 0.5) = ×2
-      expect(
-        withConditions({HoursCondition.weekdaysOnly, HoursCondition.badAccess})
-            .total,
-        60,
-      );
-    });
-
-    test('倍率は×2.5で止まる', () {
-      expect(
-        hoursMultiplier({
-          HoursCondition.fewDays,
-          HoursCondition.irregular,
-          HoursCondition.badAccess,
-        }),
-        2.5,
-      );
-      expect(hoursMultiplier(HoursCondition.values.toSet()), 2.5);
-      // 1 + 0.3 + 0.5 + 0.5 = 2.3
-      expect(
-        hoursMultiplier({
-          HoursCondition.lunchOnly,
-          HoursCondition.fewDays,
-          HoursCondition.badAccess,
-        }),
-        2.3,
-      );
-    });
-
-    test('すべての条件に倍率の上乗せがある', () {
-      for (final condition in HoursCondition.values) {
-        expect(hoursConditionWeights[condition], greaterThan(0));
-      }
-    });
-
-    test('倍率をかけたあとの小数は切り捨てる', () {
-      // (10 + 5) × 1.3 = 19.5
-      expect(
-        _points(
-          waitMinutes: 10,
-          hoursConditions: {HoursCondition.lunchOnly},
-        ).total,
-        19,
-      );
-      // (10 + 15) × 1.5 = 37.5
-      expect(
-        _points(
-          isRetrySuccess: true,
-          hoursConditions: {HoursCondition.irregular},
-        ).total,
-        37,
-      );
+      // 10 + 待ち20 + 限定20 + 初訪問10 + 再挑戦15 + 遠征40 + 朝ラー10
+      // + 都道府県30 + 市区町村10 + 常連20 + 連続6 + 名店15
+      expect(points.total, 206);
     });
 
     test('朝ラー（5〜9時台）と深夜（0〜4時台）は+10。自動でつく', () {
       PointsBreakdown at(int hour, int minute) => calculatePoints(
         visit: buildVisit(eatenAt: DateTime(2026, 9, 30, hour, minute)),
-        hoursConditions: const {},
         isFirstVisit: false,
         isRetrySuccess: false,
       );
@@ -164,31 +101,64 @@ void main() {
       expect(at(9, 59).total, 20);
     });
 
-    test('遠征は+20。倍率もかかる', () {
-      final points = calculatePoints(
-        visit: buildVisit(),
-        hoursConditions: const {HoursCondition.lunchOnly},
-        isFirstVisit: false,
-        isRetrySuccess: false,
-        isExpedition: true,
-      );
-
-      expect(points.expeditionBonus, 20);
-      // (10 + 20) × 1.3 = 39
-      expect(points.total, 39);
-    });
-
     test('撤退の記録は0点', () {
-      final points = _points(
-        result: VisitResult.retreated,
-        waitMinutes: 60,
-        isLimited: true,
-        hasTicket: true,
-        hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
+      final points = calculatePoints(
+        visit: buildVisit(
+          result: VisitResult.retreated,
+          waitMinutes: 60,
+          isLimited: true,
+        ),
+        isFirstVisit: true,
+        isRetrySuccess: true,
+        homeBaseMeters: 900000,
+        isNewPrefecture: true,
+        isNewArea: true,
+        countAtShop: 10,
+        streakWeeksBefore: 5,
+        isFamous: true,
       );
 
       expect(points.total, 0);
-      expect(points.subtotal, 0);
+    });
+  });
+
+  group('遠征の段階', () {
+    test('80km・300km・800kmの境で+20・+40・+60に上がり、足さない', () {
+      expect(expeditionBonusFor(null), 0);
+      expect(expeditionBonusFor(0), 0);
+      expect(expeditionBonusFor(79999.9), 0);
+      expect(expeditionBonusFor(80000), 20);
+      expect(expeditionBonusFor(299999.9), 20);
+      expect(expeditionBonusFor(300000), 40);
+      expect(expeditionBonusFor(799999.9), 40);
+      expect(expeditionBonusFor(800000), 60);
+      expect(expeditionBonusFor(2000000), 60);
+    });
+  });
+
+  group('常連', () {
+    test('その店で5杯目に+10、10杯目からは10杯ごとに+20', () {
+      expect(regularBonusFor(1), 0);
+      expect(regularBonusFor(4), 0);
+      expect(regularBonusFor(5), 10);
+      expect(regularBonusFor(6), 0);
+      expect(regularBonusFor(9), 0);
+      expect(regularBonusFor(10), 20);
+      expect(regularBonusFor(15), 0);
+      expect(regularBonusFor(20), 20);
+      expect(regularBonusFor(30), 20);
+      expect(regularBonusFor(31), 0);
+    });
+  });
+
+  group('連続記録', () {
+    test('続いている週1つにつき+2、+10で止まる', () {
+      expect(streakBonusFor(0), 0);
+      expect(streakBonusFor(1), 2);
+      expect(streakBonusFor(4), 8);
+      expect(streakBonusFor(5), 10);
+      expect(streakBonusFor(6), 10);
+      expect(streakBonusFor(52), 10);
     });
   });
 
@@ -252,23 +222,246 @@ void main() {
       expect(scored.map((s) => s.isRetrySuccess), [false, false, true, false]);
     });
 
-    test('店の営業時間の倍率を使い、累計ポイントを合計する', () {
-      final rare = buildShop(
-        id: 'rare',
-        hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-      );
+    test('名店の印の店では食べるたびに+15。撤退にはつかない', () {
+      final famous = buildShop(id: 'famous', isFamous: true);
       final scored = scoreVisits([
-        buildEntry(shop: rare, eatenAt: day(1), waitMinutes: 30),
-        buildEntry(shop: shopA, eatenAt: day(2)),
+        buildEntry(shop: famous, eatenAt: day(1), waitMinutes: 30),
+        buildEntry(shop: famous, eatenAt: day(2)),
+        buildEntry(
+          shop: famous,
+          eatenAt: day(3),
+          result: VisitResult.retreated,
+        ),
+        buildEntry(shop: shopA, eatenAt: day(4)),
       ]);
 
-      // (10 + 15 + 10) × 2 = 70、10 + 10 = 20
-      expect(scored.map((s) => s.points.total), [70, 20]);
-      expect(totalPoints(scored), 90);
+      // 10 + 15 + 10 + 15 = 50、10 + 15 = 25、撤退 0、10 + 10 = 20
+      expect(scored.map((s) => s.points.famousBonus), [15, 15, 0, 0]);
+      expect(scored.map((s) => s.points.total), [50, 25, 0, 20]);
+      expect(totalPoints(scored), 95);
     });
 
-    group('遠征（利用者が決めた拠点から80km以上）', () {
-      // 緯度0.72度は約80.1km、0.71度は約79.0km。
+    group('常連（その店で何杯目か）', () {
+      test('食べた記録だけを数え、5杯目・10杯目・20杯目に上乗せする', () {
+        final scored = scoreVisits([
+          for (var d = 1; d <= 20; d++) ...[
+            buildEntry(shop: shopA, eatenAt: day(d)),
+            if (d == 3)
+              buildEntry(
+                shop: shopA,
+                eatenAt: day(d).add(const Duration(hours: 1)),
+                result: VisitResult.retreated,
+              ),
+          ],
+        ]).where((s) => s.visit.result == VisitResult.eaten).toList();
+
+        expect(scored.map((s) => s.countAtShop), [
+          for (var n = 1; n <= 20; n++) n,
+        ]);
+        expect(scored[3].points.regularBonus, 0);
+        expect(scored[4].points.regularBonus, 10);
+        expect(scored[8].points.regularBonus, 0);
+        expect(scored[9].points.regularBonus, 20);
+        expect(scored[14].points.regularBonus, 0);
+        expect(scored[19].points.regularBonus, 20);
+      });
+
+      test('ほかの店の杯数とは混ぜない', () {
+        final scored = scoreVisits([
+          for (var d = 1; d <= 4; d++) buildEntry(shop: shopA, eatenAt: day(d)),
+          buildEntry(shop: shopB, eatenAt: day(5)),
+        ]);
+
+        expect(scored.last.countAtShop, 1);
+        expect(scored.last.points.regularBonus, 0);
+      });
+    });
+
+    group('連続記録（月曜はじまりの週）', () {
+      // 2026年9月7日は月曜日。
+      DateTime week(int w, {int day = 0}) =>
+          DateTime(2026, 9, 7 + 7 * w + day, 12);
+
+      test('その週の最初の1杯だけに、前から続いている週の数×2をつける', () {
+        final scored = scoreVisits([
+          buildEntry(shop: shopA, eatenAt: week(0)),
+          buildEntry(shop: shopA, eatenAt: week(1)),
+          buildEntry(shop: shopA, eatenAt: week(1, day: 6)),
+          buildEntry(shop: shopA, eatenAt: week(2, day: 3)),
+        ]);
+
+        expect(scored.map((s) => s.streakWeeksBefore), [0, 1, 0, 2]);
+        expect(scored.map((s) => s.points.streakBonus), [0, 2, 0, 4]);
+      });
+
+      test('6週目からは+10で止まる', () {
+        final scored = scoreVisits([
+          for (var w = 0; w < 8; w++) buildEntry(shop: shopA, eatenAt: week(w)),
+        ]);
+
+        expect(scored.map((s) => s.points.streakBonus), [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          10,
+          10,
+        ]);
+      });
+
+      test('1週あくと数え直す', () {
+        final scored = scoreVisits([
+          buildEntry(shop: shopA, eatenAt: week(0)),
+          buildEntry(shop: shopA, eatenAt: week(1)),
+          buildEntry(shop: shopA, eatenAt: week(3)),
+          buildEntry(shop: shopA, eatenAt: week(4)),
+        ]);
+
+        expect(scored.map((s) => s.points.streakBonus), [0, 2, 0, 2]);
+      });
+
+      test('撤退だけの週は続いた週に数えず、撤退した週に食べた最初の1杯にはつく', () {
+        final scored = scoreVisits([
+          buildEntry(shop: shopA, eatenAt: week(0)),
+          buildEntry(
+            shop: shopB,
+            eatenAt: week(1),
+            result: VisitResult.retreated,
+          ),
+          buildEntry(shop: shopA, eatenAt: week(2)),
+          buildEntry(
+            shop: shopB,
+            eatenAt: week(3),
+            result: VisitResult.retreated,
+          ),
+          buildEntry(shop: shopB, eatenAt: week(3, day: 1)),
+        ]);
+
+        expect(scored.map((s) => s.points.streakBonus), [0, 0, 0, 0, 2]);
+      });
+
+      test('週は月曜0時で切り替わる', () {
+        final scored = scoreVisits([
+          buildEntry(shop: shopA, eatenAt: DateTime(2026, 9, 13, 23, 59)),
+          buildEntry(shop: shopA, eatenAt: DateTime(2026, 9, 14)),
+        ]);
+
+        expect(scored.map((s) => s.points.streakBonus), [0, 2]);
+      });
+    });
+
+    group('初めての都道府県・市区町村', () {
+      final prefectures = {
+        'tokyo1': '東京都',
+        'tokyo2': '東京都',
+        'osaka': '大阪府',
+        'hiroshima': '広島県',
+      };
+      String? prefectureOf(Shop shop) => prefectures[shop.id];
+
+      test('その都道府県で最初に食べた1杯だけに+30。撤退や位置のわからない店にはつかない', () {
+        final tokyo1 = buildShop(id: 'tokyo1');
+        final tokyo2 = buildShop(id: 'tokyo2');
+        final osaka = buildShop(id: 'osaka');
+        final scored = scoreVisits([
+          buildEntry(
+            shop: osaka,
+            eatenAt: day(1),
+            result: VisitResult.retreated,
+          ),
+          buildEntry(shop: tokyo1, eatenAt: day(2)),
+          buildEntry(shop: tokyo2, eatenAt: day(3)),
+          buildEntry(shop: osaka, eatenAt: day(4)),
+          buildEntry(
+            shop: buildShop(id: 'unknown'),
+            eatenAt: day(5),
+          ),
+        ], prefectureOf: prefectureOf);
+
+        expect(scored.map((s) => s.prefecture), [
+          '大阪府',
+          '東京都',
+          '東京都',
+          '大阪府',
+          null,
+        ]);
+        expect(scored.map((s) => s.points.newPrefectureBonus), [
+          0,
+          30,
+          0,
+          30,
+          0,
+        ]);
+      });
+
+      test('同じ日時の記録は、作った順、それも同じなら記録のIDの順で初めてを決める', () {
+        final at = day(1);
+        final scored = scoreVisits([
+          VisitWithShop(
+            shop: buildShop(id: 'tokyo2'),
+            visit: buildVisit(id: 'b', shopId: 'tokyo2', eatenAt: at),
+          ),
+          VisitWithShop(
+            shop: buildShop(id: 'tokyo1'),
+            visit: buildVisit(id: 'a', shopId: 'tokyo1', eatenAt: at),
+          ),
+        ], prefectureOf: prefectureOf);
+
+        expect(scored.map((s) => s.visit.id), ['a', 'b']);
+        expect(scored.map((s) => s.points.newPrefectureBonus), [30, 0]);
+      });
+
+      test('市区町村は、同じ名前でも都道府県が違えば別の土地として+10', () {
+        final scored = scoreVisits([
+          buildEntry(
+            shop: buildShop(id: 'tokyo1', area: '府中市'),
+            eatenAt: day(1),
+          ),
+          buildEntry(
+            shop: buildShop(id: 'tokyo2', area: '府中市'),
+            eatenAt: day(2),
+          ),
+          buildEntry(
+            shop: buildShop(id: 'hiroshima', area: '府中市'),
+            eatenAt: day(3),
+          ),
+        ], prefectureOf: prefectureOf);
+
+        expect(scored.map((s) => s.points.newAreaBonus), [10, 0, 10]);
+      });
+
+      test('市区町村がまだわからない（調べても分からなかった）店にはつかない', () {
+        final scored = scoreVisits([
+          buildEntry(
+            shop: buildShop(id: 'tokyo1'),
+            eatenAt: day(1),
+          ),
+          buildEntry(
+            shop: buildShop(id: 'tokyo2', area: ''),
+            eatenAt: day(2),
+          ),
+        ], prefectureOf: prefectureOf);
+
+        expect(scored.map((s) => s.points.newAreaBonus), [0, 0]);
+      });
+
+      test('都道府県を引かなければ、どの1杯にもつかない', () {
+        final scored = scoreVisits([
+          buildEntry(
+            shop: buildShop(id: 'tokyo1'),
+            eatenAt: day(1),
+          ),
+        ]);
+
+        expect(scored.single.prefecture, isNull);
+        expect(scored.single.points.newPrefectureBonus, 0);
+      });
+    });
+
+    group('遠征（利用者が決めた拠点から80km・300km・800km以上）', () {
+      // 緯度1度は約111.2km。0.72度は約80.1km、0.71度は約79.0km。
       final home = buildShop(id: 'home', latitude: 35.0, longitude: 139.0);
       final far = buildShop(id: 'far', latitude: 35.72, longitude: 139.0);
       final notFar = buildShop(id: 'notFar', latitude: 35.71, longitude: 139.0);
@@ -303,6 +496,19 @@ void main() {
         expect(bonusAt(day(10), shop: notFar), 0);
       });
 
+      test('299km と 300km、799km と 800km で段が変わる', () {
+        Shop north(double degrees) => buildShop(
+          id: 'n$degrees',
+          latitude: 35.0 + degrees,
+          longitude: 139.0,
+        );
+
+        expect(bonusAt(day(10), shop: north(2.689)), 20); // 約299.0km
+        expect(bonusAt(day(10), shop: north(2.699)), 40); // 約300.1km
+        expect(bonusAt(day(10), shop: north(7.186)), 40); // 約799.1km
+        expect(bonusAt(day(10), shop: north(7.195)), 60); // 約800.1km
+      });
+
       test('拠点を変えると、変えた日から後の1杯だけが新しい拠点で決まる', () {
         final moved = buildHomeBase(
           latitude: 35.72,
@@ -315,20 +521,14 @@ void main() {
         expect(bonusAt(DateTime(2026, 2, 2), shop: home, homeBases: bases), 20);
       });
 
-      test('遠征の点にも攻略しにくさの倍率がかかる', () {
-        final rareFar = buildShop(
-          id: 'rareFar',
-          latitude: 35.72,
-          longitude: 139.0,
-          hoursConditions: {HoursCondition.fewDays},
-        );
+      test('遠征の1杯は isExpedition になり、初訪問と足し合わせる', () {
         final scored = scoreVisits(
-          [buildEntry(shop: rareFar, eatenAt: day(10))],
+          [buildEntry(shop: far, eatenAt: day(10))],
           homeBases: [base],
         ).single;
 
-        // (10 + 初訪問10 + 遠征20) × 1.5 = 60
-        expect(scored.points.total, 60);
+        // 10 + 初訪問10 + 遠征20 = 40
+        expect(scored.points.total, 40);
         expect(scored.isExpedition, isTrue);
       });
     });

@@ -83,6 +83,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/prefectures.json
     - assets/fonts/ShipporiMincho-OFL.txt
     - assets/fonts/YujiSyuku-OFL.txt
 

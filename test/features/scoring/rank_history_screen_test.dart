@@ -50,12 +50,8 @@ void main() {
   );
 
   testWidgets('上がった段位は日付と店、次の段位は残りの点、その先は伏せる', (tester) async {
-    final rare = buildShop(
-      id: 'rare',
-      name: '幻の店',
-      hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-    );
-    // (10 + 50 + 20 + 10) × 2 = 180。一級まで届くが、1杯で上がるのは五級だけ。
+    final rare = buildShop(id: 'rare', name: '名店', isFamous: true);
+    // 10 + 待ち 50 + 限定 20 + 初訪問 10 + 名店 15 = 105。四級を越えるが、1杯で上がるのは五級だけ。
     final big = buildEntry(
       shop: rare,
       eatenAt: day(5),
@@ -66,7 +62,7 @@ void main() {
 
     expect(seal(ja.rankApprentice), findsOneWidget);
     expect(seal(ja.rankKyu('五')), findsOneWidget);
-    final achieved = ja.rankHistoryAchievedAt(formatDate(day(5)), '幻の店');
+    final achieved = ja.rankHistoryAchievedAt(formatDate(day(5)), '名店');
     expect(find.text(achieved), findsNWidgets(2));
 
     // 四級の必要点にはもう届いているので、次の1杯で上がる。名前は見える。

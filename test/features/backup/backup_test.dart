@@ -26,7 +26,7 @@ void main() {
         latitude: 35.0,
         longitude: 139.0,
         osmId: 'node/1',
-        hoursConditions: {HoursCondition.fewDays, HoursCondition.lunchOnly},
+        isFamous: true,
         strategyMemo: '券売機は現金のみ',
         area: '新宿区',
         dataSource: const ShopSource(
@@ -65,10 +65,7 @@ void main() {
       expect(restoredShop.name, '麺屋');
       expect(restoredShop.latitude, 35.0);
       expect(restoredShop.osmId, 'node/1');
-      expect(restoredShop.hoursConditions, {
-        HoursCondition.lunchOnly,
-        HoursCondition.fewDays,
-      });
+      expect(restoredShop.isFamous, isTrue);
       expect(restoredShop.strategyMemo, '券売機は現金のみ');
       expect(restoredShop.area, '新宿区');
       expect(restoredShop.dataSource!.licenses, ['CC BY 4.0']);
@@ -84,6 +81,34 @@ void main() {
       expect(restoredVisit.rating, 4);
       expect(restoredVisit.isLimited, isTrue);
       expect(restoredVisit.memo, 'うまい');
+    });
+
+    test('前の版のバックアップにある店の条件は読み飛ばし、名店の印は無しにする', () {
+      final restored = decodeBackup({
+        'format': backupFormat,
+        'version': backupVersion,
+        'shops': [
+          {
+            'id': 's',
+            'name': '麺屋',
+            'hoursConditions': ['lunchOnly', 'fewDays'],
+            'createdAt': '2026-09-01T12:00:00.000Z',
+          },
+        ],
+        'wishes': [
+          {
+            'id': 'w',
+            'name': '願の店',
+            'hoursConditions': ['irregular'],
+            'createdAt': '2026-09-01T12:00:00.000Z',
+          },
+        ],
+        'visits': <Object?>[],
+      });
+
+      expect(restored.shops.single.name, '麺屋');
+      expect(restored.shops.single.isFamous, isFalse);
+      expect(restored.wishes.single.name, '願の店');
     });
 
     test('日時はUTCで書き出し、読むときはその端末の時刻に直す', () {

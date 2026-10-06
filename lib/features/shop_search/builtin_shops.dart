@@ -1,4 +1,3 @@
-import '../records/models.dart';
 import 'found_shop.dart';
 import 'geo.dart';
 
@@ -10,15 +9,11 @@ class BuiltinShop {
     required this.name,
     required this.address,
     required this.location,
-    this.hoursConditions = const {},
   });
 
   final String name;
   final String address;
   final GeoPoint location;
-
-  /// 店の条件（攻略しにくさ）。初めて記録するときの下書きにする。調べていない店は空。
-  final Set<HoursCondition> hoursConditions;
 
   /// サーバーや保存したファイルの1件。閉店した店と、形の崩れた店はnull。
   static BuiltinShop? fromJson(Map<String, dynamic> json) {
@@ -32,17 +27,10 @@ class BuiltinShop {
     if (name is! String || address is! String) return null;
     if (lat is! num || lon is! num) return null;
     if (status != null && status != 'open') return null;
-    final conditions = json['hoursConditions'];
     return BuiltinShop(
       name: name,
       address: address,
       location: GeoPoint(lat.toDouble(), lon.toDouble()),
-      // 知らない条件（新しい版のアプリで足したもの）は読み飛ばす。
-      hoursConditions: {
-        if (conditions is List)
-          for (final value in conditions)
-            ?HoursCondition.values.asNameMap()[value],
-      },
     );
   }
 
@@ -52,44 +40,11 @@ class BuiltinShop {
     'latitude': location.latitude,
     'longitude': location.longitude,
     'status': 'open',
-    'hoursConditions': [for (final c in hoursConditions) c.name],
   };
 
-  FoundShop toFoundShop() => FoundShop(
-    name: name,
-    location: location,
-    address: address,
-    curatedConditions: hoursConditions.isEmpty ? null : hoursConditions,
-  );
+  FoundShop toFoundShop() =>
+      FoundShop(name: name, location: location, address: address);
 }
-
-/// 検索で見つかった店のうち、手で持つ店と同じ店に、その店の条件を付ける。
-/// OpenStreetMap にも同じ店があると、手で持つ店はまとめるときに落ちるため、条件だけを移す。
-List<FoundShop> withCuratedConditions(
-  List<FoundShop> found,
-  List<BuiltinShop> curated,
-) => [
-  for (final shop in found)
-    if (shop.curatedConditions == null)
-      if (curated
-              .where(
-                (c) =>
-                    c.hoursConditions.isNotEmpty &&
-                    looksLikeSameShop(
-                      c.name,
-                      c.location,
-                      shop.name,
-                      shop.location,
-                    ),
-              )
-              .firstOrNull
-          case final match?)
-        shop.copyWithCuratedConditions(match.hoursConditions)
-      else
-        shop
-    else
-      shop,
-];
 
 /// [center]から[radiusMeters]以内の、手で持つ店。
 List<FoundShop> builtinShopsNear(
@@ -164,7 +119,6 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 仙川店',
     address: '東京都調布市仙川町1-10-17',
     location: GeoPoint(35.661385, 139.583847),
-    hoursConditions: {HoursCondition.nightOnly},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 新宿歌舞伎町店',
@@ -185,7 +139,6 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 環七新新代田店',
     address: '東京都世田谷区代田5-29-5',
     location: GeoPoint(35.661949, 139.660385),
-    hoursConditions: {HoursCondition.lunchOnly},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 八王子野猿街道店2',
@@ -196,25 +149,21 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 池袋東口店',
     address: '東京都豊島区南池袋2-27-17',
     location: GeoPoint(35.728195, 139.713913),
-    hoursConditions: {HoursCondition.nightOnly},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 亀戸店',
     address: '東京都江東区亀戸4-35-17',
     location: GeoPoint(35.701885, 139.826706),
-    hoursConditions: {HoursCondition.irregular},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 府中店',
     address: '東京都府中市宮西町1-15-5',
     location: GeoPoint(35.672115, 139.477158),
-    hoursConditions: {HoursCondition.nightOnly, HoursCondition.weekdaysOnly},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 めじろ台店',
     address: '東京都八王子市椚田町513-9',
     location: GeoPoint(35.638947, 139.312744),
-    hoursConditions: {HoursCondition.irregular},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 荻窪店',
@@ -240,7 +189,6 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 小岩店',
     address: '東京都江戸川区西小岩3-31-13',
     location: GeoPoint(35.734898, 139.880005),
-    hoursConditions: {HoursCondition.lunchOnly, HoursCondition.weekdaysOnly},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 ひばりヶ丘駅前店',
@@ -251,13 +199,11 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 立川店',
     address: '東京都立川市柴崎町2-10-1',
     location: GeoPoint(35.696507, 139.409515),
-    hoursConditions: {HoursCondition.irregular},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 千住大橋駅前店',
     address: '東京都足立区千住橋戸町10-8',
     location: GeoPoint(35.742706, 139.796906),
-    hoursConditions: {HoursCondition.lunchOnly, HoursCondition.weekdaysOnly},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 西台駅前店',
@@ -278,7 +224,6 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 相模大野店',
     address: '神奈川県相模原市南区相模大野6-14-9',
     location: GeoPoint(35.529911, 139.432846),
-    hoursConditions: {HoursCondition.irregular},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 横浜関内店',
@@ -299,13 +244,11 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 生田駅前店',
     address: '神奈川県川崎市多摩区生田8-1-15',
     location: GeoPoint(35.615597, 139.546448),
-    hoursConditions: {HoursCondition.irregular},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 松戸駅前店',
     address: '千葉県松戸市本町17-21',
     location: GeoPoint(35.785427, 139.899033),
-    hoursConditions: {HoursCondition.nightOnly},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 京成大久保店',
@@ -321,7 +264,6 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 柏店',
     address: '千葉県柏市十余二249-5',
     location: GeoPoint(35.881977, 139.957626),
-    hoursConditions: {HoursCondition.lunchOnly, HoursCondition.badAccess},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 栃木街道店',
@@ -357,7 +299,6 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 越谷店',
     address: '埼玉県越谷市越ヶ谷2-3-7',
     location: GeoPoint(35.890182, 139.787659),
-    hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.irregular},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 大宮公園駅前店',
@@ -368,7 +309,6 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 京都店',
     address: '京都府京都市左京区一乗寺里ノ前町4',
     location: GeoPoint(35.043465, 135.787445),
-    hoursConditions: {HoursCondition.irregular},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 前橋千代田町店',
@@ -384,7 +324,6 @@ const builtinShops = <BuiltinShop>[
     name: 'ラーメン二郎 朝倉街道駅前店',
     address: '福岡県筑紫野市針摺中央2-17-8',
     location: GeoPoint(33.48444, 130.533493),
-    hoursConditions: {HoursCondition.weekdaysOnly},
   ),
   BuiltinShop(
     name: 'ラーメン二郎 名古屋大曽根店',

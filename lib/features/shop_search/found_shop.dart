@@ -1,6 +1,5 @@
 import '../records/models.dart';
 import 'geo.dart';
-import 'opening_hours.dart';
 
 const shopSearchRadiusMeters = 300;
 
@@ -12,8 +11,6 @@ class FoundShop {
     required this.location,
     this.dataSource,
     this.address,
-    this.openingHours,
-    this.curatedConditions,
   });
 
   /// OpenStreetMap の ID。OpenPOI で見つかった店は null。
@@ -26,50 +23,6 @@ class FoundShop {
 
   /// 店名で探したときに、同じ名前の店（支店）を見分けるための住所。わからなければnull。
   final String? address;
-
-  /// OpenStreetMap に載っている営業時間（`opening_hours`）。
-  final String? openingHours;
-
-  /// 手で持つ店（`data/curated_shops.json`）に書いた攻略しにくさ。手で持つ店でないか、条件が無ければnull。
-  final Set<HoursCondition>? curatedConditions;
-
-  /// 初めて記録するときの条件の下書き。手で持つ店の条件を、営業時間から推し量った条件より優先する。
-  /// 当てはまるものが無いか、わからなければnull。
-  Set<HoursCondition>? get suggestedConditions => _suggestion?.$1;
-
-  /// [suggestedConditions]をどこから作ったか。
-  ConditionsDraftSource? get suggestedConditionsSource => _suggestion?.$2;
-
-  (Set<HoursCondition>, ConditionsDraftSource)? get _suggestion {
-    final curated = curatedConditions;
-    if (curated != null && curated.isNotEmpty) {
-      return (curated, ConditionsDraftSource.curatedShops);
-    }
-    final conditions = conditionsFromOpeningHours(openingHours);
-    return conditions == null || conditions.isEmpty
-        ? null
-        : (conditions, ConditionsDraftSource.openingHours);
-  }
-
-  FoundShop copyWithCuratedConditions(Set<HoursCondition> conditions) =>
-      FoundShop(
-        osmId: osmId,
-        name: name,
-        location: location,
-        dataSource: dataSource,
-        address: address,
-        openingHours: openingHours,
-        curatedConditions: conditions,
-      );
-}
-
-/// 店の条件の下書きの出どころ。
-enum ConditionsDraftSource {
-  /// OpenStreetMap の営業時間（`opening_hours`）から推し量った。
-  openingHours,
-
-  /// 手で持つ店の一覧に書いた条件。
-  curatedShops,
 }
 
 /// [near] があれば近い順に並べ替える（無ければそのまま）。

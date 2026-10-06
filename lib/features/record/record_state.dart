@@ -26,7 +26,6 @@ class RecordState {
     this.rating,
     this.style,
     this.isLimited = false,
-    this.chosenHoursConditions,
     this.memo = '',
     this.manualWaitMinutes,
     this.arrivedAt,
@@ -63,9 +62,6 @@ class RecordState {
   final int? rating;
   final RamenStyle? style;
   final bool isLimited;
-
-  /// 利用者がこの画面で選んだ営業の条件。選んでいなければnull。
-  final Set<HoursCondition>? chosenHoursConditions;
   final String memo;
 
   /// あとから入れた待ち時間（分）。並んだ店を選んでいるときは使わない。
@@ -77,9 +73,6 @@ class RecordState {
 
   /// 前に保存せずに閉じたときの入力から再開したか。
   final bool resumedFromDraft;
-
-  Set<HoursCondition> get hoursConditions =>
-      chosenHoursConditions ?? selectedShop?.hoursConditions ?? const {};
 
   /// 並んでいる店を選んでいるか。このときだけ待ち時間を記録する。
   bool get isCheckinShopSelected {
@@ -119,7 +112,6 @@ class RecordState {
     Object? rating = _unset,
     Object? style = _unset,
     bool? isLimited,
-    Object? chosenHoursConditions = _unset,
     String? memo,
     Object? manualWaitMinutes = _unset,
     Object? arrivedAt = _unset,
@@ -154,9 +146,6 @@ class RecordState {
       rating: rating == _unset ? this.rating : rating as int?,
       style: style == _unset ? this.style : style as RamenStyle?,
       isLimited: isLimited ?? this.isLimited,
-      chosenHoursConditions: chosenHoursConditions == _unset
-          ? this.chosenHoursConditions
-          : chosenHoursConditions as Set<HoursCondition>?,
       memo: memo ?? this.memo,
       manualWaitMinutes: manualWaitMinutes == _unset
           ? this.manualWaitMinutes

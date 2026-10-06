@@ -61,7 +61,6 @@ List<FoundShop> parseOverpassResponse(String body) {
         osmId: osmId,
         name: name,
         location: GeoPoint(lat.toDouble(), lon.toDouble()),
-        openingHours: _nonEmpty(tags['opening_hours']),
       ),
     );
   }

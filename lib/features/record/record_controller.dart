@@ -179,7 +179,7 @@ class RecordController extends Notifier<RecordState> {
   }
 
   Future<void> _useCheckin(Checkin checkin) async {
-    // 記録済みの店なら、攻略メモや営業の条件も引き継ぐため店から作る。
+    // 記録済みの店なら、攻略メモも引き継ぐため店から作る。
     final known = checkin.shopId == null
         ? null
         : (await ref.read(recordRepositoryProvider).allShops())
@@ -255,7 +255,6 @@ class RecordController extends Notifier<RecordState> {
       rating: draft.rating,
       style: draft.style,
       isLimited: draft.isLimited,
-      chosenHoursConditions: draft.chosenHoursConditions,
       memo: draft.memo,
       manualWaitMinutes: draft.manualWaitMinutes,
       arrivedAt: draft.arrivedAt,
@@ -453,7 +452,6 @@ class RecordController extends Notifier<RecordState> {
       selectedShop: shop,
       manualName: '',
       nameMatches: const [],
-      chosenHoursConditions: null,
     );
   }
 
@@ -463,7 +461,6 @@ class RecordController extends Notifier<RecordState> {
     state = state.copyWith(
       manualName: name,
       selectedShop: deselects ? null : state.selectedShop,
-      chosenHoursConditions: deselects ? null : state.chosenHoursConditions,
       nameMatches: query.isEmpty ? const [] : _nameMatches(query),
     );
   }
@@ -478,7 +475,6 @@ class RecordController extends Notifier<RecordState> {
             osmId: wish.osmId,
             name: wish.name,
             location: wishLocation(wish),
-            hoursConditions: wishedConditions(wish),
             dataSource: wish.dataSource,
             wishId: wish.id,
           ),
@@ -501,9 +497,6 @@ class RecordController extends Notifier<RecordState> {
   void setStyle(RamenStyle? style) => state = state.copyWith(style: style);
 
   void setLimited(bool value) => state = state.copyWith(isLimited: value);
-
-  void setHoursConditions(Set<HoursCondition> conditions) =>
-      state = state.copyWith(chosenHoursConditions: conditions);
 
   void setMemo(String memo) => state = state.copyWith(memo: memo);
 
@@ -536,10 +529,6 @@ class RecordController extends Notifier<RecordState> {
           .read(recordRepositoryProvider)
           .saveEatenVisit(
             shop: _shopInput(draft),
-            hoursConditions: _hoursConditions(draft),
-            draftConditions: draft.selectedShop?.conditionsDraftSource != null
-                ? draft.selectedShop?.hoursConditions
-                : null,
             eatenAt: eatenAt,
             rating: draft.rating,
             photoPath: savedPhoto,
@@ -567,18 +556,6 @@ class RecordController extends Notifier<RecordState> {
       if (ref.mounted) state = state.copyWith(isSaving: false);
       return null;
     }
-  }
-
-  /// 選び直していなければ、初めての店には候補に付いていた願の条件を使う。
-  /// 下書きの条件（手で持つ店・地図の営業時間から）は、記録済みの店の条件を変えないよう別に渡す。
-  Set<HoursCondition>? _hoursConditions(RecordState draft) {
-    final selected = draft.selectedShop;
-    return draft.chosenHoursConditions ??
-        (selected != null &&
-                selected.shopId == null &&
-                selected.conditionsDraftSource == null
-            ? selected.hoursConditions
-            : null);
   }
 
   ShopInput _shopInput(RecordState draft) {

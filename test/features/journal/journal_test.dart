@@ -247,7 +247,9 @@ void main() {
     final without = journalOf([entry]);
     final with_ = journalOf([withArea]);
 
-    expect(with_.where((l) => !l.contains('新宿区')), without);
+    // 初めての市区町村の点が足されるので、修行点の行は比べない。
+    bool same(String line) => !line.contains('新宿区') && !line.contains('修行点');
+    expect(with_.where(same), without.where(same));
   });
 
   group('節目・間隔・特別な日', () {
@@ -313,10 +315,7 @@ void main() {
     });
 
     test('この店で初めて60点以上なら、印が「極」になったと書く', () {
-      final rare = buildShop(
-        id: 'rare',
-        hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-      );
+      final rare = buildShop(id: 'rare', isFamous: true);
       final lines = journalOf([
         buildEntry(
           shop: buildShop(id: 'big'),
@@ -325,7 +324,13 @@ void main() {
           waitMinutes: 120,
         ),
         buildEntry(shop: rare, eatenAt: day(9, 2)),
-        buildEntry(shop: rare, eatenAt: day(9, 3), isLimited: true),
+        // 10 + 限定 20 + 待ち 15 + 名店 15 = 60
+        buildEntry(
+          shop: rare,
+          eatenAt: day(9, 3),
+          isLimited: true,
+          waitMinutes: 30,
+        ),
       ]);
 
       expect(lines, contains('この道場の印は「極」に。'));

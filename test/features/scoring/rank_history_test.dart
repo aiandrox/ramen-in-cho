@@ -49,11 +49,8 @@ void main() {
   });
 
   test('1杯で上がるのは1つだけ。累計が先に届いていても、食べた1杯ごとに1つずつ上がる', () {
-    final rare = buildShop(
-      id: 'rare',
-      hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-    );
-    // (10 + 50 + 20 + 10) × 2 = 180 → 一級（160）まで届くが、上がるのは五級だけ。
+    final rare = buildShop(id: 'rare', isFamous: true);
+    // 10 + 待ち 50 + 限定 20 + 初訪問 10 + 名店 15 = 105 → 四級（65）を越えるが、上がるのは五級だけ。
     final big = buildEntry(
       shop: rare,
       eatenAt: day(1),

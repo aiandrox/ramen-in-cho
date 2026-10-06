@@ -181,7 +181,6 @@ List<FoundShop> parseApiShops(String body) {
             name: name,
             location: GeoPoint(lat.toDouble(), lon.toDouble()),
             address: text(shop['address']),
-            openingHours: text(shop['openingHours']),
             dataSource: switch (shop['dataSource']) {
               final Map<String, dynamic> source => ShopSource(
                 licenses: strings(source['licenses']),

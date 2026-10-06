@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -45,7 +44,6 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   late int? _rating = widget.entry.visit.rating;
   late RamenStyle? _style = widget.entry.visit.style;
   late bool _isLimited = widget.entry.visit.isLimited;
-  late Set<HoursCondition> _hoursConditions = widget.entry.shop.hoursConditions;
   late final _photo = PhotoEdit(
     ref.read(photoStorageProvider),
     original: widget.entry.visit.photoPath,
@@ -108,9 +106,6 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
     setState(() {
       _pickedShop = isCurrentShop ? null : picked;
       _nameController.text = picked.name;
-      _hoursConditions = isCurrentShop
-          ? widget.entry.shop.hoursConditions
-          : picked.hoursConditions ?? const {};
     });
   }
 
@@ -118,18 +113,6 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
     setState(() {
       if (_pickedShop?.name != name.trim()) _pickedShop = null;
     });
-  }
-
-  /// 選び直した店が初めての店なら、記録画面と同じく候補に付いていた条件（願・地図の営業時間から）も渡す。
-  Set<HoursCondition>? _changedHoursConditions() {
-    final picked = _pickedShop;
-    final initial = picked == null
-        ? widget.entry.shop.hoursConditions
-        : picked.hoursConditions ?? const <HoursCondition>{};
-    if (!setEquals(_hoursConditions, initial)) return _hoursConditions;
-    return picked != null && picked.shopId == null
-        ? picked.hoursConditions
-        : null;
   }
 
   ShopInput? _pickedShopInput() {
@@ -196,7 +179,6 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
           .updateVisit(
             visitId: widget.entry.visit.id,
             shopName: _nameController.text,
-            hoursConditions: _changedHoursConditions(),
             pickedShop: _pickedShopInput(),
             eatenAt: _eatenAt,
             checkedInAt: _checkedInAt(),
@@ -278,12 +260,9 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
           VisitDetailsForm(
             style: _style,
             isLimited: _isLimited,
-            hoursConditions: _hoursConditions,
             memoController: _memoController,
             onStyleChanged: (style) => setState(() => _style = style),
             onLimitedChanged: (value) => setState(() => _isLimited = value),
-            onHoursConditionsChanged: (conditions) =>
-                setState(() => _hoursConditions = conditions),
             onMemoChanged: (_) {},
             waitController: isEaten ? _waitController : null,
           ),

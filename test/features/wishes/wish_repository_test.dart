@@ -37,16 +37,10 @@ void main() {
     expect(saved.trigger, '同僚に聞いた');
     expect(saved.dataSource!.licenses, ['CC BY 4.0']);
 
-    await wishes.updateWish(
-      wish.id,
-      trigger: 'テレビ',
-      note: '煮干し',
-      hoursConditions: {HoursCondition.lunchOnly},
-    );
+    await wishes.updateWish(wish.id, trigger: 'テレビ', note: '煮干し');
     saved = (await wishes.watchWishes().first).single;
     expect(saved.trigger, 'テレビ');
     expect(saved.note, '煮干し');
-    expect(saved.hoursConditions, {HoursCondition.lunchOnly});
 
     await wishes.deleteWish(wish.id);
     expect(await wishes.watchWishes().first, isEmpty);
@@ -56,7 +50,6 @@ void main() {
     await wishes.addWish(
       shop: const ShopInput(name: 'はやし田'),
       trigger: '同僚に聞いた',
-      hoursConditions: {HoursCondition.fewDays},
       now: DateTime(2026, 10, 3),
     );
     final exported = await records.exportAll();
@@ -64,7 +57,6 @@ void main() {
       encodeBackup(exported, exportedAt: DateTime(2026, 10, 4)),
     );
     expect(decoded.wishes.single.trigger, '同僚に聞いた');
-    expect(decoded.wishes.single.hoursConditions, {HoursCondition.fewDays});
 
     final other = createTestDatabase();
     await RecordRepository(other).importAll(decoded);
@@ -82,78 +74,6 @@ void main() {
     });
 
     expect(data.wishes, isEmpty);
-  });
-
-  group('願を掛けたときに入れた店の条件', () {
-    Future<Shop> eat(ShopInput shop, {Set<HoursCondition>? chosen}) async {
-      final visit = await records.saveEatenVisit(
-        shop: shop,
-        hoursConditions: chosen,
-        eatenAt: DateTime(2026, 10, 3, 12),
-        now: DateTime(2026, 10, 3, 12, 5),
-      );
-      return (await records.allShops()).singleWhere(
-        (s) => s.id == visit.shopId,
-      );
-    }
-
-    test('初めて記録する店に引き継ぐ', () async {
-      final wish = await wishes.addWish(
-        shop: const ShopInput(name: 'はやし田', osmId: 'node/1'),
-        hoursConditions: {HoursCondition.lunchOnly, HoursCondition.fewDays},
-        now: DateTime(2026, 10, 1),
-      );
-
-      final shop = await eat(
-        ShopInput(name: 'はやし田', osmId: 'node/1', wishId: wish.id),
-      );
-
-      expect(shop.hoursConditions, {
-        HoursCondition.lunchOnly,
-        HoursCondition.fewDays,
-      });
-    });
-
-    test('願を選ばなくても、同じ店（OpenStreetMap のID）なら引き継ぐ', () async {
-      await wishes.addWish(
-        shop: const ShopInput(name: 'はやし田', osmId: 'node/1'),
-        hoursConditions: {HoursCondition.irregular},
-        now: DateTime(2026, 10, 1),
-      );
-
-      final shop = await eat(const ShopInput(name: 'はやし田', osmId: 'node/1'));
-
-      expect(shop.hoursConditions, {HoursCondition.irregular});
-    });
-
-    test('記録画面で選び直した条件が優先される', () async {
-      final wish = await wishes.addWish(
-        shop: const ShopInput(name: 'はやし田'),
-        hoursConditions: {HoursCondition.lunchOnly},
-        now: DateTime(2026, 10, 1),
-      );
-
-      final shop = await eat(
-        ShopInput(name: 'はやし田', wishId: wish.id),
-        chosen: const {},
-      );
-
-      expect(shop.hoursConditions, isEmpty);
-    });
-  });
-
-  test('店の条件を店のページから直せる', () async {
-    final visit = await records.saveEatenVisit(
-      shop: const ShopInput(name: 'はやし田'),
-      eatenAt: DateTime(2026, 10, 3, 12),
-      now: DateTime(2026, 10, 3, 12, 5),
-    );
-
-    await records.setShopConditions(visit.shopId, {HoursCondition.badAccess});
-
-    expect((await records.allShops()).single.hoursConditions, {
-      HoursCondition.badAccess,
-    });
   });
 
   group('記録で願を叶える', () {

@@ -66,11 +66,7 @@ void main() {
 
   testWidgets('今年の杯数・系統の割合・よく行く店・店ランクを表示する', (tester) async {
     final often = buildShop(id: 'often', name: 'よく行く麺屋');
-    final rare = buildShop(
-      id: 'rare',
-      name: '週2日の店',
-      hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-    );
+    final rare = buildShop(id: 'rare', name: '名店の印の店', isFamous: true);
     await pumpStats(tester, [
       buildEntry(
         shop: often,
@@ -87,12 +83,8 @@ void main() {
         eatenAt: DateTime(2026, 9, 2, 12),
         style: RamenStyle.miso,
       ),
-      // (10 + 10 + 20) × 2 = 80 → Sランク
-      buildEntry(
-        shop: rare,
-        eatenAt: DateTime(2026, 9, 3, 12),
-        isLimited: true,
-      ),
+      // 10 + 初訪問 10 + 限定 20 + 朝ラー 10 + 名店 15 = 65 → Sランク
+      buildEntry(shop: rare, eatenAt: DateTime(2026, 9, 3, 9), isLimited: true),
     ]);
 
     expect(find.text(ja.statsBowlsLine(3, 4)), findsOneWidget);
@@ -105,15 +97,15 @@ void main() {
 
     // 2杯以上の店は、よく行く店と店ランクの両方に出る。1杯だけの店は店ランクだけ。
     expect(find.text('よく行く麺屋'), findsNWidgets(2));
-    expect(find.text('週2日の店'), findsOneWidget);
+    expect(find.text('名店の印の店'), findsOneWidget);
     expect(find.text(ja.shopRankS), findsOneWidget);
     expect(find.text(ja.shopRankC), findsOneWidget);
-    expect(find.text(ja.statsBestPoints(80)), findsOneWidget);
+    expect(find.text(ja.statsBestPoints(65)), findsOneWidget);
     expect(find.text(ja.statsBestPoints(20)), findsOneWidget);
 
     expect(find.text(ja.statsBests), findsOneWidget);
     expect(find.text(ja.bestHighestPoints), findsOneWidget);
-    expect(find.text(ja.bestDetail('週2日の店', '2026/9/3')), findsOneWidget);
+    expect(find.text(ja.bestDetail('名店の印の店', '2026/9/3')), findsOneWidget);
     // 並んだ記録も撤退も無いので、その2つは出さない。
     expect(find.text(ja.bestLongestWait), findsNothing);
     expect(find.text(ja.bestMostRetreats), findsNothing);

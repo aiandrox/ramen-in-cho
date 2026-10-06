@@ -172,14 +172,14 @@ const quests = <Quest>[
     seal: QuestSealDesign('全', QuestSealShape.eightRing),
   ),
   Quest(
-    id: 'rare_shop',
+    id: 'famous_shop',
     kind: QuestKind.spot,
-    title: '幻の店',
-    description: '営業の条件（アクセスの悪さは除く）が二つ以上ある店で食べる',
+    title: '名店の暖簾',
+    description: '名店の印をつけた店で食べる',
     unit: '回',
     thresholds: [1],
-    count: _rareShopCount,
-    seal: QuestSealDesign('幻', QuestSealShape.flower),
+    count: _famousShopCount,
+    seal: QuestSealDesign('名', QuestSealShape.flower),
   ),
   Quest(
     id: 'home_base',
@@ -550,16 +550,8 @@ int _doubleBowlDays(List<ScoredVisit> scored) {
 
 int _none(List<ScoredVisit> scored) => 0;
 
-int _rareShopCount(List<ScoredVisit> scored) => scored
-    .where(
-      (e) =>
-          _isEaten(e) &&
-          e.shop.hoursConditions
-                  .where((c) => c != HoursCondition.badAccess)
-                  .length >=
-              2,
-    )
-    .length;
+int _famousShopCount(List<ScoredVisit> scored) =>
+    scored.where((e) => _isEaten(e) && e.shop.isFamous).length;
 
 int _rankSShopCount(List<ScoredVisit> scored) =>
     shopRanks(scored).values.where((rank) => rank == ShopRank.s).length;

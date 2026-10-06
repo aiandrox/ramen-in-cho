@@ -80,10 +80,7 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
           if (!mounted || generation != _generation) return;
           setState(() {
             _results = nearestFirst(
-              withCuratedConditions(
-                mergeFoundShops(curated, shops),
-                curatedShops,
-              ),
+              mergeFoundShops(curated, shops),
               widget.near,
             );
             _isSearching = false;
@@ -135,10 +132,7 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
         throw StateError('店名の検索がすべて失敗しました');
       }
       final results = nearestFirst(
-        withCuratedConditions(
-          mergeFoundShops(builtin, [...?yahooShops, ...?poiShops]),
-          curatedShops,
-        ),
+        mergeFoundShops(builtin, [...?yahooShops, ...?poiShops]),
         widget.near,
       );
       if (!mounted || generation != _generation) return;

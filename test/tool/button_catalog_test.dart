@@ -146,7 +146,7 @@ Widget _panel({required bool night}) {
       ],
     ),
     if (!night) ...[
-      _label('選ぶ札（営業の条件・年など。選ぶと藍の地）', night: night),
+      _label('選ぶ札（撤退の理由・年など。選ぶと藍の地）', night: night),
       Wrap(
         spacing: 8,
         runSpacing: 4,

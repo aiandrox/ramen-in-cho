@@ -36,7 +36,6 @@ void main() {
       repository.updateVisit(
         visitId: visit.id,
         shopName: '麺屋',
-        hoursConditions: null,
         eatenAt: visit.eatenAt,
         checkedInAt: null,
         rating: null,

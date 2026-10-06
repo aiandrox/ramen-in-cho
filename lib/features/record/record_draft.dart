@@ -9,7 +9,6 @@ import 'package:uuid/uuid.dart';
 
 import '../records/models.dart';
 import '../records/photo_storage.dart';
-import '../shop_search/found_shop.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/shop_candidate.dart';
 import 'record_state.dart';
@@ -32,7 +31,6 @@ class RecordDraft {
     this.rating,
     this.style,
     this.isLimited = false,
-    this.chosenHoursConditions,
     this.memo = '',
     this.manualWaitMinutes,
     this.arrivedAt,
@@ -57,7 +55,6 @@ class RecordDraft {
       rating: state.rating,
       style: state.style,
       isLimited: state.isLimited,
-      chosenHoursConditions: state.chosenHoursConditions,
       memo: state.memo,
       manualWaitMinutes: state.manualWaitMinutes,
       arrivedAt: arrivedAt,
@@ -77,7 +74,6 @@ class RecordDraft {
   final int? rating;
   final RamenStyle? style;
   final bool isLimited;
-  final Set<HoursCondition>? chosenHoursConditions;
   final String memo;
   final int? manualWaitMinutes;
 
@@ -92,7 +88,6 @@ class RecordDraft {
       rating == null &&
       style == null &&
       !isLimited &&
-      chosenHoursConditions == null &&
       memo.trim().isEmpty &&
       manualWaitMinutes == null &&
       arrivedAt == null;
@@ -109,7 +104,6 @@ class RecordDraft {
     rating: rating,
     style: style,
     isLimited: isLimited,
-    chosenHoursConditions: chosenHoursConditions,
     memo: memo,
     manualWaitMinutes: manualWaitMinutes,
   );
@@ -126,7 +120,6 @@ class RecordDraft {
     rating: rating,
     style: style,
     isLimited: isLimited,
-    chosenHoursConditions: chosenHoursConditions,
     memo: memo,
     manualWaitMinutes: manualWaitMinutes,
     arrivedAt: arrivedAt,
@@ -146,9 +139,6 @@ class RecordDraft {
     'rating': rating,
     'style': style?.name,
     'isLimited': isLimited,
-    'chosenHoursConditions': chosenHoursConditions == null
-        ? null
-        : [for (final c in chosenHoursConditions!) c.name],
     'memo': memo,
     'manualWaitMinutes': manualWaitMinutes,
     'arrivedAt': arrivedAt?.toUtc().toIso8601String(),
@@ -178,7 +168,6 @@ class RecordDraft {
       rating: rating != null && rating >= 1 && rating <= 5 ? rating : null,
       style: _enum(RamenStyle.values, json['style']),
       isLimited: json['isLimited'] == true,
-      chosenHoursConditions: _conditions(json['chosenHoursConditions']),
       memo: _string(json['memo']) ?? '',
       manualWaitMinutes: wait != null && wait > 0 ? wait : null,
       arrivedAt: arrived ? arrivedAt : null,
@@ -246,19 +235,14 @@ GeoPoint? _geoFromJson(Object? json) {
 Map<String, Object?>? _shopToJson(ShopCandidate? shop) {
   if (shop == null) return null;
   final source = shop.dataSource;
-  final conditions = shop.hoursConditions;
   return {
     'shopId': shop.shopId,
     'osmId': shop.osmId,
     'name': shop.name,
     'location': _geoToJson(shop.location),
-    'hoursConditions': conditions == null
-        ? null
-        : [for (final c in conditions) c.name],
     'strategyMemo': shop.strategyMemo,
     'dataSource': _sourceToJson(source),
     'wishId': shop.wishId,
-    'conditionsDraftSource': shop.conditionsDraftSource?.name,
   };
 }
 
@@ -272,17 +256,9 @@ ShopCandidate? _shopFromJson(Object? json) {
     osmId: _string(json['osmId']),
     name: name,
     location: _geoFromJson(json['location']),
-    hoursConditions: _conditions(json['hoursConditions']),
     strategyMemo: _string(json['strategyMemo']) ?? '',
     dataSource: _sourceFromJson(source),
     wishId: _string(json['wishId']),
-    conditionsDraftSource:
-        ConditionsDraftSource.values
-            .asNameMap()[json['conditionsDraftSource']] ??
-        // 前の版の下書きは、地図の営業時間からの下書きかどうかだけを持っていた。
-        (json['conditionsFromMap'] == true
-            ? ConditionsDraftSource.openingHours
-            : null),
   );
 }
 
@@ -295,10 +271,6 @@ List<String> _strings(Object? value) =>
 
 T? _enum<T extends Enum>(List<T> values, Object? name) =>
     values.where((v) => v.name == name).firstOrNull;
-
-Set<HoursCondition>? _conditions(Object? value) => value is List
-    ? {for (final v in value) ?_enum(HoursCondition.values, v)}
-    : null;
 
 /// 下書きの読み書き。写真は documents の下書き用のフォルダに写して持つ
 /// （image_picker の一時ファイルは OS に消されることがあるため）。

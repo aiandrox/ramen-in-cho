@@ -21,7 +21,6 @@ const mita: CuratedShop = {
   longitude: 139.741516,
   chain: 'jiro',
   status: 'open',
-  hoursConditions: [],
 };
 
 /** 呼ばれた URL を覚え、ホストごとに決めた答えを返す fetch。 */
@@ -49,10 +48,9 @@ function fakeCache() {
 }
 
 describe('アプリと同じ解析', () => {
-  it('Overpass: 名前と位置のある店だけ（保存した応答で19件）、営業時間も持つ', () => {
+  it('Overpass: 名前と位置のある店だけ（保存した応答で19件）', () => {
     const shops = parseOverpassResponse(fixture('overpass_shinjuku.json'));
     expect(shops).toHaveLength(19);
-    expect(shops.find((s) => s.osmId === 'relation/17691793')?.openingHours).toBe('08:00-23:00');
   });
 
   it('OpenPOI と Yahoo! の保存した応答を読める', () => {

@@ -5,7 +5,6 @@ export interface FoundShop {
   latitude: number;
   longitude: number;
   address?: string;
-  openingHours?: string;
   dataSource?: { licenses: string[]; attributions: string[] };
 }
 

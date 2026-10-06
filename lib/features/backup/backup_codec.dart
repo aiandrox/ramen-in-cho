@@ -35,10 +35,7 @@ Map<String, Object?> encodeBackup(
         'latitude': shop.latitude,
         'longitude': shop.longitude,
         'osmId': shop.osmId,
-        'hoursConditions': [
-          for (final condition in HoursCondition.values)
-            if (shop.hoursConditions.contains(condition)) condition.name,
-        ],
+        'isFamous': shop.isFamous,
         'strategyMemo': shop.strategyMemo,
         'area': shop.area,
         if (shop.dataSource case final source?)
@@ -67,10 +64,6 @@ Map<String, Object?> encodeBackup(
         'note': wish.note,
         'createdAt': wish.createdAt.toUtc().toIso8601String(),
         'fulfilledVisitId': wish.fulfilledVisitId,
-        'hoursConditions': [
-          for (final condition in HoursCondition.values)
-            if (wish.hoursConditions.contains(condition)) condition.name,
-        ],
       },
   ],
   'homeBases': [
@@ -129,17 +122,14 @@ BackupData decodeBackup(Object? json) {
 
 Shop _decodeShop(Object? json) {
   final map = _map(json, '店');
-  final byName = HoursCondition.values.asNameMap();
   return Shop(
     id: _string(map['id']),
     name: _string(map['name']),
     latitude: _doubleOrNull(map['latitude']),
     longitude: _doubleOrNull(map['longitude']),
     osmId: _stringOrNull(map['osmId']),
-    hoursConditions: {
-      for (final name in _list(map['hoursConditions'] ?? const []))
-        ?byName[name],
-    },
+    // 店の条件（hoursConditions）は 2026-10-06 にやめた。前の版のバックアップにあっても読み飛ばす。
+    isFamous: map['isFamous'] == true,
     strategyMemo: _stringOrNull(map['strategyMemo']) ?? '',
     dataSource: _decodeSource(map['dataSource']),
     area: _stringOrNull(map['area']),
@@ -173,10 +163,6 @@ Wish _decodeWish(Object? json) {
     note: _stringOrNull(map['note']) ?? '',
     createdAt: _dateTime(map['createdAt']),
     fulfilledVisitId: _stringOrNull(map['fulfilledVisitId']),
-    hoursConditions: {
-      for (final name in _list(map['hoursConditions'] ?? const []))
-        ?HoursCondition.values.asNameMap()[name],
-    },
   );
 }
 

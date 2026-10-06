@@ -48,7 +48,6 @@ void main() {
             'name': '海神',
             'latitude': 35.69,
             'longitude': 139.7,
-            'openingHours': 'Mo-Fr 11:00-15:00',
           },
           {
             'name': 'はやし田',
@@ -67,7 +66,6 @@ void main() {
 
     expect(shops.map((s) => s.name), ['海神', 'はやし田']);
     expect(shops.first.osmId, 'node/1');
-    expect(shops.first.openingHours, 'Mo-Fr 11:00-15:00');
     expect(shops.last.dataSource!.licenses, ['CC BY 4.0']);
   });
 

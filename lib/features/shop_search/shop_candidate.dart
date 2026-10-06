@@ -11,11 +11,9 @@ class ShopCandidate {
     required this.name,
     this.location,
     this.distanceMeters,
-    this.hoursConditions,
     this.strategyMemo = '',
     this.dataSource,
     this.wishId,
-    this.conditionsDraftSource,
     this.locationPinned = false,
   });
 
@@ -30,7 +28,6 @@ class ShopCandidate {
           ? GeoPoint(latitude, longitude)
           : null,
       distanceMeters: distanceMeters,
-      hoursConditions: shop.hoursConditions,
       strategyMemo: shop.strategyMemo,
       dataSource: shop.dataSource,
     );
@@ -43,9 +40,6 @@ class ShopCandidate {
   final GeoPoint? location;
   final double? distanceMeters;
 
-  /// 記録済みの店の営業の条件。初めての店はnull（願を掛けたときに条件を入れていれば、その条件）。
-  final Set<HoursCondition>? hoursConditions;
-
   /// 記録済みの店の攻略メモ。
   final String strategyMemo;
 
@@ -54,35 +48,20 @@ class ShopCandidate {
   /// 願掛け帳に書き留めた店なら、その願。
   final String? wishId;
 
-  /// [hoursConditions]が下書き（手で持つ店の条件か、地図の営業時間から推し量った条件）なら、その出どころ。
-  final ConditionsDraftSource? conditionsDraftSource;
-
   /// 店名で見つからず、地図で指した場所の店か（店を選び直すとき）。
   final bool locationPinned;
 
-  /// 願で入れた条件は、下書きより優先する。
-  ShopCandidate withWish(Wish wish) {
-    final wished = conditionsDraftSource != null
-        ? wishedConditions(wish)
-        : null;
-    return ShopCandidate(
-      shopId: shopId,
-      osmId: osmId,
-      name: name,
-      location: location,
-      distanceMeters: distanceMeters,
-      hoursConditions: wished ?? hoursConditions ?? wishedConditions(wish),
-      strategyMemo: strategyMemo,
-      dataSource: dataSource,
-      wishId: wish.id,
-      conditionsDraftSource: wished == null ? conditionsDraftSource : null,
-    );
-  }
+  ShopCandidate withWish(Wish wish) => ShopCandidate(
+    shopId: shopId,
+    osmId: osmId,
+    name: name,
+    location: location,
+    distanceMeters: distanceMeters,
+    strategyMemo: strategyMemo,
+    dataSource: dataSource,
+    wishId: wish.id,
+  );
 }
-
-/// 願を掛けたときに入れておいた条件。入れていなければnull。
-Set<HoursCondition>? wishedConditions(Wish wish) =>
-    wish.hoursConditions.isEmpty ? null : wish.hoursConditions;
 
 /// 2つの候補が同じ店を指すか。IDで比べられないときは、名前と近さで判断する。
 bool isSameShop(ShopCandidate a, ShopCandidate b) {
@@ -127,15 +106,12 @@ List<ShopCandidate> rankShopCandidates({
     if (knownNames.contains(shop.name)) continue;
     final distance = distanceMeters(here, shop.location);
     if (distance > radiusMeters) continue;
-    final suggested = shop.suggestedConditions;
     final candidate = ShopCandidate(
       osmId: shop.osmId,
       name: shop.name,
       location: shop.location,
       distanceMeters: distance,
-      hoursConditions: suggested,
       dataSource: shop.dataSource,
-      conditionsDraftSource: shop.suggestedConditionsSource,
     );
     if (known.any((k) => isSameShop(k, candidate))) continue;
     candidates.add(candidate);
@@ -163,7 +139,6 @@ List<ShopCandidate> rankShopCandidates({
         name: wish.name,
         location: GeoPoint(latitude, longitude),
         distanceMeters: distance,
-        hoursConditions: wishedConditions(wish),
         dataSource: wish.dataSource,
         wishId: wish.id,
       ),

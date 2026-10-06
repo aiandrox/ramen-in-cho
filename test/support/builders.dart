@@ -17,7 +17,8 @@ HomeBaseSetting buildHomeBase({
 Shop buildShop({
   String id = 'shop',
   String? name,
-  Set<HoursCondition> hoursConditions = const {},
+  bool isFamous = false,
+  String? area,
   double? latitude,
   double? longitude,
   String? osmId,
@@ -29,7 +30,8 @@ Shop buildShop({
   longitude: longitude,
   osmId: osmId,
   strategyMemo: strategyMemo,
-  hoursConditions: hoursConditions,
+  isFamous: isFamous,
+  area: area,
   createdAt: DateTime(2026),
 );
 

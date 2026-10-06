@@ -57,16 +57,33 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _hoursConditionsMeta = const VerificationMeta(
+    'hoursConditions',
+  );
   @override
-  late final GeneratedColumnWithTypeConverter<Set<HoursCondition>, String>
-  hoursConditions = GeneratedColumn<String>(
+  late final GeneratedColumn<String> hoursConditions = GeneratedColumn<String>(
     'hours_conditions',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
-  ).withConverter<Set<HoursCondition>>($ShopsTable.$converterhoursConditions);
+  );
+  static const VerificationMeta _isFamousMeta = const VerificationMeta(
+    'isFamous',
+  );
+  @override
+  late final GeneratedColumn<bool> isFamous = GeneratedColumn<bool>(
+    'is_famous',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_famous" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _strategyMemoMeta = const VerificationMeta(
     'strategyMemo',
   );
@@ -116,6 +133,7 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
     longitude,
     osmId,
     hoursConditions,
+    isFamous,
     strategyMemo,
     dataSource,
     area,
@@ -162,6 +180,21 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
       context.handle(
         _osmIdMeta,
         osmId.isAcceptableOrUnknown(data['osm_id']!, _osmIdMeta),
+      );
+    }
+    if (data.containsKey('hours_conditions')) {
+      context.handle(
+        _hoursConditionsMeta,
+        hoursConditions.isAcceptableOrUnknown(
+          data['hours_conditions']!,
+          _hoursConditionsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_famous')) {
+      context.handle(
+        _isFamousMeta,
+        isFamous.isAcceptableOrUnknown(data['is_famous']!, _isFamousMeta),
       );
     }
     if (data.containsKey('strategy_memo')) {
@@ -216,12 +249,10 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
         DriftSqlType.string,
         data['${effectivePrefix}osm_id'],
       ),
-      hoursConditions: $ShopsTable.$converterhoursConditions.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}hours_conditions'],
-        )!,
-      ),
+      isFamous: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_famous'],
+      )!,
       strategyMemo: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}strategy_memo'],
@@ -248,8 +279,6 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
     return $ShopsTable(attachedDatabase, alias);
   }
 
-  static TypeConverter<Set<HoursCondition>, String> $converterhoursConditions =
-      const HoursConditionsConverter();
   static TypeConverter<ShopSource, String> $converterdataSource =
       const ShopSourceConverter();
   static TypeConverter<ShopSource?, String?> $converterdataSourcen =
@@ -262,7 +291,8 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
   final Value<double?> latitude;
   final Value<double?> longitude;
   final Value<String?> osmId;
-  final Value<Set<HoursCondition>> hoursConditions;
+  final Value<String> hoursConditions;
+  final Value<bool> isFamous;
   final Value<String> strategyMemo;
   final Value<ShopSource?> dataSource;
   final Value<String?> area;
@@ -275,6 +305,7 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     this.longitude = const Value.absent(),
     this.osmId = const Value.absent(),
     this.hoursConditions = const Value.absent(),
+    this.isFamous = const Value.absent(),
     this.strategyMemo = const Value.absent(),
     this.dataSource = const Value.absent(),
     this.area = const Value.absent(),
@@ -288,6 +319,7 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     this.longitude = const Value.absent(),
     this.osmId = const Value.absent(),
     this.hoursConditions = const Value.absent(),
+    this.isFamous = const Value.absent(),
     this.strategyMemo = const Value.absent(),
     this.dataSource = const Value.absent(),
     this.area = const Value.absent(),
@@ -303,6 +335,7 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     Expression<double>? longitude,
     Expression<String>? osmId,
     Expression<String>? hoursConditions,
+    Expression<bool>? isFamous,
     Expression<String>? strategyMemo,
     Expression<String>? dataSource,
     Expression<String>? area,
@@ -316,6 +349,7 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
       if (longitude != null) 'longitude': longitude,
       if (osmId != null) 'osm_id': osmId,
       if (hoursConditions != null) 'hours_conditions': hoursConditions,
+      if (isFamous != null) 'is_famous': isFamous,
       if (strategyMemo != null) 'strategy_memo': strategyMemo,
       if (dataSource != null) 'data_source': dataSource,
       if (area != null) 'area': area,
@@ -330,7 +364,8 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     Value<double?>? latitude,
     Value<double?>? longitude,
     Value<String?>? osmId,
-    Value<Set<HoursCondition>>? hoursConditions,
+    Value<String>? hoursConditions,
+    Value<bool>? isFamous,
     Value<String>? strategyMemo,
     Value<ShopSource?>? dataSource,
     Value<String?>? area,
@@ -344,6 +379,7 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
       longitude: longitude ?? this.longitude,
       osmId: osmId ?? this.osmId,
       hoursConditions: hoursConditions ?? this.hoursConditions,
+      isFamous: isFamous ?? this.isFamous,
       strategyMemo: strategyMemo ?? this.strategyMemo,
       dataSource: dataSource ?? this.dataSource,
       area: area ?? this.area,
@@ -371,9 +407,10 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
       map['osm_id'] = Variable<String>(osmId.value);
     }
     if (hoursConditions.present) {
-      map['hours_conditions'] = Variable<String>(
-        $ShopsTable.$converterhoursConditions.toSql(hoursConditions.value),
-      );
+      map['hours_conditions'] = Variable<String>(hoursConditions.value);
+    }
+    if (isFamous.present) {
+      map['is_famous'] = Variable<bool>(isFamous.value);
     }
     if (strategyMemo.present) {
       map['strategy_memo'] = Variable<String>(strategyMemo.value);
@@ -404,6 +441,7 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
           ..write('longitude: $longitude, ')
           ..write('osmId: $osmId, ')
           ..write('hoursConditions: $hoursConditions, ')
+          ..write('isFamous: $isFamous, ')
           ..write('strategyMemo: $strategyMemo, ')
           ..write('dataSource: $dataSource, ')
           ..write('area: $area, ')
@@ -1528,16 +1566,18 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _hoursConditionsMeta = const VerificationMeta(
+    'hoursConditions',
+  );
   @override
-  late final GeneratedColumnWithTypeConverter<Set<HoursCondition>, String>
-  hoursConditions = GeneratedColumn<String>(
+  late final GeneratedColumn<String> hoursConditions = GeneratedColumn<String>(
     'hours_conditions',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
-  ).withConverter<Set<HoursCondition>>($WishesTable.$converterhoursConditions);
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1631,6 +1671,15 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
         ),
       );
     }
+    if (data.containsKey('hours_conditions')) {
+      context.handle(
+        _hoursConditionsMeta,
+        hoursConditions.isAcceptableOrUnknown(
+          data['hours_conditions']!,
+          _hoursConditionsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1686,12 +1735,6 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
         DriftSqlType.string,
         data['${effectivePrefix}fulfilled_visit_id'],
       ),
-      hoursConditions: $WishesTable.$converterhoursConditions.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}hours_conditions'],
-        )!,
-      ),
     );
   }
 
@@ -1704,8 +1747,6 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
       const ShopSourceConverter();
   static TypeConverter<ShopSource?, String?> $converterdataSourcen =
       NullAwareTypeConverter.wrap($converterdataSource);
-  static TypeConverter<Set<HoursCondition>, String> $converterhoursConditions =
-      const HoursConditionsConverter();
 }
 
 class WishesCompanion extends UpdateCompanion<Wish> {
@@ -1720,7 +1761,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
   final Value<String> note;
   final Value<DateTime> createdAt;
   final Value<String?> fulfilledVisitId;
-  final Value<Set<HoursCondition>> hoursConditions;
+  final Value<String> hoursConditions;
   final Value<int> rowid;
   const WishesCompanion({
     this.id = const Value.absent(),
@@ -1798,7 +1839,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     Value<String>? note,
     Value<DateTime>? createdAt,
     Value<String?>? fulfilledVisitId,
-    Value<Set<HoursCondition>>? hoursConditions,
+    Value<String>? hoursConditions,
     Value<int>? rowid,
   }) {
     return WishesCompanion(
@@ -1857,9 +1898,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
       map['fulfilled_visit_id'] = Variable<String>(fulfilledVisitId.value);
     }
     if (hoursConditions.present) {
-      map['hours_conditions'] = Variable<String>(
-        $WishesTable.$converterhoursConditions.toSql(hoursConditions.value),
-      );
+      map['hours_conditions'] = Variable<String>(hoursConditions.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2162,7 +2201,8 @@ typedef $$ShopsTableCreateCompanionBuilder = ShopsCompanion Function({
   Value<double?> latitude,
   Value<double?> longitude,
   Value<String?> osmId,
-  Value<Set<HoursCondition>> hoursConditions,
+  Value<String> hoursConditions,
+  Value<bool> isFamous,
   Value<String> strategyMemo,
   Value<ShopSource?> dataSource,
   Value<String?> area,
@@ -2175,7 +2215,8 @@ typedef $$ShopsTableUpdateCompanionBuilder = ShopsCompanion Function({
   Value<double?> latitude,
   Value<double?> longitude,
   Value<String?> osmId,
-  Value<Set<HoursCondition>> hoursConditions,
+  Value<String> hoursConditions,
+  Value<bool> isFamous,
   Value<String> strategyMemo,
   Value<ShopSource?> dataSource,
   Value<String?> area,
@@ -2240,14 +2281,14 @@ class $$ShopsTableFilterComposer extends Composer<_$AppDatabase, $ShopsTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnWithTypeConverterFilters<
-    Set<HoursCondition>,
-    Set<HoursCondition>,
-    String
-  >
-  get hoursConditions => $composableBuilder(
+  ColumnFilters<String> get hoursConditions => $composableBuilder(
     column: $table.hoursConditions,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isFamous => $composableBuilder(
+    column: $table.isFamous,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get strategyMemo => $composableBuilder(
@@ -2336,6 +2377,11 @@ class $$ShopsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isFamous => $composableBuilder(
+    column: $table.isFamous,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get strategyMemo => $composableBuilder(
     column: $table.strategyMemo,
     builder: (column) => ColumnOrderings(column),
@@ -2381,11 +2427,13 @@ class $$ShopsTableAnnotationComposer
   GeneratedColumn<String> get osmId =>
       $composableBuilder(column: $table.osmId, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<Set<HoursCondition>, String>
-  get hoursConditions => $composableBuilder(
+  GeneratedColumn<String> get hoursConditions => $composableBuilder(
     column: $table.hoursConditions,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get isFamous =>
+      $composableBuilder(column: $table.isFamous, builder: (column) => column);
 
   GeneratedColumn<String> get strategyMemo => $composableBuilder(
     column: $table.strategyMemo,
@@ -2463,8 +2511,8 @@ class $$ShopsTableTableManager
                 Value<double?> latitude = const Value.absent(),
                 Value<double?> longitude = const Value.absent(),
                 Value<String?> osmId = const Value.absent(),
-                Value<Set<HoursCondition>> hoursConditions =
-                    const Value.absent(),
+                Value<String> hoursConditions = const Value.absent(),
+                Value<bool> isFamous = const Value.absent(),
                 Value<String> strategyMemo = const Value.absent(),
                 Value<ShopSource?> dataSource = const Value.absent(),
                 Value<String?> area = const Value.absent(),
@@ -2477,6 +2525,7 @@ class $$ShopsTableTableManager
                 longitude: longitude,
                 osmId: osmId,
                 hoursConditions: hoursConditions,
+                isFamous: isFamous,
                 strategyMemo: strategyMemo,
                 dataSource: dataSource,
                 area: area,
@@ -2490,8 +2539,8 @@ class $$ShopsTableTableManager
                 Value<double?> latitude = const Value.absent(),
                 Value<double?> longitude = const Value.absent(),
                 Value<String?> osmId = const Value.absent(),
-                Value<Set<HoursCondition>> hoursConditions =
-                    const Value.absent(),
+                Value<String> hoursConditions = const Value.absent(),
+                Value<bool> isFamous = const Value.absent(),
                 Value<String> strategyMemo = const Value.absent(),
                 Value<ShopSource?> dataSource = const Value.absent(),
                 Value<String?> area = const Value.absent(),
@@ -2504,6 +2553,7 @@ class $$ShopsTableTableManager
                 longitude: longitude,
                 osmId: osmId,
                 hoursConditions: hoursConditions,
+                isFamous: isFamous,
                 strategyMemo: strategyMemo,
                 dataSource: dataSource,
                 area: area,
@@ -3290,7 +3340,7 @@ typedef $$WishesTableCreateCompanionBuilder = WishesCompanion Function({
   Value<String> note,
   required DateTime createdAt,
   Value<String?> fulfilledVisitId,
-  Value<Set<HoursCondition>> hoursConditions,
+  Value<String> hoursConditions,
   Value<int> rowid,
 });
 typedef $$WishesTableUpdateCompanionBuilder = WishesCompanion Function({
@@ -3305,7 +3355,7 @@ typedef $$WishesTableUpdateCompanionBuilder = WishesCompanion Function({
   Value<String> note,
   Value<DateTime> createdAt,
   Value<String?> fulfilledVisitId,
-  Value<Set<HoursCondition>> hoursConditions,
+  Value<String> hoursConditions,
   Value<int> rowid,
 });
 
@@ -3374,14 +3424,9 @@ class $$WishesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnWithTypeConverterFilters<
-    Set<HoursCondition>,
-    Set<HoursCondition>,
-    String
-  >
-  get hoursConditions => $composableBuilder(
+  ColumnFilters<String> get hoursConditions => $composableBuilder(
     column: $table.hoursConditions,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
+    builder: (column) => ColumnFilters(column),
   );
 }
 
@@ -3502,8 +3547,7 @@ class $$WishesTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumnWithTypeConverter<Set<HoursCondition>, String>
-  get hoursConditions => $composableBuilder(
+  GeneratedColumn<String> get hoursConditions => $composableBuilder(
     column: $table.hoursConditions,
     builder: (column) => column,
   );
@@ -3548,8 +3592,7 @@ class $$WishesTableTableManager
                 Value<String> note = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String?> fulfilledVisitId = const Value.absent(),
-                Value<Set<HoursCondition>> hoursConditions =
-                    const Value.absent(),
+                Value<String> hoursConditions = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WishesCompanion(
                 id: id,
@@ -3579,8 +3622,7 @@ class $$WishesTableTableManager
                 Value<String> note = const Value.absent(),
                 required DateTime createdAt,
                 Value<String?> fulfilledVisitId = const Value.absent(),
-                Value<Set<HoursCondition>> hoursConditions =
-                    const Value.absent(),
+                Value<String> hoursConditions = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WishesCompanion.insert(
                 id: id,
