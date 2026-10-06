@@ -9,7 +9,7 @@
   "startEatenTitle": "着丼した",
   "startEatenBody": "写真を撮って記録する",
   "startQueueTitle": "いま並んでいる",
-  "startQueueBody": "待ち時間を測り始める",
+  "startQueueBody": "並び始めから着丼までの時間を測ります",
   "recordTitle": "記録する",
   "recordSaveFailed": "保存できませんでした。もう一度お試しください",
   "save": "着丼！",
@@ -155,7 +155,7 @@
   "retreatSaved": "撤退を記録し、願掛け帳に入れました",
   "retreatFailed": "記録できませんでした。もう一度お試しください",
   "retreatBadge": "撤退",
-  "waitTime": "待ち時間 {minutes}分",
+  "waitTime": "着丼まで {minutes}分",
   "@waitTime": {
     "placeholders": {
       "minutes": {"type": "int"}
@@ -183,7 +183,7 @@
   },
   "pointsSection": "修行点",
   "pointsBase": "基本",
-  "pointsWait": "待ち時間 {minutes}分",
+  "pointsWait": "着丼まで {minutes}分",
   "@pointsWait": {
     "placeholders": {
       "minutes": {"type": "int"}
@@ -496,7 +496,7 @@
   "backupImportFailed": "読み込めませんでした。もう一度お試しください",
   "backupFileType": "バックアップ（zip）",
   "statsBests": "自己ベスト",
-  "bestLongestWait": "最長の待ち時間",
+  "bestLongestWait": "着丼までがいちばん長かった一杯",
   "bestHighestPoints": "一杯の最高の修行点",
   "bestMostRetreats": "いちばん手ごわい店",
   "minutes": "{minutes}分",
@@ -616,7 +616,7 @@
   "eraReiwa": "令和",
   "eraHeisei": "平成",
   "eraFirstYear": "元",
-  "waitMinutesLabel": "待ち時間",
+  "waitMinutesLabel": "着丼までの時間",
   "waitMinutesUnit": "分",
   "questLocked": "未",
   "inkanNoStyle": "拉麺",
@@ -709,7 +709,7 @@
   "reviewFavoriteLine": "この一年で {count}杯",
   "@reviewFavoriteLine": {"placeholders": {"count": {"type": "int"}}},
   "reviewBestTitle": "最高の一杯",
-  "reviewWaitTitle": "いちばん並んだ一杯",
+  "reviewWaitTitle": "着丼までがいちばん長かった一杯",
   "reviewMonthlyTitle": "月ごとの杯数",
   "reviewMonth": "{month}月",
   "@reviewMonth": {"placeholders": {"month": {"type": "int"}}},

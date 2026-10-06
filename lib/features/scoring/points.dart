@@ -77,8 +77,8 @@ const lateNightBonus = 10;
 
 /// 遠征の段階。拠点から遠いほど上がり、当てはまるいちばん上の段だけをつける（足さない）。
 const expeditionTiers = [
-  (kilometers: 800, bonus: 60),
-  (kilometers: 300, bonus: 40),
+  (kilometers: 800, bonus: 30),
+  (kilometers: 300, bonus: 25),
   (kilometers: expeditionKilometers, bonus: 20),
 ];
 
@@ -143,7 +143,8 @@ PointsBreakdown calculatePoints({
     earlyBonus: isEarlyHour(visit.eatenAt) ? earlyBonus : 0,
     lateNightBonus: isLateNightHour(visit.eatenAt) ? lateNightBonus : 0,
     newPrefectureBonus: isNewPrefecture ? newPrefectureBonus : 0,
-    newAreaBonus: isNewArea ? newAreaBonus : 0,
+    // 初めての都道府県の1杯には、初めての市区町村を重ねない。
+    newAreaBonus: isNewArea && !isNewPrefecture ? newAreaBonus : 0,
     regularBonus: regularBonusFor(countAtShop),
     streakBonus: streakBonusFor(streakWeeksBefore),
     famousBonus: isFamous ? famousBonus : 0,

@@ -342,7 +342,7 @@ List<String> _records(ScoredVisit target, List<ScoredVisit> all) {
 }
 
 /// 店ランク「極」になる修行点（ranks.dart の ShopRank.s と同じ）。
-const _rankSPoints = 60;
+const _rankSPoints = 55;
 
 int _max(int a, int b) => a > b ? a : b;
 

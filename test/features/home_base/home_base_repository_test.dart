@@ -103,7 +103,7 @@ void main() {
     final left = await repository.allSettings();
     expect(left.map((s) => s.name), ['新宿']);
     // 新宿から札幌は800km以上なので、いちばん上の段。
-    expect(bonus(left), 60);
+    expect(bonus(left), 30);
   });
 
   test('すべて消すと拠点は無くなり、秘伝「拠点を構える」も会得していないことになる', () async {

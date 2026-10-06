@@ -193,12 +193,12 @@ const retreatClosing = Phrases('撤退した（締め）', [
 
 const longWait = Phrases('60分以上並んだ', [
   '{分}分の長い行列を耐え抜き、',
-  '並ぶこと{分}分。足が棒になっても、',
+  '着丼まで{分}分。足が棒になっても、',
   '{分}分の試練を越え、',
   '{分}分、ひたすら待ち続け、',
 ]);
 const shortWait = Phrases('1〜59分並んだ', [
-  '行列に並ぶこと{分}分、',
+  '着丼まで{分}分、',
   '{分}分の行列を越え、',
   '{分}分の待ちを経て、',
   '並んで{分}分、',
@@ -286,8 +286,8 @@ const bowl = Phrases('そのほか', [
 // 記録の更新（当てはまるうち最初の1つ）
 
 const bestPointsRecord = Phrases('自己最高の修行点', ['自己最高の修行点を更新。']);
-const shopRankSRecord = Phrases('この店で初めて修行点60以上（印が極に）', ['この道場の印は「極」に。']);
-const longestWaitRecord = Phrases('この店でいちばん長く並んだ', ['この店で最長の待ち。']);
+const shopRankSRecord = Phrases('この店で初めて修行点55以上（印が極に）', ['この道場の印は「極」に。']);
+const longestWaitRecord = Phrases('この店で着丼までがいちばん長かった', ['この店で着丼までの最長記録。']);
 
 // ★
 

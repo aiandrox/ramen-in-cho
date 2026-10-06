@@ -217,7 +217,7 @@ void main() {
     expect(progress.levelAchievedAt, [_day(7)]);
   });
 
-  test('大物討伐は、1杯で60点以上のSランクの店の数', () {
+  test('大物討伐は、1杯で55点以上のSランクの店の数', () {
     final rare = buildShop(id: 'rare', isFamous: true);
     // 10 + 初訪問 5 + 限定 20 + 待ち 10 + 名店 15 = 60
     final progress = _progress('boss', [

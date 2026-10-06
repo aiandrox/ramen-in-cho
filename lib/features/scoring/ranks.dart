@@ -36,7 +36,7 @@ enum AdventurerRank {
 }
 
 enum ShopRank {
-  s(60),
+  s(55),
   a(40),
   b(25),
   c(0);

@@ -68,7 +68,7 @@ void main() {
       longitude: 139.7006,
       area: '新宿区',
     );
-    // 10 + 待ち 15 + 限定 20 + 初訪問 5 + 初めての都道府県 10 + 初めての市区町村 5 + 名店 15 = 80
+    // 10 + 待ち 15 + 限定 20 + 初訪問 5 + 初めての都道府県 10 + 名店 15 = 75（市区町村は重ねない）
     final entry = buildEntry(
       shop: famous,
       eatenAt: day(1),
@@ -84,7 +84,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(InkanStamp), findsOneWidget);
-    expect(find.text(ja.pointsGained(80)), findsOneWidget);
+    expect(find.text(ja.pointsGained(75)), findsOneWidget);
     expect(find.text(ja.pointsBase), findsOneWidget);
     expect(find.text(ja.pointsWait(35)), findsOneWidget);
     // 待ち時間と名店が、どちらも +15。
@@ -92,10 +92,10 @@ void main() {
     expect(find.text(ja.isLimited), findsOneWidget);
     expect(find.text(ja.pointsFirstVisit), findsOneWidget);
     expect(find.text(ja.pointsNewPrefecture('東京都')), findsOneWidget);
-    // 基本と初めての都道府県が +10、初訪問と初めての市区町村が +5。
+    // 基本と初めての都道府県が +10、初訪問が +5。初めての市区町村は重ねない。
     expect(find.text(ja.pointsGained(10)), findsNWidgets(2));
-    expect(find.text(ja.pointsGained(5)), findsNWidgets(2));
-    expect(find.text(ja.pointsNewArea('新宿区')), findsOneWidget);
+    expect(find.text(ja.pointsGained(5)), findsOneWidget);
+    expect(find.text(ja.pointsNewArea('新宿区')), findsNothing);
     expect(find.text(ja.pointsFamous), findsOneWidget);
     // 0点の項目は出さない。
     expect(find.text(ja.pointsRegular(1)), findsNothing);
@@ -103,7 +103,7 @@ void main() {
 
     expect(find.text(ja.pointsRetry), findsNothing);
 
-    // 80点は四級（65）を越えるが、1杯で上がるのは五級だけ。
+    // 75点は四級（65）を越えるが、1杯で上がるのは五級だけ。
     expect(find.text(ja.rankUpKyu), findsOneWidget);
     expect(find.text(ja.rankKyu('五')), findsWidgets);
     expect(find.text(masterWords(AdventurerRank.kyu5)), findsOneWidget);
