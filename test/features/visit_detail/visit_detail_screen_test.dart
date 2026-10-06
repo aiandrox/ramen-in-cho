@@ -500,6 +500,31 @@ void main() {
     expect(update.shopMemo, '11時前に着けば一巡目');
   });
 
+  testWidgets('店名を打ち直して別の店にするときは、店の覚え書きの欄を出さず店にも書かない', (tester) async {
+    await pumpDetail(tester, [
+      VisitWithShop(
+        shop: buildShop(name: '麺屋テスト', strategyMemo: '券売機は現金のみ'),
+        visit: buildVisit(id: 'v', eatenAt: DateTime(2026, 9, 30)),
+      ),
+    ], 'v');
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+
+    final shopMemo = find.widgetWithText(TextField, ja.shopMemoSection);
+    await tester.ensureVisible(shopMemo);
+    await tester.enterText(shopMemo, '書きかけ');
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.editShopName),
+      '別の店',
+    );
+    await tester.pump();
+    expect(shopMemo, findsNothing);
+
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+    expect(repository.updates.single.shopMemo, isNull);
+  });
+
   testWidgets('待ち時間をあとから入れると、その分前を並んだ時刻にする', (tester) async {
     await pumpDetail(tester, [
       entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),

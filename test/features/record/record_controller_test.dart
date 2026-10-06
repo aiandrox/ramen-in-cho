@@ -1129,15 +1129,18 @@ void main() {
       expect(shop.strategyMemo, '11時前に着けば一巡目。券売機は現金のみ');
     });
 
-    test('触らなければ、店名を打った記録済みの店の覚え書きはそのまま', () async {
+    test('記録済みの店の名前を打つと、その店の覚え書きが入り、触らなければそのまま', () async {
       await knownShop('行きつけの店', '11時前に着けば一巡目');
       await controller().start();
       await pumpEventQueue();
 
+      controller().setManualName('行きつけ');
+      expect(state().shopMemo, '');
       controller()
         ..setManualName('行きつけの店')
         ..setMemo('かため');
-      expect(state().shopMemo, '');
+      expect(state().shopMemo, '11時前に着けば一巡目');
+      expect(state().shopMemoEdited, isFalse);
       expect(await controller().save(), isNotNull);
 
       final shop = await savedShop('行きつけの店');

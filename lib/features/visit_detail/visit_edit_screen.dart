@@ -123,6 +123,12 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
     });
   }
 
+  /// 店名を打ち直して別の店になりそうなときは、どの店の覚え書きかわからないので欄を出さない
+  /// （選び直した店か、もとの店のときだけ書ける）。
+  bool get _shopMemoShown =>
+      _pickedShop != null ||
+      _nameController.text.trim() == widget.entry.shop.name;
+
   /// 検索の候補は覚え書きを持たないので、記録済みの店なら店から引く。
   Future<String> _shopMemoOf(ShopCandidate shop) async {
     final shopId = shop.shopId;
@@ -217,7 +223,8 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
             hasTicket: widget.entry.visit.hasTicket,
             memo: _memoController.text.trim(),
             shopMemo:
-                _shopMemoController.text.trim() == _shopMemoOriginal.trim()
+                !_shopMemoShown ||
+                    _shopMemoController.text.trim() == _shopMemoOriginal.trim()
                 ? null
                 : _shopMemoController.text.trim(),
             changesPhoto: _photo.isChanged,
@@ -298,7 +305,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
             onLimitedChanged: (value) => setState(() => _isLimited = value),
             onMemoChanged: (_) {},
             waitController: isEaten ? _waitController : null,
-            shopMemoController: _shopMemoController,
+            shopMemoController: _shopMemoShown ? _shopMemoController : null,
           ),
         ],
       ),

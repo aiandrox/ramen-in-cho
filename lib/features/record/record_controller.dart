@@ -480,17 +480,30 @@ class RecordController extends Notifier<RecordState> {
         '';
   }
 
-  /// 店名を打ち始めて選んだ店が外れたら、店の覚え書きの欄は空から書く。
+  /// 店名を打っている間、覚え書きに触っていなければ、同じ名前の記録済みの店の覚え書きを入れておく
+  /// （保存で同じ店とわかったときに、見ていない覚え書きを上書きしないため）。
   void setManualName(String name) {
     final query = normalizeShopName(name);
     final deselects = query.isNotEmpty && state.selectedShop != null;
+    final refills =
+        deselects || (state.selectedShop == null && !state.shopMemoEdited);
+    final memo = refills ? _knownShopMemoByName(query) : null;
     state = state.copyWith(
       manualName: name,
       selectedShop: deselects ? null : state.selectedShop,
       nameMatches: query.isEmpty ? const [] : _nameMatches(query),
-      shopMemo: deselects ? '' : null,
-      shopMemoOriginal: deselects ? '' : null,
+      shopMemo: memo,
+      shopMemoOriginal: memo,
     );
+  }
+
+  String _knownShopMemoByName(String query) {
+    if (query.isEmpty) return '';
+    return _knownShops
+            .where((shop) => normalizeShopName(shop.name) == query)
+            .firstOrNull
+            ?.strategyMemo ??
+        '';
   }
 
   /// 店名を打っているときの候補。まだの願の店（位置のわからない店も）を先に出す。
