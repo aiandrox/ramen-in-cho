@@ -12,4 +12,4 @@ migrations_dir = "migrations"
 
 [vars]
 # "true" にすると、Firebase App Check のトークンが無い・正しくない問い合わせを断る（それまでは記録だけ）。
-APP_CHECK_ENFORCE = "false"
+APP_CHECK_ENFORCE = "true"
