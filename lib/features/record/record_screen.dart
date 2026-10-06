@@ -11,6 +11,7 @@ import '../map/location_picker_screen.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
 import '../records/models.dart';
+import '../records/photo_round_button.dart';
 import '../records/visit_details_form.dart';
 import '../shop_search/shop_candidate.dart';
 import '../shop_search/shop_search_service.dart';
@@ -357,12 +358,28 @@ class _PhotoSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (hasPhoto) ...[
-          PastedPhoto(
-            border: 6,
-            child: SizedBox(
-              height: 220,
-              child: Image.file(File(photoPath), fit: BoxFit.cover),
-            ),
+          Stack(
+            children: [
+              PastedPhoto(
+                border: 6,
+                child: SizedBox(
+                  height: 220,
+                  width: double.infinity,
+                  child: RotatedBox(
+                    quarterTurns: state.photoQuarterTurns,
+                    child: Image.file(File(photoPath), fit: BoxFit.cover),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: PhotoRoundButton.rotate(
+                  context,
+                  onPressed: state.isSaving ? null : controller.rotatePhoto,
+                ),
+              ),
+            ],
           ),
           Row(
             children: [

@@ -16,6 +16,7 @@ void main() {
   final draft = RecordDraft(
     photoPath: 'record_draft/a.jpg',
     photoTakenAt: DateTime(2026, 10, 5, 12, 30),
+    photoQuarterTurns: 3,
     photoFromCamera: true,
     photoLocation: const GeoPoint(35.1, 139.2),
     pinnedLocation: const GeoPoint(43.0687, 141.3508),
@@ -40,6 +41,7 @@ void main() {
 
     expect(decoded.photoPath, 'record_draft/a.jpg');
     expect(decoded.photoTakenAt, DateTime(2026, 10, 5, 12, 30));
+    expect(decoded.photoQuarterTurns, 3);
     expect(decoded.photoFromCamera, isTrue);
     expect(decoded.photoDateFromPhoto, isFalse);
     expect(decoded.photoLocation?.latitude, 35.1);
@@ -79,7 +81,9 @@ void main() {
       'manualWaitMinutes': -1,
       'selectedShop': {'name': ''},
       'memo': 3,
+      'photoQuarterTurns': 2,
     })!;
+    expect(decoded.photoQuarterTurns, 0, reason: '写真が無ければ回さない');
     expect(decoded.style, isNull);
     expect(decoded.rating, isNull);
     expect(decoded.manualWaitMinutes, isNull);

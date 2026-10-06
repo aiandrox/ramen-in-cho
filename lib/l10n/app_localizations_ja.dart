@@ -242,6 +242,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editRemovePhoto => '写真を外す';
 
   @override
+  String get rotatePhoto => '写真を回す';
+
+  @override
   String get editPhotoFailed => '写真を読み込めませんでした';
 
   @override

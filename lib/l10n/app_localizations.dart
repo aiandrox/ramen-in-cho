@@ -544,6 +544,12 @@ abstract class AppLocalizations {
   /// **'写真を外す'**
   String get editRemovePhoto;
 
+  /// No description provided for @rotatePhoto.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真を回す'**
+  String get rotatePhoto;
+
   /// No description provided for @editPhotoFailed.
   ///
   /// In ja, this message translates to:

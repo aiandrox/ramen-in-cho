@@ -11,6 +11,7 @@ class RecordState {
   const RecordState({
     this.photoPath,
     this.photoTakenAt,
+    this.photoQuarterTurns = 0,
     this.photoFromCamera = false,
     this.photoDateFromPhoto = false,
     this.photoLocation,
@@ -40,6 +41,9 @@ class RecordState {
   /// 写真のパス。ふつうは下書き用のフォルダに写したもの（record_draft.dart）。
   final String? photoPath;
   final DateTime? photoTakenAt;
+
+  /// 「写真を回す」で回した回数（時計回りに90度ずつ、0〜3）。ファイルは保存のときに回す。
+  final int photoQuarterTurns;
   final bool photoFromCamera;
 
   /// [photoTakenAt]が写真に記録された撮影日時か（過去の写真から記録するとき）。
@@ -115,6 +119,7 @@ class RecordState {
   RecordState copyWith({
     Object? photoPath = _unset,
     Object? photoTakenAt = _unset,
+    int? photoQuarterTurns,
     bool? photoFromCamera,
     bool? photoDateFromPhoto,
     Object? photoLocation = _unset,
@@ -145,6 +150,7 @@ class RecordState {
       photoTakenAt: photoTakenAt == _unset
           ? this.photoTakenAt
           : photoTakenAt as DateTime?,
+      photoQuarterTurns: photoQuarterTurns ?? this.photoQuarterTurns,
       photoFromCamera: photoFromCamera ?? this.photoFromCamera,
       photoDateFromPhoto: photoDateFromPhoto ?? this.photoDateFromPhoto,
       photoLocation: photoLocation == _unset

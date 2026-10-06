@@ -11,6 +11,7 @@ import '../record/star_rating.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
 import '../records/models.dart';
+import '../records/photo_round_button.dart';
 import '../records/photo_storage.dart';
 import '../records/record_repository.dart';
 import '../records/visit_details_form.dart';
@@ -224,31 +225,14 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   Future<void> _save() async {
     setState(() => _isSaving = true);
     try {
-      final unusedPhoto = await ref
-          .read(recordRepositoryProvider)
-          .updateVisit(
-            visitId: widget.entry.visit.id,
-            shopName: _nameController.text,
-            pickedShop: _pickedShopInput(),
-            eatenAt: _eatenAt,
-            checkedInAt: _checkedInAt(),
-            rating: _rating,
-            style: _style,
-            isLimited: _isLimited,
-            hasTicket: widget.entry.visit.hasTicket,
-            memo: _memoController.text.trim(),
-            shopMemo:
-                !_shopMemoShown ||
-                    _shopMemoController.text.trim() == _shopMemoOriginal.trim()
-                ? null
-                : _shopMemoController.text.trim(),
-            shopFamous: _shopMemoShown && _shopFamous != _shopFamousOriginal
-                ? _shopFamous
-                : null,
-            changesPhoto: _photo.isChanged,
-            photoPath: _photo.current,
-            now: ref.read(clockProvider)(),
-          );
+      final photoPath = await _photo.prepare();
+      final String? unusedPhoto;
+      try {
+        unusedPhoto = await _update(photoPath);
+      } catch (_) {
+        await _photo.abandonPrepared();
+        rethrow;
+      }
       try {
         await _photo.commit(unusedPhoto);
       } catch (e) {
@@ -265,11 +249,52 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
     }
   }
 
+  /// 記録を書き換え、どの記録も使わなくなった前の写真を返す。
+  Future<String?> _update(String? photoPath) {
+    return ref
+        .read(recordRepositoryProvider)
+        .updateVisit(
+          visitId: widget.entry.visit.id,
+          shopName: _nameController.text,
+          pickedShop: _pickedShopInput(),
+          eatenAt: _eatenAt,
+          checkedInAt: _checkedInAt(),
+          rating: _rating,
+          style: _style,
+          isLimited: _isLimited,
+          hasTicket: widget.entry.visit.hasTicket,
+          memo: _memoController.text.trim(),
+          shopMemo:
+              !_shopMemoShown ||
+                  _shopMemoController.text.trim() == _shopMemoOriginal.trim()
+              ? null
+              : _shopMemoController.text.trim(),
+          shopFamous: _shopMemoShown && _shopFamous != _shopFamousOriginal
+              ? _shopFamous
+              : null,
+          changesPhoto: _photo.isChanged,
+          photoPath: photoPath,
+          now: ref.read(clockProvider)(),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isEaten = widget.entry.visit.result == VisitResult.eaten;
 
+    // 保存の途中で閉じると、書いている途中の写真を片付けてしまうため閉じさせない。
+    return PopScope(
+      canPop: !_isSaving,
+      child: _buildScaffold(context, l10n, isEaten),
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context,
+    AppLocalizations l10n,
+    bool isEaten,
+  ) {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.editTitle)),
       body: ListView(
@@ -277,11 +302,13 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
         children: [
           _PhotoSection(
             photoPath: _photo.current,
+            quarterTurns: _photo.quarterTurns,
             enabled: !_isPickingPhoto && !_isSaving,
             onTakePhoto: () => _changePhoto((picker) => picker.takePhoto()),
             onPickFromGallery: () =>
                 _changePhoto((picker) => picker.pickFromGallery()),
             onRemove: _removePhoto,
+            onRotate: () => setState(_photo.rotate),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -346,7 +373,12 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
                     _nameController.text.trim().isEmpty
                 ? null
                 : _save,
-            child: Text(l10n.editSave),
+            child: _isSaving
+                ? const SizedBox.square(
+                    dimension: 24,
+                    child: CircularProgressIndicator(strokeWidth: 3),
+                  )
+                : Text(l10n.editSave),
           ),
         ),
       ),
@@ -357,17 +389,21 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
 class _PhotoSection extends StatelessWidget {
   const _PhotoSection({
     required this.photoPath,
+    required this.quarterTurns,
     required this.enabled,
     required this.onTakePhoto,
     required this.onPickFromGallery,
     required this.onRemove,
+    required this.onRotate,
   });
 
   final String? photoPath;
+  final int quarterTurns;
   final bool enabled;
   final VoidCallback onTakePhoto;
   final VoidCallback onPickFromGallery;
   final VoidCallback onRemove;
+  final VoidCallback onRotate;
 
   @override
   Widget build(BuildContext context) {
@@ -384,22 +420,29 @@ class _PhotoSection extends StatelessWidget {
                 border: 6,
                 child: SizedBox(
                   height: 200,
-                  child: VisitPhoto(photoPath: photoPath, cacheWidth: 800),
+                  width: double.infinity,
+                  child: RotatedBox(
+                    quarterTurns: quarterTurns,
+                    child: VisitPhoto(photoPath: photoPath, cacheWidth: 800),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: PhotoRoundButton.rotate(
+                  context,
+                  onPressed: enabled ? onRotate : null,
                 ),
               ),
               // 写真の角から少しはみ出させ、写真に重ならず「外す」ものだとわかるようにする。
               Positioned(
                 top: -10,
                 right: -10,
-                child: IconButton.filled(
-                  onPressed: enabled ? onRemove : null,
+                child: PhotoRoundButton(
+                  icon: Icons.close,
                   tooltip: l10n.editRemovePhoto,
-                  icon: const Icon(Icons.close, size: 20),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Washi.ink,
-                    foregroundColor: Washi.page,
-                    minimumSize: const Size(36, 36),
-                  ),
+                  onPressed: enabled ? onRemove : null,
                 ),
               ),
             ],
