@@ -830,46 +830,61 @@ class _PlaceListSheetState extends State<_PlaceListSheet> {
       center: widget.center,
       filter: _filter,
     );
+    // 絞り込みで店の数が変わっても窓の高さが変わらないよう、高さを決めて中だけ流す。
+    final height = MediaQuery.sizeOf(context).height * 0.6;
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.title, style: textTheme.titleLarge),
-            Text(l10n.mapListSortHint, style: textTheme.bodySmall),
-            if (widget.withFilters) ...[
+      child: SizedBox(
+        height: height,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.title, style: textTheme.titleLarge),
+              Text(l10n.mapListSortHint, style: textTheme.bodySmall),
+              if (widget.withFilters) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final filter in MapListFilter.values)
+                      ChoiceChip(
+                        label: Text(_filterLabel(l10n, filter)),
+                        selected: _filter == filter,
+                        onSelected: (_) => setState(() => _filter = filter),
+                      ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final filter in MapListFilter.values)
-                    ChoiceChip(
-                      label: Text(_filterLabel(l10n, filter)),
-                      selected: _filter == filter,
-                      onSelected: (_) => setState(() => _filter = filter),
-                    ),
-                ],
+              Expanded(
+                child: list.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Text(l10n.mapListEmpty),
+                      )
+                    : ListView.builder(
+                        itemCount: list.length,
+                        padding: const EdgeInsets.only(bottom: 16),
+                        itemBuilder: (context, index) {
+                          final place = list[index];
+                          return _PlaceRow(
+                            place: place,
+                            meters: distanceMeters(
+                              widget.center,
+                              place.location,
+                            ),
+                            onTap: () {
+                              closeWashiSheet<void>(context);
+                              widget.onSelect(place);
+                            },
+                          );
+                        },
+                      ),
               ),
             ],
-            const SizedBox(height: 8),
-            if (list.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(l10n.mapListEmpty),
-              ),
-            for (final place in list)
-              _PlaceRow(
-                place: place,
-                meters: distanceMeters(widget.center, place.location),
-                onTap: () {
-                  closeWashiSheet<void>(context);
-                  widget.onSelect(place);
-                },
-              ),
-          ],
+          ),
         ),
       ),
     );
