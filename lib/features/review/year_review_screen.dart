@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi.dart';
+import '../error_reporting/error_reporting.dart';
 import '../inkan/inkan.dart';
 import '../inkan/inkan_stamp.dart';
 import '../quests/quest_seal.dart';
@@ -93,8 +94,8 @@ class _YearReviewScreenState extends ConsumerState<YearReviewScreen> {
           sharePositionOrigin: origin,
         ),
       );
-    } catch (e) {
-      debugPrint('Share failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Share failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
     } finally {
       if (mounted) setState(() => _isSharing = false);

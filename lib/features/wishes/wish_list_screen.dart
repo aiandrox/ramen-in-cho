@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/ink_wear.dart';
 import '../../theme/washi.dart';
+import '../error_reporting/error_reporting.dart';
 import '../home/app_tab.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
@@ -148,8 +149,8 @@ class _PendingWishCard extends ConsumerWidget {
         note: text.note,
         link: text.link,
       );
-    } catch (e) {
-      debugPrint('Wish update failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Wish update failed');
       messenger.showSnackBar(SnackBar(content: Text(failed)));
     }
   }

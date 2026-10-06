@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../error_reporting/error_reporting.dart';
 import '../record/star_rating.dart';
 import '../records/models.dart';
 import '../records/record_repository.dart';
@@ -17,8 +18,8 @@ Future<void> saveRating(
   final message = AppLocalizations.of(context).editSaveFailed;
   try {
     await ref.read(recordRepositoryProvider).setRating(visitId, rating);
-  } catch (e) {
-    debugPrint('Rating save failed: $e');
+  } catch (e, st) {
+    reportError(e, st, reason: 'Rating save failed');
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 }

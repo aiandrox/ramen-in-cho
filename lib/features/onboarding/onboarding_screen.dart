@@ -6,6 +6,7 @@ import '../../theme/washi.dart';
 import '../../theme/washi_buttons.dart';
 import '../backup/backup_screen.dart';
 import '../checkin/checkin_screen.dart';
+import '../error_reporting/error_reporting.dart';
 import '../home/app_tab.dart';
 import '../home_base/home_base_picker_screen.dart';
 import '../inkan/inkan_stamp.dart';
@@ -46,8 +47,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   void dispose() {
     // どこで閉じても（途中で閉じても）、次からは起動時に出さない。修行の設定から見直せる。
-    _store.markCompleted(_clock()).catchError((Object e) {
-      debugPrint('Onboarding completion save failed: $e');
+    _store.markCompleted(_clock()).catchError((Object e, StackTrace st) {
+      reportError(e, st, reason: 'Onboarding completion save failed');
     });
     super.dispose();
   }
@@ -128,8 +129,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         link: text.link,
         now: _clock(),
       );
-    } catch (e) {
-      debugPrint('Wish save failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Wish save failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.wishSaveFailed)));
       return;
     }

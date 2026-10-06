@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/washi.dart';
 import '../../l10n/app_localizations.dart';
+import '../error_reporting/error_reporting.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
 import '../records/record_repository.dart';
@@ -92,8 +93,8 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
           ),
         ),
       );
-    } catch (e) {
-      debugPrint('Retreat save failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Retreat save failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.retreatFailed)));
     }
   }

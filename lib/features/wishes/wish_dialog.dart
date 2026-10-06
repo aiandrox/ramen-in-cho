@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../error_reporting/error_reporting.dart';
 import '../map/location_picker_screen.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
@@ -90,8 +91,8 @@ Future<void> addWishFor(
       now: now,
     );
     messenger.showSnackBar(SnackBar(content: Text(l10n.wishAdded(shop.name))));
-  } catch (e) {
-    debugPrint('Wish save failed: $e');
+  } catch (e, st) {
+    reportError(e, st, reason: 'Wish save failed');
     messenger.showSnackBar(SnackBar(content: Text(l10n.wishSaveFailed)));
   }
 }
@@ -135,8 +136,8 @@ Future<String?> addWishByName(
       link: text.link,
       now: now,
     );
-  } catch (e) {
-    debugPrint('Wish save failed: $e');
+  } catch (e, st) {
+    reportError(e, st, reason: 'Wish save failed');
     messenger.showSnackBar(SnackBar(content: Text(l10n.wishSaveFailed)));
     return null;
   }

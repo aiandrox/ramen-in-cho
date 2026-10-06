@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/safe_bottom.dart';
 import '../../theme/washi.dart';
 import '../../l10n/app_localizations.dart';
+import '../error_reporting/error_reporting.dart';
 import '../record/photo_picker.dart';
 import '../record/star_rating.dart';
 import '../records/clock.dart';
@@ -239,8 +240,8 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
         debugPrint('Old photo delete failed: $e');
       }
       if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      debugPrint('Visit update failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Visit update failed');
       if (!mounted) return;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(

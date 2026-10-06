@@ -1926,4 +1926,78 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get locationAccessServiceOff => 'スマホの位置情報がオフです。タップで設定を開く';
+
+  @override
+  String get contactSupport => '不具合を知らせる';
+
+  @override
+  String get contactSupportNote => 'メールアプリで運営者に送ります';
+
+  @override
+  String get contactConfirmBody => 'メールアプリが開きます。困ったことや、そのときの操作を書いて送ってください。';
+
+  @override
+  String get contactConfirmDiagnosticsNote =>
+      '調べるために、次の情報を本文に添えます。記録・写真・店・位置は含みません。';
+
+  @override
+  String get composeEmail => 'メールを作る';
+
+  @override
+  String get contactMailSubject => '麺印帳 不具合のお知らせ';
+
+  @override
+  String get contactMailBodyPlaceholder => '（この上に、困ったことや、そのときの操作を書いてください）';
+
+  @override
+  String get contactMailDiagnosticsNotice => '以下は不具合を調べるための情報です。そのまま送ってください。';
+
+  @override
+  String get diagnosticsUnknown => '不明';
+
+  @override
+  String diagnosticsInstallId(Object value) {
+    return '識別番号: $value';
+  }
+
+  @override
+  String diagnosticsApp(Object value) {
+    return 'アプリ: $value';
+  }
+
+  @override
+  String diagnosticsOs(Object value) {
+    return 'OS: $value';
+  }
+
+  @override
+  String diagnosticsDevice(Object value) {
+    return '端末: $value';
+  }
+
+  @override
+  String diagnosticsSentAt(Object value) {
+    return '送信日時: $value';
+  }
+
+  @override
+  String get diagnosticsRecentErrors => '直近のエラー:';
+
+  @override
+  String get diagnosticsNoRecentErrors => '- なし';
+
+  @override
+  String get mailAppUnavailableTitle => 'メールアプリを開けませんでした';
+
+  @override
+  String get mailAppUnavailableBody => 'お手数ですが、次のアドレスにメールを送ってください。';
+
+  @override
+  String get copyAddress => 'アドレスをコピー';
+
+  @override
+  String get addressCopied => 'アドレスをコピーしました';
+
+  @override
+  String get close => '閉じる';
 }

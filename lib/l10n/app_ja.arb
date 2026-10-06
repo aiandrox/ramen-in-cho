@@ -871,5 +871,51 @@
   "locationAccessGranted": "使えます（アプリを使っている間だけ）。タップでスマホの設定を開く",
   "locationAccessNotGranted": "まだ許可されていません。タップで許可する",
   "locationAccessDeniedForever": "許可されていません。タップでスマホの設定を開いて許可する",
-  "locationAccessServiceOff": "スマホの位置情報がオフです。タップで設定を開く"
+  "locationAccessServiceOff": "スマホの位置情報がオフです。タップで設定を開く",
+  "contactSupport": "不具合を知らせる",
+  "contactSupportNote": "メールアプリで運営者に送ります",
+  "contactConfirmBody": "メールアプリが開きます。困ったことや、そのときの操作を書いて送ってください。",
+  "contactConfirmDiagnosticsNote": "調べるために、次の情報を本文に添えます。記録・写真・店・位置は含みません。",
+  "composeEmail": "メールを作る",
+  "contactMailSubject": "麺印帳 不具合のお知らせ",
+  "contactMailBodyPlaceholder": "（この上に、困ったことや、そのときの操作を書いてください）",
+  "contactMailDiagnosticsNotice": "以下は不具合を調べるための情報です。そのまま送ってください。",
+  "diagnosticsUnknown": "不明",
+  "diagnosticsInstallId": "識別番号: {value}",
+  "@diagnosticsInstallId": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "diagnosticsApp": "アプリ: {value}",
+  "@diagnosticsApp": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "diagnosticsOs": "OS: {value}",
+  "@diagnosticsOs": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "diagnosticsDevice": "端末: {value}",
+  "@diagnosticsDevice": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "diagnosticsSentAt": "送信日時: {value}",
+  "@diagnosticsSentAt": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "diagnosticsRecentErrors": "直近のエラー:",
+  "diagnosticsNoRecentErrors": "- なし",
+  "mailAppUnavailableTitle": "メールアプリを開けませんでした",
+  "mailAppUnavailableBody": "お手数ですが、次のアドレスにメールを送ってください。",
+  "copyAddress": "アドレスをコピー",
+  "addressCopied": "アドレスをコピーしました",
+  "close": "閉じる"
 }
