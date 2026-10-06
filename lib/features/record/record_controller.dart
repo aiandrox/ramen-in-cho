@@ -243,6 +243,9 @@ class RecordController extends Notifier<RecordState> {
     _restoredShop = draft.selectedShop;
     _photoFromDraft = draft.photoPath != null;
     final typedName = draft.manualName.trim().isNotEmpty;
+    final keepsShop = draft.selectedShop == null && !typedName;
+    final shopMemoEdited =
+        draft.shopMemo.trim() != draft.shopMemoOriginal.trim();
     state = state.copyWith(
       photoPath: draft.photoPath,
       photoTakenAt: draft.photoTakenAt,
@@ -258,8 +261,11 @@ class RecordController extends Notifier<RecordState> {
       style: draft.style,
       isLimited: draft.isLimited,
       memo: draft.memo,
-      shopMemo: draft.shopMemo,
-      shopMemoOriginal: draft.shopMemoOriginal,
+      // 覚え書きに触っていなければ、選んでいる店（並んでいる店など）の今の覚え書きを出す。
+      shopMemo: keepsShop && !shopMemoEdited ? state.shopMemo : draft.shopMemo,
+      shopMemoOriginal: keepsShop && !shopMemoEdited
+          ? state.shopMemoOriginal
+          : draft.shopMemoOriginal,
       manualWaitMinutes: draft.manualWaitMinutes,
       arrivedAt: draft.arrivedAt,
       resumedFromDraft: true,
