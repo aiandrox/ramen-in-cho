@@ -10,7 +10,7 @@ import '../quests/quest_list_screen.dart';
 import '../review/year_review_entry.dart';
 import '../scoring/rank_progress.dart';
 import '../scoring/scoring_providers.dart';
-import '../settings/settings_screen.dart';
+import '../settings/settings_action.dart';
 import '../stats/stats_screen.dart';
 import '../streak/healthy_life_card.dart';
 import '../streak/streak_line.dart';
@@ -29,13 +29,7 @@ class ShugyoScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.shugyoTitle),
-        actions: [
-          IconButton(
-            tooltip: l10n.settingsSection,
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => open(const SettingsScreen()),
-          ),
-        ],
+        actions: const [SettingsAction()],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),

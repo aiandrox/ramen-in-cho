@@ -10,6 +10,7 @@ import '../home/app_tab.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
 import '../records/record_repository.dart';
+import '../settings/settings_action.dart';
 import '../visit_detail/visit_detail_screen.dart';
 import 'wish_dialog.dart';
 import 'wish_providers.dart';
@@ -82,6 +83,7 @@ class WishListScreen extends ConsumerWidget {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(l10n.wishTitle),
+          actions: const [SettingsAction()],
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.wishPendingTab(pending.length)),
