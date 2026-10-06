@@ -19,17 +19,17 @@ const sign = (claims: { iss?: string; aud?: string[]; expiresIn?: string } = {})
 
 describe('verifyAppCheck', () => {
   it('このプロジェクトのトークンなら通す', async () => {
-    expect(await verifyAppCheck(await sign(), keys, project)).toBe('ok');
+    expect(await verifyAppCheck(await sign(), keys, project)).toEqual({ result: 'ok', appId: '1:123:android:abc' });
   });
 
   it('トークンが無ければ missing', async () => {
-    expect(await verifyAppCheck(null, keys, project)).toBe('missing');
+    expect(await verifyAppCheck(null, keys, project)).toEqual({ result: 'missing' });
   });
 
   it('別のプロジェクト・期限切れ・壊れたトークンは invalid', async () => {
-    expect(await verifyAppCheck(await sign({ iss: 'https://firebaseappcheck.googleapis.com/999' }), keys, project)).toBe('invalid');
-    expect(await verifyAppCheck(await sign({ aud: ['projects/999'] }), keys, project)).toBe('invalid');
-    expect(await verifyAppCheck(await sign({ expiresIn: '-1m' }), keys, project)).toBe('invalid');
-    expect(await verifyAppCheck('not.a.jwt', keys, project)).toBe('invalid');
+    expect(await verifyAppCheck(await sign({ iss: 'https://firebaseappcheck.googleapis.com/999' }), keys, project)).toEqual({ result: 'invalid' });
+    expect(await verifyAppCheck(await sign({ aud: ['projects/999'] }), keys, project)).toEqual({ result: 'invalid' });
+    expect(await verifyAppCheck(await sign({ expiresIn: '-1m' }), keys, project)).toEqual({ result: 'invalid' });
+    expect(await verifyAppCheck('not.a.jwt', keys, project)).toEqual({ result: 'invalid' });
   });
 });
