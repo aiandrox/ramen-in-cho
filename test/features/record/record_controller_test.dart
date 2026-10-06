@@ -455,6 +455,24 @@ void main() {
       expect(saved.fulfilledVisitId, isNotNull);
     });
 
+    test('店名だけの願は、名前が似ているだけでは選ばない', () async {
+      await container
+          .read(wishRepositoryProvider)
+          .addWish(
+            shop: const ShopInput(name: '一蘭'),
+            now: DateTime(2026, 9, 1),
+          );
+
+      await controller().start(
+        sharedPlace: shared(
+          '一蘭 新宿中央東口店\nhttps://maps.google.com/?q=35.6900,139.7000',
+        ),
+      );
+
+      expect(state().selectedShop!.wishId, isNull);
+      expect(state().selectedShop!.name, '一蘭 新宿中央東口店');
+    });
+
     test('下書きの店はそのまま残す', () async {
       await controller().start();
       controller().setManualName('下書きの店');
@@ -529,6 +547,31 @@ void main() {
           ),
           at: at ?? checkedInAt,
         );
+
+    test('地図アプリから別の店を共有されたら、その店に替える（並びは続く）', () async {
+      await checkIn();
+
+      await controller().start(
+        sharedPlace: parseSharedWish(
+          '共有した店\nhttps://maps.google.com/?q=35.6900,139.7000',
+        ),
+      );
+
+      expect(state().selectedShop!.name, '共有した店');
+      expect(state().checkin, isNotNull);
+    });
+
+    test('共有された店が並んでいる店なら、並んだ店のまま', () async {
+      await checkIn();
+
+      await controller().start(
+        sharedPlace: parseSharedWish(
+          '並んだ店\nhttps://maps.google.com/?q=35.0001,139.0001',
+        ),
+      );
+
+      expect(identical(state().selectedShop, state().checkinShop), isTrue);
+    });
 
     test('並んだ店が選ばれた状態で始まり、★だけで保存すると待ち時間がつく', () async {
       await checkIn();

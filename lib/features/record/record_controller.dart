@@ -166,12 +166,19 @@ class RecordController extends Notifier<RecordState> {
     }
   }
 
+  /// 下書きで店が決まっているか。並んでいる店が選ばれているだけなら、共有された店に替える。
+  bool get _keepsChosenShop {
+    final selected = state.selectedShop;
+    if (selected != null) return !identical(selected, state.checkinShop);
+    return state.manualName.trim().isNotEmpty;
+  }
+
   /// 地図アプリから共有された店を選んだ状態にする。下書きに店が決まっていれば、下書きのままにする。
   /// 位置はリンクに書かれた座標、無ければ住所をサーバーで位置にしたもの。記録済みの店や願の店と
   /// 同じ店なら、そちらを選ぶ。位置がわからなければ店名だけ入れ、店名から探す・地図で指すに任せる。
   Future<void> _useSharedPlace(SharedWish shared) async {
     final name = shared.name.trim();
-    if (name.isEmpty || state.hasShop) return;
+    if (name.isEmpty || _keepsChosenShop) return;
     final address = shared.address;
     final location =
         shared.location ??
@@ -180,11 +187,20 @@ class RecordController extends Notifier<RecordState> {
             : await ref.read(addressGeocoderProvider)(address));
     await _knownShopsLoad;
     // 調べている間に店を選んだり打ったりしていれば、そちらを優先する。
-    if (!ref.mounted || state.hasShop) return;
+    if (!ref.mounted || _keepsChosenShop) return;
     final incoming = ShopCandidate(name: name, location: location);
-    final wish = _pendingWishes
-        .where((w) => wishMatchesPlace(w, name: name, location: location))
-        .firstOrNull;
+    final checkinShop = state.checkinShop;
+    if (checkinShop != null && isSameShop(checkinShop, incoming)) {
+      selectShop(checkinShop);
+      return;
+    }
+    // 名前が似ているだけでは願を叶えないよう、位置のわからない願は店名がそろうときだけ選ぶ。
+    final wish = _pendingWishes.where((w) {
+      if (wishLocation(w) == null && w.osmId == null) {
+        return normalizeShopName(w.name) == normalizeShopName(name);
+      }
+      return wishMatchesPlace(w, name: name, location: location);
+    }).firstOrNull;
     final known = _knownShops
         .map(ShopCandidate.fromShop)
         .where((shop) => isSameShop(shop, incoming))
