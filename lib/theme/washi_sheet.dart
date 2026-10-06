@@ -156,19 +156,23 @@ class ShellSheetHostState extends State<ShellSheetHost>
                             begin: const Offset(0, 1),
                             end: Offset.zero,
                           ).animate(_controller),
+                          // 中身の量で窓の幅が変わらないよう、幅は画面いっぱい（640まで）に決める。
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 640),
-                            child: BottomSheet(
-                              animationController: _controller,
-                              showDragHandle: true,
-                              onClosing: close,
-                              builder: (context) => _ShellSheetScope(
-                                host: this,
-                                child: SingleChildScrollView(
-                                  padding: EdgeInsets.only(
-                                    bottom: widget.footerOverlap,
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: BottomSheet(
+                                animationController: _controller,
+                                showDragHandle: true,
+                                onClosing: close,
+                                builder: (context) => _ShellSheetScope(
+                                  host: this,
+                                  child: SingleChildScrollView(
+                                    padding: EdgeInsets.only(
+                                      bottom: widget.footerOverlap,
+                                    ),
+                                    child: Builder(builder: entry.builder),
                                   ),
-                                  child: Builder(builder: entry.builder),
                                 ),
                               ),
                             ),
