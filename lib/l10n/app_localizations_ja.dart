@@ -76,6 +76,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopNoCandidates => '近くに候補が見つかりませんでした。店名を入力してください';
 
   @override
+  String get shopSearchAfterPhoto => '写真を選ぶと、近くの店を探します';
+
+  @override
   String get shopNameLabel => '店名を入力';
 
   @override
@@ -972,9 +975,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get queueSuggestionFailed => '並んだ時刻を残せませんでした';
 
   @override
-  String nameSearchOpen(String name) {
-    return '全国の店から「$name」を探す（地図に載せる）';
-  }
+  String get nameSearchOpen => '店名から探す';
 
   @override
   String get nameSearchTitle => '店名で探す';
