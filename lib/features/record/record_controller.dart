@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../checkin/checkin_rules.dart';
+import '../error_reporting/error_reporting.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
 import '../records/photo_rotation.dart';
@@ -76,8 +77,8 @@ class RecordController extends Notifier<RecordState> {
     final json = draft.isEmpty ? '' : jsonEncode(draft.toJson());
     if (json == _lastDraftJson) return;
     _lastDraftJson = json;
-    _draftStore.save(draft).catchError((Object e) {
-      debugPrint('Draft save failed: $e');
+    _draftStore.save(draft).catchError((Object e, StackTrace st) {
+      reportError(e, st, reason: 'Draft save failed');
     });
   }
 
@@ -138,8 +139,8 @@ class RecordController extends Notifier<RecordState> {
       _lastDraftJson = jsonEncode(draft.toJson());
       try {
         await _draftStore.save(draft);
-      } catch (e) {
-        debugPrint('Draft save failed: $e');
+      } catch (e, st) {
+        reportError(e, st, reason: 'Draft save failed');
       }
       if (!ref.mounted) return;
     }
@@ -701,8 +702,8 @@ class RecordController extends Notifier<RecordState> {
       _draftClosed = true;
       await _clearDraftStore();
       return visit.id;
-    } catch (e) {
-      debugPrint('Record save failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Record save failed');
       if (savedPhoto != null) {
         try {
           await storage.delete(savedPhoto);

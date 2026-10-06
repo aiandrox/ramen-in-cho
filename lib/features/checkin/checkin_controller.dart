@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../error_reporting/error_reporting.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
 import '../records/record_repository.dart';
@@ -86,8 +86,8 @@ class CheckinController extends Notifier<CheckinState> {
           .read(recordRepositoryProvider)
           .checkIn(shop: shop, at: ref.read(clockProvider)());
       return true;
-    } catch (e) {
-      debugPrint('Checkin failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Checkin failed');
       if (ref.mounted) state = CheckinState(result: state.result);
       return false;
     }

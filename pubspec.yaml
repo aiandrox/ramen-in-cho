@@ -58,6 +58,9 @@ dependencies:
   firebase_app_check: ^0.4.8
   url_launcher: ^6.3.3
   image: ^4.10.1
+  firebase_crashlytics: ^5.4.0
+  package_info_plus: ^10.2.2
+  device_info_plus: ^13.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

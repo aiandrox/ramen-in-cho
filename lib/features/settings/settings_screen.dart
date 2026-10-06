@@ -8,6 +8,7 @@ import '../home_base/home_base_picker_screen.dart';
 import '../home_base/home_base_repository.dart';
 import '../notifications/notification_settings_screen.dart';
 import '../onboarding/onboarding_screen.dart';
+import '../support/contact_support.dart';
 import 'location_access.dart';
 
 /// 設定。修行タブの右上の歯車から開く。
@@ -58,6 +59,13 @@ class SettingsScreen extends ConsumerWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => open(screen),
             ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.contactSupport),
+            subtitle: Text(l10n.contactSupportNote),
+            trailing: const Icon(Icons.mail_outline),
+            onTap: () => startContactSupportFlow(context, ref),
+          ),
         ],
       ),
     );

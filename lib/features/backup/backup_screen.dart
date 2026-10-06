@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../error_reporting/error_reporting.dart';
 import '../records/clock.dart';
 import 'backup_service.dart';
 import '../../theme/washi_buttons.dart';
@@ -40,8 +41,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       if (result.status == ShareResultStatus.success) {
         messenger.showSnackBar(SnackBar(content: Text(l10n.backupExportSent)));
       }
-    } catch (e) {
-      debugPrint('Backup export failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Backup export failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.backupExportFailed)));
     } finally {
       if (mounted) setState(() => _isBusy = false);
@@ -131,8 +132,8 @@ Future<RestoreSummary?> pickAndRestoreBackup(
   } on FormatException catch (e) {
     debugPrint('Backup import rejected: $e');
     messenger.showSnackBar(SnackBar(content: Text(l10n.backupImportInvalid)));
-  } catch (e) {
-    debugPrint('Backup import failed: $e');
+  } catch (e, st) {
+    reportError(e, st, reason: 'Backup import failed');
     messenger.showSnackBar(SnackBar(content: Text(l10n.backupImportFailed)));
   }
   return null;

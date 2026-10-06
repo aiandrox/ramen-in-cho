@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../error_reporting/error_reporting.dart';
 import '../home/rating_prompt.dart';
 import '../record/star_rating.dart';
 import '../records/date_format.dart';
@@ -74,8 +75,8 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
     final String? photoPath;
     try {
       photoPath = await repository.deleteVisit(visitId);
-    } catch (e) {
-      debugPrint('Visit delete failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Visit delete failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.deleteFailed)));
       return;
     }
@@ -159,8 +160,8 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
     final failed = AppLocalizations.of(context).editSaveFailed;
     try {
       await ref.read(recordRepositoryProvider).setShopFamous(shop.id, isFamous);
-    } catch (e) {
-      debugPrint('Shop famous save failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Shop famous save failed');
       messenger.showSnackBar(SnackBar(content: Text(failed)));
     }
   }
@@ -173,8 +174,8 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
     if (memo == null) return;
     try {
       await repository.setShopMemo(shop.id, memo);
-    } catch (e) {
-      debugPrint('Shop memo save failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Shop memo save failed');
       messenger.showSnackBar(SnackBar(content: Text(failed)));
     }
   }

@@ -3399,6 +3399,132 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'スマホの位置情報がオフです。タップで設定を開く'**
   String get locationAccessServiceOff;
+
+  /// No description provided for @contactSupport.
+  ///
+  /// In ja, this message translates to:
+  /// **'不具合を知らせる'**
+  String get contactSupport;
+
+  /// No description provided for @contactSupportNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'メールアプリで運営者に送ります'**
+  String get contactSupportNote;
+
+  /// No description provided for @contactConfirmBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'メールアプリが開きます。困ったことや、そのときの操作を書いて送ってください。'**
+  String get contactConfirmBody;
+
+  /// No description provided for @contactConfirmDiagnosticsNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'調べるために、次の情報を本文に添えます。記録・写真・店・位置は含みません。'**
+  String get contactConfirmDiagnosticsNote;
+
+  /// No description provided for @composeEmail.
+  ///
+  /// In ja, this message translates to:
+  /// **'メールを作る'**
+  String get composeEmail;
+
+  /// No description provided for @contactMailSubject.
+  ///
+  /// In ja, this message translates to:
+  /// **'麺印帳 不具合のお知らせ'**
+  String get contactMailSubject;
+
+  /// No description provided for @contactMailBodyPlaceholder.
+  ///
+  /// In ja, this message translates to:
+  /// **'（この上に、困ったことや、そのときの操作を書いてください）'**
+  String get contactMailBodyPlaceholder;
+
+  /// No description provided for @contactMailDiagnosticsNotice.
+  ///
+  /// In ja, this message translates to:
+  /// **'以下は不具合を調べるための情報です。そのまま送ってください。'**
+  String get contactMailDiagnosticsNotice;
+
+  /// No description provided for @diagnosticsUnknown.
+  ///
+  /// In ja, this message translates to:
+  /// **'不明'**
+  String get diagnosticsUnknown;
+
+  /// No description provided for @diagnosticsInstallId.
+  ///
+  /// In ja, this message translates to:
+  /// **'識別番号: {value}'**
+  String diagnosticsInstallId(Object value);
+
+  /// No description provided for @diagnosticsApp.
+  ///
+  /// In ja, this message translates to:
+  /// **'アプリ: {value}'**
+  String diagnosticsApp(Object value);
+
+  /// No description provided for @diagnosticsOs.
+  ///
+  /// In ja, this message translates to:
+  /// **'OS: {value}'**
+  String diagnosticsOs(Object value);
+
+  /// No description provided for @diagnosticsDevice.
+  ///
+  /// In ja, this message translates to:
+  /// **'端末: {value}'**
+  String diagnosticsDevice(Object value);
+
+  /// No description provided for @diagnosticsSentAt.
+  ///
+  /// In ja, this message translates to:
+  /// **'送信日時: {value}'**
+  String diagnosticsSentAt(Object value);
+
+  /// No description provided for @diagnosticsRecentErrors.
+  ///
+  /// In ja, this message translates to:
+  /// **'直近のエラー:'**
+  String get diagnosticsRecentErrors;
+
+  /// No description provided for @diagnosticsNoRecentErrors.
+  ///
+  /// In ja, this message translates to:
+  /// **'- なし'**
+  String get diagnosticsNoRecentErrors;
+
+  /// No description provided for @mailAppUnavailableTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'メールアプリを開けませんでした'**
+  String get mailAppUnavailableTitle;
+
+  /// No description provided for @mailAppUnavailableBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'お手数ですが、次のアドレスにメールを送ってください。'**
+  String get mailAppUnavailableBody;
+
+  /// No description provided for @copyAddress.
+  ///
+  /// In ja, this message translates to:
+  /// **'アドレスをコピー'**
+  String get copyAddress;
+
+  /// No description provided for @addressCopied.
+  ///
+  /// In ja, this message translates to:
+  /// **'アドレスをコピーしました'**
+  String get addressCopied;
+
+  /// No description provided for @close.
+  ///
+  /// In ja, this message translates to:
+  /// **'閉じる'**
+  String get close;
 }
 
 class _AppLocalizationsDelegate

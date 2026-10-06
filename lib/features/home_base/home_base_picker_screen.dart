@@ -8,6 +8,7 @@ import '../../theme/motion.dart';
 import '../../theme/washi.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
+import '../error_reporting/error_reporting.dart';
 import '../map/shop_pins.dart';
 import '../map/washi_map.dart';
 import '../quests/quest_seal.dart';
@@ -172,8 +173,8 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
         SnackBar(content: Text(l10n.homeBaseSaved(setting.name))),
       );
       if (mounted) Navigator.of(context).pop(true);
-    } catch (e) {
-      debugPrint('Home base save failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Home base save failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
       if (mounted) setState(() => _saving = false);
     }
@@ -453,8 +454,8 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
           .read(homeBaseRepositoryProvider)
           .updateHomeBase(updated);
       if (mounted) setState(() => _setting = saved);
-    } catch (e) {
-      debugPrint('Home base update failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Home base update failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
     }
   }
@@ -530,8 +531,8 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
         SnackBar(content: Text(l10n.homeBaseDeleted(setting.name))),
       );
       if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      debugPrint('Home base delete failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Home base delete failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
     }
   }

@@ -7,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../l10n/app_localizations.dart';
 import '../checkin/checkin_rules.dart';
+import '../error_reporting/error_reporting.dart';
 import 'notification_labels.dart';
 import 'notification_settings.dart';
 
@@ -294,8 +295,8 @@ class LocalNotificationService implements NotificationService {
         await _schedule(notification.id, notification);
       }
       return true;
-    } catch (e) {
-      debugPrint('Notification schedule failed: $e');
+    } catch (e, st) {
+      reportError(e, st, reason: 'Notification schedule failed');
       return false;
     }
   }
