@@ -42,9 +42,10 @@ void main() {
   late Future<GeoPoint?> Function(String) geocoder;
 
   /// 記録画面を開き直したとき（前の画面の状態は残らず、documents と記録だけが残る）。
-  ProviderContainer newSession() {
+  ProviderContainer newSession({RecordDraftStore? drafts}) {
     final session = ProviderContainer(
       overrides: [
+        if (drafts != null) recordDraftStoreProvider.overrideWithValue(drafts),
         appDatabaseProvider.overrideWithValue(database),
         documentsDirectoryProvider.overrideWithValue(documents),
         locationServiceProvider.overrideWithValue(location),
@@ -367,6 +368,13 @@ void main() {
 
   group('地図アプリから共有された店で記録する', () {
     SharedWish shared(String text) => parseSharedWish(text)!;
+    // 店を選ぶと下書きを書きに行くので、テストの後片付けと重ならないようメモリーに持つ。
+    late MemoryRecordDraftStore drafts;
+
+    setUp(() {
+      drafts = MemoryRecordDraftStore();
+      container = newSession(drafts: drafts);
+    });
 
     test('リンクの座標の店を選んだ状態で始まり、今の時刻で保存できる', () async {
       await controller().start(
@@ -477,7 +485,7 @@ void main() {
       await controller().start();
       controller().setManualName('下書きの店');
       await pumpEventQueue();
-      container = newSession();
+      container = newSession(drafts: drafts);
 
       await controller().start(
         sharedPlace: shared(
@@ -549,6 +557,7 @@ void main() {
         );
 
     test('地図アプリから別の店を共有されたら、その店に替える（並びは続く）', () async {
+      container = newSession(drafts: MemoryRecordDraftStore());
       await checkIn();
 
       await controller().start(
@@ -562,6 +571,7 @@ void main() {
     });
 
     test('共有された店が並んでいる店なら、並んだ店のまま', () async {
+      container = newSession(drafts: MemoryRecordDraftStore());
       await checkIn();
 
       await controller().start(
