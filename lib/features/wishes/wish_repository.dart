@@ -32,6 +32,7 @@ class WishRepository {
     required ShopInput shop,
     String trigger = '',
     String note = '',
+    String? link,
     required DateTime now,
   }) async {
     final wish = Wish(
@@ -44,6 +45,7 @@ class WishRepository {
       dataSource: shop.dataSource,
       trigger: trigger.trim(),
       note: note.trim(),
+      link: _linkOrNull(link),
       createdAt: now,
     );
     await _db
@@ -59,6 +61,7 @@ class WishRepository {
             dataSource: Value(wish.dataSource),
             trigger: Value(wish.trigger),
             note: Value(wish.note),
+            link: Value(wish.link),
             createdAt: wish.createdAt,
           ),
         );
@@ -69,9 +72,19 @@ class WishRepository {
     String id, {
     required String trigger,
     required String note,
+    String? link,
   }) => (_db.update(_db.wishes)..where((w) => w.id.equals(id))).write(
-    WishesCompanion(trigger: Value(trigger.trim()), note: Value(note.trim())),
+    WishesCompanion(
+      trigger: Value(trigger.trim()),
+      note: Value(note.trim()),
+      link: Value(_linkOrNull(link)),
+    ),
   );
+
+  static String? _linkOrNull(String? link) {
+    final trimmed = link?.trim() ?? '';
+    return trimmed.isEmpty ? null : trimmed;
+  }
 
   Future<void> deleteWish(String id) =>
       (_db.delete(_db.wishes)..where((w) => w.id.equals(id))).go();

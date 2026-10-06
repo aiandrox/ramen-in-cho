@@ -1258,6 +1258,78 @@ abstract class AppLocalizations {
   /// **'限定の煮干しを食べたい など'**
   String get wishNoteHint;
 
+  /// No description provided for @wishLink.
+  ///
+  /// In ja, this message translates to:
+  /// **'リンク（任意）'**
+  String get wishLink;
+
+  /// No description provided for @wishLinkHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'Google マップや YouTube の URL'**
+  String get wishLinkHint;
+
+  /// No description provided for @wishLinkOpen.
+  ///
+  /// In ja, this message translates to:
+  /// **'リンクを開く（{host}）'**
+  String wishLinkOpen(String host);
+
+  /// No description provided for @wishLinkOpenFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'リンクを開けませんでした'**
+  String get wishLinkOpenFailed;
+
+  /// No description provided for @wishPlaceNone.
+  ///
+  /// In ja, this message translates to:
+  /// **'場所: まだ決めていません（決めなくても掛けられます）'**
+  String get wishPlaceNone;
+
+  /// No description provided for @wishPlaceLooking.
+  ///
+  /// In ja, this message translates to:
+  /// **'場所: 住所から調べています…'**
+  String get wishPlaceLooking;
+
+  /// No description provided for @wishPlaceFromLink.
+  ///
+  /// In ja, this message translates to:
+  /// **'場所: リンクに書かれた位置'**
+  String get wishPlaceFromLink;
+
+  /// No description provided for @wishPlaceFromAddress.
+  ///
+  /// In ja, this message translates to:
+  /// **'場所: 住所から決めました'**
+  String get wishPlaceFromAddress;
+
+  /// No description provided for @wishPlaceFromSearch.
+  ///
+  /// In ja, this message translates to:
+  /// **'場所: 店名で探した店'**
+  String get wishPlaceFromSearch;
+
+  /// No description provided for @wishTriggerGoogleMaps.
+  ///
+  /// In ja, this message translates to:
+  /// **'Google マップ'**
+  String get wishTriggerGoogleMaps;
+
+  /// No description provided for @wishTriggerAppleMaps.
+  ///
+  /// In ja, this message translates to:
+  /// **'Apple マップ'**
+  String get wishTriggerAppleMaps;
+
+  /// No description provided for @wishTriggerYouTube.
+  ///
+  /// In ja, this message translates to:
+  /// **'YouTube'**
+  String get wishTriggerYouTube;
+
   /// No description provided for @wishTriggerLine.
   ///
   /// In ja, this message translates to:

@@ -352,15 +352,20 @@ class FakePhotoMetadataReader implements PhotoMetadataReader {
 
 class FakeWishRepository implements WishRepository {
   final added = <ShopInput>[];
+  final triggers = <String>[];
+  final links = <String?>[];
 
   @override
   Future<Wish> addWish({
     required ShopInput shop,
     String trigger = '',
     String note = '',
+    String? link,
     required DateTime now,
   }) async {
     added.add(shop);
+    triggers.add(trigger);
+    links.add(link);
     return Wish(id: 'wish-${added.length}', name: shop.name, createdAt: now);
   }
 
@@ -369,6 +374,7 @@ class FakeWishRepository implements WishRepository {
     String id, {
     required String trigger,
     required String note,
+    String? link,
   }) async {}
 
   final deleted = <String>[];

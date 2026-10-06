@@ -586,4 +586,76 @@ void main() {
       isNot(contains('hours_conditions')),
     );
   });
+
+  test('バージョン11の願にリンクの列を足し、記録・店・願はそのまま残す', () async {
+    final seconds = DateTime(2026, 10, 6, 12).millisecondsSinceEpoch ~/ 1000;
+    final database = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw.execute(
+            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+            'latitude REAL, longitude REAL, osm_id TEXT, '
+            'is_famous INTEGER NOT NULL DEFAULT 0 CHECK (is_famous IN (0, 1)), '
+            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
+            'area TEXT, created_at INTEGER NOT NULL, PRIMARY KEY (id))',
+          );
+          raw.execute(_v1Schema[1]);
+          raw.execute(
+            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
+            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
+            'longitude REAL, data_source TEXT, '
+            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
+          );
+          raw.execute(
+            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
+            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
+            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
+            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
+            'fulfilled_visit_id TEXT, PRIMARY KEY (id))',
+          );
+          raw.execute(
+            'CREATE TABLE home_base_settings (id TEXT NOT NULL, '
+            'name TEXT NOT NULL, latitude REAL NOT NULL, '
+            'longitude REAL NOT NULL, set_at INTEGER NOT NULL, '
+            'PRIMARY KEY (id))',
+          );
+          raw.execute(
+            'INSERT INTO shops VALUES '
+            "('shop', '麺屋', 43.06, 141.35, 'node/1', 1, "
+            "'券売機は現金のみ', NULL, '札幌市中央区', $seconds)",
+          );
+          raw.execute(
+            "INSERT INTO visits VALUES ('visit', 'shop', 'eaten', "
+            "'photos/a.jpg', NULL, $seconds, 'miso', 5, 0, 0, 'うまい', "
+            '$seconds)',
+          );
+          raw.execute(
+            'INSERT INTO wishes VALUES '
+            "('done', 'shop', NULL, '麺屋', 43.06, 141.35, NULL, "
+            "'友人', 'また行く', $seconds, 'visit'), "
+            "('wish', NULL, NULL, '中華そば', NULL, NULL, NULL, "
+            "'テレビ', '', $seconds, NULL)",
+          );
+          raw.execute('PRAGMA user_version = 11');
+        },
+      ),
+    );
+    addTearDown(database.close);
+
+    final entry = (await RecordRepository(database).watchVisits().first).single;
+    expect(entry.visit.photoPath, 'photos/a.jpg');
+    expect(entry.visit.memo, 'うまい');
+    expect(entry.shop.strategyMemo, '券売機は現金のみ');
+    expect(entry.shop.isFamous, isTrue);
+    final wishes = {
+      for (final wish in await WishRepository(database).watchWishes().first)
+        wish.id: wish,
+    };
+    expect(wishes.keys, unorderedEquals(['done', 'wish']));
+    expect(wishes['done']!.fulfilledVisitId, 'visit');
+    expect(wishes['done']!.trigger, '友人');
+    expect(wishes['wish']!.trigger, 'テレビ');
+    expect(wishes.values.map((w) => w.link), everyElement(isNull));
+    expect(await _columns(database, 'wishes'), contains('link'));
+  });
 }

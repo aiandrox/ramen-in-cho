@@ -9,10 +9,11 @@ import '../../theme/washi.dart';
 import '../home/app_tab.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
-import '../records/record_repository.dart';
+import '../records/models.dart';
 import '../settings/settings_action.dart';
 import '../visit_detail/visit_detail_screen.dart';
 import 'wish_dialog.dart';
+import 'wish_link.dart';
 import 'wish_providers.dart';
 import 'wish_repository.dart';
 import 'wishes.dart';
@@ -33,29 +34,6 @@ class _RemovedWishIds extends Notifier<Set<String>> {
 /// 願掛け帳。行きたい店（まだの願）と、食べに行けた店（叶った願）を分けて見せる。
 class WishListScreen extends ConsumerWidget {
   const WishListScreen({super.key});
-
-  Future<void> _addByName(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final repository = ref.read(wishRepositoryProvider);
-    final now = ref.read(clockProvider)();
-    final text = await showWishDialog(context);
-    if (text == null) return;
-    try {
-      await repository.addWish(
-        shop: ShopInput(name: text.name),
-        trigger: text.trigger,
-        note: text.note,
-        now: now,
-      );
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.wishAdded(text.name))),
-      );
-    } catch (e) {
-      debugPrint('Wish save failed: $e');
-      messenger.showSnackBar(SnackBar(content: Text(l10n.wishSaveFailed)));
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -122,7 +100,7 @@ class WishListScreen extends ConsumerWidget {
           ),
           child: EmaFab(
             tooltip: l10n.wishAddTitle,
-            onPressed: () => _addByName(context, ref),
+            onPressed: () => addWishByName(context, ref),
           ),
         ),
       ),
@@ -159,6 +137,7 @@ class _PendingWishCard extends ConsumerWidget {
       name: wish.name,
       trigger: wish.trigger,
       note: wish.note,
+      link: wish.link,
       isEditing: true,
     );
     if (text == null) return;
@@ -167,6 +146,7 @@ class _PendingWishCard extends ConsumerWidget {
         wish.id,
         trigger: text.trigger,
         note: text.note,
+        link: text.link,
       );
     } catch (e) {
       debugPrint('Wish update failed: $e');
@@ -228,9 +208,15 @@ class _PendingWishCard extends ConsumerWidget {
             child: _WishSeal(fulfilled: false, wishId: wish.id),
           ),
           title: Text(wish.name, style: textTheme.titleMedium),
-          subtitle: wish.trigger.isEmpty
+          subtitle: wish.trigger.isEmpty && wish.link == null
               ? null
-              : Text(l10n.wishTriggerLine(wish.trigger)),
+              : _WishSubtitle(
+                  wish: wish,
+                  lines: [
+                    if (wish.trigger.isNotEmpty)
+                      Text(l10n.wishTriggerLine(wish.trigger)),
+                  ],
+                ),
           onTap: () => _edit(context, ref),
         ),
       ),
@@ -255,9 +241,9 @@ class _FulfilledWishCard extends StatelessWidget {
         contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         leading: _WishSeal(fulfilled: true, wishId: wish.id),
         title: Text(wish.name, style: textTheme.titleMedium),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        subtitle: _WishSubtitle(
+          wish: wish,
+          lines: [
             Text(
               l10n.wishFulfilledLine(
                 formatDate(visit.eatenAt),
@@ -274,6 +260,30 @@ class _FulfilledWishCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 願の札の2行目より下（叶った日・きっかけ・リンク）。
+class _WishSubtitle extends StatelessWidget {
+  const _WishSubtitle({required this.wish, required this.lines});
+
+  final Wish wish;
+  final List<Widget> lines;
+
+  @override
+  Widget build(BuildContext context) {
+    final link = wish.link;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...lines,
+        if (link != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: WishLinkButton(link: link),
+          ),
+      ],
     );
   }
 }

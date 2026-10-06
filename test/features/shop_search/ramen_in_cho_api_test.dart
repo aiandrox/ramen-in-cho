@@ -39,6 +39,45 @@ http.Response _json(
 );
 
 void main() {
+  group('住所を位置にする', () {
+    test('丁目より細かく合った位置だけを使う', () async {
+      Uri? asked;
+      final api = RamenInChoApi(
+        MockClient((request) async {
+          asked = request.url;
+          return _json({
+            'result': {
+              'latitude': 35.68956,
+              'longitude': 139.69172,
+              'address': '東京都新宿区西新宿2丁目8-1',
+              'level': 6,
+              'attribution': 'Web Services by Yahoo! JAPAN',
+            },
+          });
+        }),
+        base: _base,
+      );
+
+      final point = await api.geocode(' 東京都新宿区西新宿2-8-1 ');
+
+      expect(asked!.path, '/api/v1/geocode');
+      expect(asked!.queryParameters['q'], '東京都新宿区西新宿2-8-1');
+      expect((point!.latitude, point.longitude), (35.68956, 139.69172));
+    });
+
+    test('町名までしか合わない・見つからないときは位置にしない', () {
+      expect(
+        parseGeocode(
+          jsonEncode({
+            'result': {'latitude': 35.69, 'longitude': 139.7, 'level': 3},
+          }),
+        ),
+        isNull,
+      );
+      expect(parseGeocode(jsonEncode({'result': null})), isNull);
+    });
+  });
+
   test('検索の応答から店を読む。名前か位置の無い店は捨てる', () {
     final shops = parseApiShops(
       jsonEncode({

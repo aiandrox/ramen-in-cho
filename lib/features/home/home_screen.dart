@@ -25,6 +25,9 @@ import 'rating_prompt.dart';
 import '../scoring/scoring_providers.dart';
 import '../settings/settings_action.dart';
 import '../visit_detail/visit_detail_screen.dart';
+import '../wishes/shared_wish.dart';
+import '../wishes/wish_dialog.dart';
+import 'app_tab.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -35,7 +38,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scroll = ScrollController();
-  late final _lifecycle = AppLifecycleListener(onResume: _receiveSharedPhoto);
+  late final _lifecycle = AppLifecycleListener(onResume: _receiveShared);
   final _headerKey = GlobalKey();
   double _headerHeight = 0;
   String? _floatingMonth;
@@ -84,7 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _recoverLostPhoto().then((_) => _receiveSharedPhoto());
+      _recoverLostPhoto().then((_) => _receiveShared());
       _lifecycle;
       // 手で持つ店（ラーメン二郎の直系店など）の一覧を、1日1回までサーバーから取り直す。
       ref.read(curatedShopsProvider.notifier).refresh();
@@ -101,13 +104,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     await _openRecord(recoveredPhotoPath: path);
   }
 
-  /// ほかのアプリの「共有」から送られてきた写真で、記録を始める。
-  Future<void> _receiveSharedPhoto() async {
+  /// ほかのアプリの「共有」から送られてきた写真で記録を始め、文（店やリンク）なら願を掛ける。
+  Future<void> _receiveShared() async {
     // 記録画面などを開いている途中なら、書きかけの記録を上書きしないよう、印帳に戻ってから受け取る。
     if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) return;
     final path = await ref.read(sharedPhotoReceiverProvider).take();
-    if (path == null || !mounted) return;
-    await _openRecord(recoveredPhotoPath: path, sharedPhoto: true);
+    if (!mounted) return;
+    if (path != null) {
+      await _openRecord(recoveredPhotoPath: path, sharedPhoto: true);
+      return;
+    }
+    final text = await ref.read(sharedTextReceiverProvider).take();
+    if (text == null || !mounted) return;
+    final shared = parseSharedWish(text.text, subject: text.subject);
+    if (shared == null) return;
+    final l10n = AppLocalizations.of(context);
+    final location = shared.location;
+    final name = await addWishByName(
+      context,
+      ref,
+      name: shared.name,
+      trigger: switch (shared.source) {
+        SharedSource.googleMaps => l10n.wishTriggerGoogleMaps,
+        SharedSource.appleMaps => l10n.wishTriggerAppleMaps,
+        SharedSource.youtube => l10n.wishTriggerYouTube,
+        SharedSource.web => shared.host ?? '',
+        SharedSource.text => '',
+      },
+      link: shared.link,
+      place: location == null ? null : WishPlace(location: location),
+      address: shared.address,
+    );
+    if (name != null && mounted) {
+      ref.read(appTabProvider.notifier).select(AppTab.wishes);
+    }
   }
 
   Future<void> _openRecord({

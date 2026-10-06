@@ -20,6 +20,7 @@ import '../shop/maps_link.dart';
 import '../shop/shop_memo_dialog.dart';
 import '../scoring/scoring_providers.dart';
 import '../wishes/wish_dialog.dart';
+import '../wishes/wish_link.dart';
 import '../wishes/wish_providers.dart';
 import '../wishes/wishes.dart';
 import '../journal/journal.dart';
@@ -207,6 +208,12 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
 
     final statuses = ref.watch(wishStatusesProvider);
     final pendingWish = pendingWishFor(statuses, entry.shop);
+    // 願に残したリンク（まだの願、なければこの店で叶った願）。
+    final wishLink = [
+      ?pendingWish,
+      for (final status in statuses)
+        if (status.fulfilledBy?.visit.shopId == entry.shop.id) status.wish,
+    ].map((wish) => wish.link).nonNulls.firstOrNull;
     final canFulfill =
         visit.result == VisitResult.eaten &&
         pendingWish != null &&
@@ -312,6 +319,14 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                     ),
             ),
           ),
+          if (wishLink != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: WishLinkButton(link: wishLink),
+              ),
+            ),
           if (canFulfill)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),

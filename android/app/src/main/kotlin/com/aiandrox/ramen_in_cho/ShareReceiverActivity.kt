@@ -13,12 +13,17 @@ import android.util.Log
 import java.io.File
 
 /**
- * ほかのアプリの「共有」から写真を受け取る入口。写真を預かって麺印帳の画面を開き、すぐに閉じる。
- * 麺印帳の画面は開いたときに [SharedPhotoInbox] から写真を受け取る。
+ * ほかのアプリの「共有」から写真や文（店・動画のリンクなど）を受け取る入口。預かって麺印帳の画面を開き、すぐに閉じる。
+ * 麺印帳の画面は開いたときに [SharedPhotoInbox]・[SharedTextInbox] から受け取る。
  */
 class ShareReceiverActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedTextOf(intent)?.let { (text, subject) ->
+            SharedTextInbox.put(text, subject)
+            openApp()
+            return
+        }
         val photo = sharedPhotoOf(intent)
         if (photo == null) {
             finish()
@@ -28,14 +33,27 @@ class ShareReceiverActivity : Activity() {
         Thread {
             runCatching { SharedPhotoInbox.put(receive(photo)) }
                 .onFailure { Log.w(TAG, "Shared photo failed", it) }
-            runOnUiThread {
-                startActivity(
-                    Intent(this, MainActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                )
-                finish()
-            }
+            runOnUiThread { openApp() }
         }.start()
+    }
+
+    private fun openApp() {
+        startActivity(
+            Intent(this, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+        finish()
+    }
+
+    /** Google マップの店や YouTube の動画など、共有された文（と件名）。願掛けに使う。 */
+    private fun sharedTextOf(intent: Intent?): Pair<String, String?>? {
+        if (intent?.action != Intent.ACTION_SEND) return null
+        if (intent.type?.startsWith("text/") != true) return null
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return null
+        val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.trim()
+        if (text.isNullOrEmpty()) return null
+        val subject = intent.getCharSequenceExtra(Intent.EXTRA_SUBJECT)?.toString()?.trim()
+        return text.take(MAX_TEXT) to subject?.take(MAX_TEXT)
     }
 
     private fun sharedPhotoOf(intent: Intent?): Uri? {
@@ -115,6 +133,7 @@ class ShareReceiverActivity : Activity() {
         private const val TAG = "SharedPhoto"
         private const val MAX_SIZE = 2000
         private const val QUALITY = 85
+        private const val MAX_TEXT = 2000
         private val KEPT_TAGS = listOf(
             ExifInterface.TAG_DATETIME_ORIGINAL,
             ExifInterface.TAG_OFFSET_TIME_ORIGINAL,
@@ -141,4 +160,17 @@ object SharedPhotoInbox {
 
     @Synchronized
     fun take(): String? = pending.also { pending = null }
+}
+
+/** 受け取った文を、麺印帳の画面が受け取るまで預かる。 */
+object SharedTextInbox {
+    private var pending: Map<String, String?>? = null
+
+    @Synchronized
+    fun put(text: String, subject: String?) {
+        pending = mapOf("text" to text, "subject" to subject)
+    }
+
+    @Synchronized
+    fun take(): Map<String, String?>? = pending.also { pending = null }
 }

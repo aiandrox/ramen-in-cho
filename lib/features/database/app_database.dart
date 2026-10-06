@@ -78,6 +78,7 @@ class Wishes extends Table {
   TextColumn get note => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
   TextColumn get fulfilledVisitId => text().nullable()();
+  TextColumn get link => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -121,7 +122,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'ramen_in_cho'));
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -160,7 +161,12 @@ class AppDatabase extends _$AppDatabase {
         await migrator.alterTable(TableMigration(shops));
       }
       if (from >= 8 && from < 11) {
-        await migrator.alterTable(TableMigration(wishes));
+        await migrator.alterTable(
+          TableMigration(wishes, newColumns: [wishes.link]),
+        );
+      }
+      if ((from >= 6 && from < 8) || from == 11) {
+        await migrator.addColumn(wishes, wishes.link);
       }
     },
     beforeOpen: (details) async {

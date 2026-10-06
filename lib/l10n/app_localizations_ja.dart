@@ -667,6 +667,44 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wishNoteHint => '限定の煮干しを食べたい など';
 
   @override
+  String get wishLink => 'リンク（任意）';
+
+  @override
+  String get wishLinkHint => 'Google マップや YouTube の URL';
+
+  @override
+  String wishLinkOpen(String host) {
+    return 'リンクを開く（$host）';
+  }
+
+  @override
+  String get wishLinkOpenFailed => 'リンクを開けませんでした';
+
+  @override
+  String get wishPlaceNone => '場所: まだ決めていません（決めなくても掛けられます）';
+
+  @override
+  String get wishPlaceLooking => '場所: 住所から調べています…';
+
+  @override
+  String get wishPlaceFromLink => '場所: リンクに書かれた位置';
+
+  @override
+  String get wishPlaceFromAddress => '場所: 住所から決めました';
+
+  @override
+  String get wishPlaceFromSearch => '場所: 店名で探した店';
+
+  @override
+  String get wishTriggerGoogleMaps => 'Google マップ';
+
+  @override
+  String get wishTriggerAppleMaps => 'Apple マップ';
+
+  @override
+  String get wishTriggerYouTube => 'YouTube';
+
+  @override
   String wishTriggerLine(String trigger) {
     return 'きっかけ: $trigger';
   }

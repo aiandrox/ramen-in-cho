@@ -101,6 +101,7 @@ class Wish {
     this.dataSource,
     this.trigger = '',
     this.note = '',
+    this.link,
     required this.createdAt,
     this.fulfilledVisitId,
   });
@@ -120,6 +121,9 @@ class Wish {
 
   /// ひとこと（食べたいもの など）。
   final String note;
+
+  /// 店を知ったページのリンク（Google マップ・YouTube など）。無ければnull。
+  final String? link;
   final DateTime createdAt;
 
   /// この願が叶った1杯。まだならnull。
