@@ -1533,6 +1533,15 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _linkMeta = const VerificationMeta('link');
+  @override
+  late final GeneratedColumn<String> link = GeneratedColumn<String>(
+    'link',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1546,6 +1555,7 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
     note,
     createdAt,
     fulfilledVisitId,
+    link,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1625,6 +1635,12 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
         ),
       );
     }
+    if (data.containsKey('link')) {
+      context.handle(
+        _linkMeta,
+        link.isAcceptableOrUnknown(data['link']!, _linkMeta),
+      );
+    }
     return context;
   }
 
@@ -1672,6 +1688,10 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       )!,
+      link: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}link'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1706,6 +1726,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
   final Value<String> note;
   final Value<DateTime> createdAt;
   final Value<String?> fulfilledVisitId;
+  final Value<String?> link;
   final Value<int> rowid;
   const WishesCompanion({
     this.id = const Value.absent(),
@@ -1719,6 +1740,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.fulfilledVisitId = const Value.absent(),
+    this.link = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   WishesCompanion.insert({
@@ -1733,6 +1755,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     this.note = const Value.absent(),
     required DateTime createdAt,
     this.fulfilledVisitId = const Value.absent(),
+    this.link = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -1749,6 +1772,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     Expression<String>? note,
     Expression<DateTime>? createdAt,
     Expression<String>? fulfilledVisitId,
+    Expression<String>? link,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1763,6 +1787,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
       if (fulfilledVisitId != null) 'fulfilled_visit_id': fulfilledVisitId,
+      if (link != null) 'link': link,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1779,6 +1804,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     Value<String>? note,
     Value<DateTime>? createdAt,
     Value<String?>? fulfilledVisitId,
+    Value<String?>? link,
     Value<int>? rowid,
   }) {
     return WishesCompanion(
@@ -1793,6 +1819,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       fulfilledVisitId: fulfilledVisitId ?? this.fulfilledVisitId,
+      link: link ?? this.link,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1835,6 +1862,9 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     if (fulfilledVisitId.present) {
       map['fulfilled_visit_id'] = Variable<String>(fulfilledVisitId.value);
     }
+    if (link.present) {
+      map['link'] = Variable<String>(link.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1855,6 +1885,7 @@ class WishesCompanion extends UpdateCompanion<Wish> {
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('fulfilledVisitId: $fulfilledVisitId, ')
+          ..write('link: $link, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3253,6 +3284,7 @@ typedef $$WishesTableCreateCompanionBuilder = WishesCompanion Function({
   Value<String> note,
   required DateTime createdAt,
   Value<String?> fulfilledVisitId,
+  Value<String?> link,
   Value<int> rowid,
 });
 typedef $$WishesTableUpdateCompanionBuilder = WishesCompanion Function({
@@ -3267,6 +3299,7 @@ typedef $$WishesTableUpdateCompanionBuilder = WishesCompanion Function({
   Value<String> note,
   Value<DateTime> createdAt,
   Value<String?> fulfilledVisitId,
+  Value<String?> link,
   Value<int> rowid,
 });
 
@@ -3334,6 +3367,11 @@ class $$WishesTableFilterComposer
     column: $table.fulfilledVisitId,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<String> get link => $composableBuilder(
+    column: $table.link,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$WishesTableOrderingComposer
@@ -3399,6 +3437,11 @@ class $$WishesTableOrderingComposer
     column: $table.fulfilledVisitId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get link => $composableBuilder(
+    column: $table.link,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$WishesTableAnnotationComposer
@@ -3447,6 +3490,9 @@ class $$WishesTableAnnotationComposer
     column: $table.fulfilledVisitId,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get link =>
+      $composableBuilder(column: $table.link, builder: (column) => column);
 }
 
 class $$WishesTableTableManager
@@ -3488,6 +3534,7 @@ class $$WishesTableTableManager
                 Value<String> note = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String?> fulfilledVisitId = const Value.absent(),
+                Value<String?> link = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WishesCompanion(
                 id: id,
@@ -3501,6 +3548,7 @@ class $$WishesTableTableManager
                 note: note,
                 createdAt: createdAt,
                 fulfilledVisitId: fulfilledVisitId,
+                link: link,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3516,6 +3564,7 @@ class $$WishesTableTableManager
                 Value<String> note = const Value.absent(),
                 required DateTime createdAt,
                 Value<String?> fulfilledVisitId = const Value.absent(),
+                Value<String?> link = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WishesCompanion.insert(
                 id: id,
@@ -3529,6 +3578,7 @@ class $$WishesTableTableManager
                 note: note,
                 createdAt: createdAt,
                 fulfilledVisitId: fulfilledVisitId,
+                link: link,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

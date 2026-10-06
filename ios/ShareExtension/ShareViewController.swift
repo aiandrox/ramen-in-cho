@@ -2,13 +2,13 @@ import ImageIO
 import UIKit
 import UniformTypeIdentifiers
 
-/// ほかのアプリの「共有」から写真を受け取り、本体と共有する場所（App Group）に預けて麺印帳を開く。
-/// 本体は開いたときに預かった写真を受け取り、記録画面を開く。
+/// ほかのアプリの「共有」から写真や文（店・動画のリンクなど）を受け取り、本体と共有する場所（App Group）に預けて麺印帳を開く。
+/// 本体は開いたときに預かった写真なら記録画面を、文なら願を掛ける窓を開く。
 class ShareViewController: UIViewController {
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     guard let provider = imageProvider() else {
-      finish()
+      receiveText()
       return
     }
     provider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) {
@@ -16,7 +16,7 @@ class ShareViewController: UIViewController {
       // 渡された一時ファイルはこの中でしか読めないので、すぐに写す。
       if let url { SharedPhotoInbox.put(from: url) }
       DispatchQueue.main.async {
-        self?.openApp()
+        self?.openApp(path: "shared-photo")
         self?.finish()
       }
     }
@@ -29,13 +29,51 @@ class ShareViewController: UIViewController {
       .first { $0.hasItemConformingToTypeIdentifier(UTType.image.identifier) }
   }
 
+  /// 写真でなければ、Google マップの店や YouTube の動画など、共有された文とリンクを預ける。
+  private func receiveText() {
+    let items = extensionContext?.inputItems as? [NSExtensionItem] ?? []
+    let providers = items.flatMap { $0.attachments ?? [] }
+    var pieces = items.compactMap { $0.attributedContentText?.string }
+    let subject = items.compactMap { $0.attributedTitle?.string }.first
+    let group = DispatchGroup()
+    let lock = NSLock()
+    for provider in providers {
+      for type in [UTType.url, UTType.plainText]
+      where provider.hasItemConformingToTypeIdentifier(type.identifier) {
+        group.enter()
+        provider.loadItem(forTypeIdentifier: type.identifier) { item, _ in
+          let text: String? =
+            switch item {
+            case let url as URL: url.isFileURL ? nil : url.absoluteString
+            case let string as String: string
+            case let data as Data: String(data: data, encoding: .utf8)
+            default: nil
+            }
+          if let text {
+            lock.lock()
+            pieces.append(text)
+            lock.unlock()
+          }
+          group.leave()
+        }
+        break
+      }
+    }
+    group.notify(queue: .main) { [weak self] in
+      if SharedTextInbox.put(pieces: pieces, subject: subject) {
+        self?.openApp(path: "shared-text")
+      }
+      self?.finish()
+    }
+  }
+
   private func finish() {
     extensionContext?.completeRequest(returningItems: nil)
   }
 
   // 拡張機能からは UIApplication を直接使えないので、つながっている画面をたどって開く。
-  private func openApp() {
-    guard let url = URL(string: "ramenincho://shared-photo") else { return }
+  private func openApp(path: String) {
+    guard let url = URL(string: "ramenincho://\(path)") else { return }
     var responder: UIResponder? = self
     while let current = responder {
       if let application = current as? UIApplication {
@@ -43,6 +81,36 @@ class ShareViewController: UIViewController {
         return
       }
       responder = current.next
+    }
+  }
+}
+
+enum SharedTextInbox {
+  private static let maxLength = 2000
+
+  /// 同じ文（リンクが本文にも入っているなど）は1つにまとめ、App Group の shared_text.json に預ける。預けられれば true。
+  static func put(pieces: [String], subject: String?) -> Bool {
+    var lines: [String] = []
+    for piece in pieces {
+      let trimmed = piece.trimmingCharacters(in: .whitespacesAndNewlines)
+      if trimmed.isEmpty || lines.contains(where: { $0.contains(trimmed) }) { continue }
+      lines.removeAll { trimmed.contains($0) }
+      lines.append(trimmed)
+    }
+    let text = String(lines.joined(separator: "\n").prefix(maxLength))
+    guard !text.isEmpty,
+      let container = FileManager.default.containerURL(
+        forSecurityApplicationGroupIdentifier: SharedPhotoInbox.appGroup)
+    else { return false }
+    var body: [String: String] = ["text": text]
+    if let subject, !subject.isEmpty { body["subject"] = String(subject.prefix(maxLength)) }
+    guard let data = try? JSONSerialization.data(withJSONObject: body) else { return false }
+    do {
+      try data.write(
+        to: container.appendingPathComponent("shared_text.json"), options: .atomic)
+      return true
+    } catch {
+      return false
     }
   }
 }

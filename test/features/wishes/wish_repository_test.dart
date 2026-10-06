@@ -46,10 +46,38 @@ void main() {
     expect(await wishes.watchWishes().first, isEmpty);
   });
 
+  test('願にリンクを残し、書き直しで変えたり外したりできる', () async {
+    final wish = await wishes.addWish(
+      shop: const ShopInput(name: '麺屋さくら'),
+      link: ' https://maps.app.goo.gl/AbC ',
+      now: DateTime(2026, 10, 6),
+    );
+    expect(wish.link, 'https://maps.app.goo.gl/AbC');
+    expect(
+      (await wishes.watchWishes().first).single.link,
+      'https://maps.app.goo.gl/AbC',
+    );
+
+    await wishes.updateWish(
+      wish.id,
+      trigger: '',
+      note: '',
+      link: 'https://youtu.be/xyz',
+    );
+    expect(
+      (await wishes.watchWishes().first).single.link,
+      'https://youtu.be/xyz',
+    );
+
+    await wishes.updateWish(wish.id, trigger: '', note: '', link: ' ');
+    expect((await wishes.watchWishes().first).single.link, isNull);
+  });
+
   test('バックアップに願を含め、読み込むと端末に無い願だけを足す', () async {
     await wishes.addWish(
       shop: const ShopInput(name: 'はやし田'),
       trigger: '同僚に聞いた',
+      link: 'https://youtu.be/xyz',
       now: DateTime(2026, 10, 3),
     );
     final exported = await records.exportAll();
@@ -57,12 +85,14 @@ void main() {
       encodeBackup(exported, exportedAt: DateTime(2026, 10, 4)),
     );
     expect(decoded.wishes.single.trigger, '同僚に聞いた');
+    expect(decoded.wishes.single.link, 'https://youtu.be/xyz');
 
     final other = createTestDatabase();
     await RecordRepository(other).importAll(decoded);
     await RecordRepository(other).importAll(decoded);
     final restored = await WishRepository(other).watchWishes().first;
     expect(restored.single.name, 'はやし田');
+    expect(restored.single.link, 'https://youtu.be/xyz');
   });
 
   test('願掛け帳より前のバックアップも読める', () {
@@ -74,6 +104,25 @@ void main() {
     });
 
     expect(data.wishes, isEmpty);
+  });
+
+  test('リンクの無い願のバックアップも読める', () {
+    final data = decodeBackup({
+      'format': backupFormat,
+      'version': backupVersion,
+      'shops': <Object?>[],
+      'visits': <Object?>[],
+      'wishes': [
+        {
+          'id': 'wish',
+          'name': '麺屋さくら',
+          'createdAt': '2026-10-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    expect(data.wishes.single.name, '麺屋さくら');
+    expect(data.wishes.single.link, isNull);
   });
 
   group('記録で願を叶える', () {

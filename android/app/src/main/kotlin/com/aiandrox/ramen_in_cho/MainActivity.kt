@@ -15,10 +15,10 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             "com.aiandrox.ramen_in_cho/shared_photo",
         ).setMethodCallHandler { call, result ->
-            if (call.method == "takeSharedPhoto") {
-                result.success(SharedPhotoInbox.take())
-            } else {
-                result.notImplemented()
+            when (call.method) {
+                "takeSharedPhoto" -> result.success(SharedPhotoInbox.take())
+                "takeSharedText" -> result.success(SharedTextInbox.take())
+                else -> result.notImplemented()
             }
         }
         MethodChannel(

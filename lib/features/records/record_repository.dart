@@ -118,6 +118,7 @@ class RecordRepository {
                 dataSource: Value(wish.dataSource),
                 trigger: Value(wish.trigger),
                 note: Value(wish.note),
+                link: Value(wish.link),
                 createdAt: wish.createdAt,
                 fulfilledVisitId: Value(wish.fulfilledVisitId),
               ),

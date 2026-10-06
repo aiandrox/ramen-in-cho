@@ -62,6 +62,7 @@ Map<String, Object?> encodeBackup(
           },
         'trigger': wish.trigger,
         'note': wish.note,
+        'link': ?wish.link,
         'createdAt': wish.createdAt.toUtc().toIso8601String(),
         'fulfilledVisitId': wish.fulfilledVisitId,
       },
@@ -161,6 +162,7 @@ Wish _decodeWish(Object? json) {
     dataSource: _decodeSource(map['dataSource']),
     trigger: _stringOrNull(map['trigger']) ?? '',
     note: _stringOrNull(map['note']) ?? '',
+    link: _stringOrNull(map['link']),
     createdAt: _dateTime(map['createdAt']),
     fulfilledVisitId: _stringOrNull(map['fulfilledVisitId']),
   );

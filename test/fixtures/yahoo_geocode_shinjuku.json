@@ -1,0 +1,25 @@
+{
+  "ResultInfo": { "Count": 1, "Total": 1, "Start": 1, "Status": 200, "Description": "", "Latency": 0.012 },
+  "Feature": [
+    {
+      "Id": "13104.1",
+      "Gid": "",
+      "Name": "東京都新宿区西新宿2丁目8-1",
+      "Geometry": {
+        "Type": "point",
+        "Coordinates": "139.69172,35.68956",
+        "BoundingBox": "139.69172,35.68956 139.69172,35.68956"
+      },
+      "Category": [],
+      "Description": "",
+      "Style": [],
+      "Property": {
+        "Uid": "",
+        "Country": { "Code": "JP", "Name": "日本" },
+        "Address": "東京都新宿区西新宿2丁目8-1",
+        "GovernmentCode": "13104",
+        "AddressMatchingLevel": "6"
+      }
+    }
+  ]
+}

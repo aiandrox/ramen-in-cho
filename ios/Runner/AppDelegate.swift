@@ -24,7 +24,7 @@ import UserNotifications
   }
 }
 
-/// 共有の拡張機能（ShareExtension）が App Group に預けた写真を受け取る。
+/// 共有の拡張機能（ShareExtension）が App Group に預けた写真や文を受け取る。
 enum SharedPhoto {
   private static let appGroup = "group.com.aiandrox.ramenInCho"
 
@@ -32,12 +32,24 @@ enum SharedPhoto {
     let channel = FlutterMethodChannel(
       name: "com.aiandrox.ramen_in_cho/shared_photo", binaryMessenger: messenger)
     channel.setMethodCallHandler { call, result in
-      guard call.method == "takeSharedPhoto" else {
-        result(FlutterMethodNotImplemented)
-        return
+      switch call.method {
+      case "takeSharedPhoto": result(take())
+      case "takeSharedText": result(takeText())
+      default: result(FlutterMethodNotImplemented)
       }
-      result(take())
     }
+  }
+
+  /// 預かった文（店・動画のリンクなど）を受け取って消す。無ければnil。
+  private static func takeText() -> [String: String]? {
+    let files = FileManager.default
+    guard
+      let container = files.containerURL(forSecurityApplicationGroupIdentifier: appGroup)
+    else { return nil }
+    let file = container.appendingPathComponent("shared_text.json")
+    guard let data = try? Data(contentsOf: file) else { return nil }
+    try? files.removeItem(at: file)
+    return (try? JSONSerialization.jsonObject(with: data)) as? [String: String]
   }
 
   /// 預かった写真をアプリの一時フォルダへ移し、そのパスを返す。無ければnil。

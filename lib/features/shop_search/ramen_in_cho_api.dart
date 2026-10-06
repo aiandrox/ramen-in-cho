@@ -139,7 +139,45 @@ class RamenInChoApi {
     );
     return parseApiShops(utf8.decode(response.bodyBytes));
   }
+
+  /// 住所を位置にする（サーバーが Yahoo! ジオコーダに問い合わせる）。見つからなければnull。
+  Future<GeoPoint?> geocode(String address) async {
+    final response = await _get(_uri('/geocode', {'q': address.trim()}));
+    return parseGeocode(utf8.decode(response.bodyBytes));
+  }
 }
+
+/// 住所の一致がこれより粗い（市区町村・町名まで）位置は、店の位置にするには離れすぎるので使わない。
+const geocodeMinLevel = 4;
+
+/// `/geocode` の応答。丁目より細かく合った位置だけを返す。
+GeoPoint? parseGeocode(String body) {
+  final decoded = jsonDecode(body);
+  final result = decoded is Map<String, dynamic> ? decoded['result'] : null;
+  if (result is! Map<String, dynamic>) return null;
+  if ((result['latitude'], result['longitude'], result['level'])
+      case (final num lat, final num lon, final num level)
+      when level >= geocodeMinLevel) {
+    return GeoPoint(lat.toDouble(), lon.toDouble());
+  }
+  return null;
+}
+
+/// 住所を位置にする。サーバーに届かないときや見つからないときはnull（端末から直接は問い合わせない）。
+final addressGeocoderProvider = Provider<Future<GeoPoint?> Function(String)>((
+  ref,
+) {
+  final api = ref.watch(ramenInChoApiProvider);
+  return (address) async {
+    if (api == null || address.trim().isEmpty) return null;
+    try {
+      return await api.geocode(address);
+    } catch (e) {
+      debugPrint('Geocode failed: $e');
+      return null;
+    }
+  };
+});
 
 /// `/curated-shops` の応答。形の崩れた店は捨てる。
 List<BuiltinShop> parseCuratedShops(String body) {
