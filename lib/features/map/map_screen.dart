@@ -594,11 +594,25 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 sumi: true,
                 small: true,
                 tooltip: l10n.mapListButton,
-                onPressed: () => _showPlaceList(
-                  places,
-                  title: l10n.mapListTitle(places.length),
-                  withFilters: true,
-                ),
+                onPressed: () {
+                  // 一覧は、いま地図の画面に見えている店だけにする。
+                  final bounds = _controller.camera.visibleBounds;
+                  final visible = [
+                    for (final place in places)
+                      if (bounds.contains(
+                        LatLng(
+                          place.location.latitude,
+                          place.location.longitude,
+                        ),
+                      ))
+                        place,
+                  ];
+                  _showPlaceList(
+                    visible,
+                    title: l10n.mapListTitle(visible.length),
+                    withFilters: true,
+                  );
+                },
                 child: const Icon(Icons.format_list_bulleted),
               ),
               const SizedBox(height: 12),

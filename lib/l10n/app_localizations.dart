@@ -2263,7 +2263,7 @@ abstract class AppLocalizations {
   /// No description provided for @mapListTitle.
   ///
   /// In ja, this message translates to:
-  /// **'地図の店 {count}軒'**
+  /// **'画面に見えている店 {count}軒'**
   String mapListTitle(int count);
 
   /// No description provided for @mapClusterTitle.
