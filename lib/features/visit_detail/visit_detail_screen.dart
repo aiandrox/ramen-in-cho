@@ -28,6 +28,8 @@ import '../journal/journal.dart';
 import '../journal/journal_view.dart';
 import '../journal/shop_area.dart';
 import '../share/share_screen.dart';
+import '../map/location_picker_screen.dart';
+import '../shop_search/geo.dart';
 import '../shop_search/shop_name_search_sheet.dart';
 import 'visit_edit_screen.dart';
 import '../../theme/washi_buttons.dart';
@@ -102,9 +104,39 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
         osmId: found.osmId,
         dataSource: found.dataSource,
       );
+      if (mounted) ref.invalidate(ensureShopAreaProvider(shop.id));
       messenger.showSnackBar(SnackBar(content: Text(l10n.shopLocated)));
     } catch (e) {
       debugPrint('Shop locate failed: $e');
+      messenger.showSnackBar(SnackBar(content: Text(l10n.editSaveFailed)));
+    }
+  }
+
+  /// 店名で見つからない店の場所を地図で指す。位置のある店（OpenStreetMap 以外）は場所を直す。
+  Future<void> _pinShop(Shop shop) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final repository = ref.read(recordRepositoryProvider);
+    final latitude = shop.latitude;
+    final longitude = shop.longitude;
+    final picked = await showLocationPicker(
+      context,
+      shopName: shop.name,
+      initial: latitude != null && longitude != null
+          ? GeoPoint(latitude, longitude)
+          : null,
+    );
+    if (picked == null) return;
+    try {
+      await repository.setShopLocation(
+        shop.id,
+        latitude: picked.latitude,
+        longitude: picked.longitude,
+      );
+      if (mounted) ref.invalidate(ensureShopAreaProvider(shop.id));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.shopLocated)));
+    } catch (e) {
+      debugPrint('Shop pin failed: $e');
       messenger.showSnackBar(SnackBar(content: Text(l10n.editSaveFailed)));
     }
   }
@@ -219,6 +251,7 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
             tooltip: l10n.moreActions,
             onSelected: (action) => switch (action) {
               _DetailAction.wish => addWish(),
+              _DetailAction.relocate => _pinShop(entry.shop),
               _DetailAction.edit => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => VisitEditScreen(entry: entry),
@@ -235,6 +268,12 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                 ),
               ),
               PopupMenuItem(value: _DetailAction.edit, child: Text(l10n.edit)),
+              // OpenStreetMap の店は地図のデータの位置を正とし、ここでは直さない。
+              if (entry.shop.osmId == null && entry.shop.latitude != null)
+                PopupMenuItem(
+                  value: _DetailAction.relocate,
+                  child: Text(l10n.shopRelocate),
+                ),
               PopupMenuItem(
                 value: _DetailAction.delete,
                 child: Text(l10n.delete),
@@ -259,10 +298,20 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: entry.shop.latitude == null || entry.shop.longitude == null
-                  ? FudeLink(
-                      icon: const Icon(Icons.travel_explore),
-                      child: Text(l10n.shopLocate),
-                      onPressed: () => _locateShop(entry.shop),
+                  ? Wrap(
+                      spacing: 8,
+                      children: [
+                        FudeLink(
+                          icon: const Icon(Icons.travel_explore),
+                          child: Text(l10n.shopLocate),
+                          onPressed: () => _locateShop(entry.shop),
+                        ),
+                        FudeLink(
+                          icon: const Icon(Icons.push_pin_outlined),
+                          child: Text(l10n.locationPickOpen),
+                          onPressed: () => _pinShop(entry.shop),
+                        ),
+                      ],
                     )
                   : FudeLink(
                       icon: const Icon(Icons.map_outlined),
@@ -598,4 +647,4 @@ class _SelectedStrokePainter extends CustomPainter {
   bool shouldRepaint(_SelectedStrokePainter oldDelegate) => false;
 }
 
-enum _DetailAction { wish, edit, delete }
+enum _DetailAction { wish, edit, relocate, delete }

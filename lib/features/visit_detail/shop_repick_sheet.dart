@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi_buttons.dart';
+import '../map/location_picker_screen.dart';
 import '../record/photo_metadata.dart';
 import '../records/models.dart';
 import '../records/photo_storage.dart';
@@ -97,6 +98,18 @@ class _ShopRepickSheetState extends ConsumerState<_ShopRepickSheet> {
     );
   }
 
+  /// 店名で見つからない店は、打った店名のまま地図で指した場所の店にする。
+  Future<void> _pinOnMap() async {
+    final picked = await showLocationPicker(
+      context,
+      shopName: widget.name,
+      initial: _center,
+    );
+    if (picked == null || !mounted) return;
+    Navigator.of(context)
+        .pop(ShopCandidate(name: widget.name, location: picked));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -162,6 +175,15 @@ class _ShopRepickSheetState extends ConsumerState<_ShopRepickSheet> {
                 child: Text(l10n.editShopRepickByName),
               ),
             ),
+            if (widget.name.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FudeLink(
+                  icon: const Icon(Icons.push_pin_outlined),
+                  onPressed: _pinOnMap,
+                  child: Text(l10n.locationPickOpen),
+                ),
+              ),
           ],
         ),
       ),

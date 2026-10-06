@@ -266,6 +266,76 @@ void main() {
     expect(shop.dataSource!.licenses, ['CDLA-Permissive-2.0']);
   });
 
+  group('地図で指した場所', () {
+    const sapporo = (latitude: 43.0687, longitude: 141.3508);
+
+    test('店の場所を直すと、市区町村を調べ直すよう空に戻す', () async {
+      final visit = await save(
+        const ShopInput(name: '麺屋北', latitude: 43.0, longitude: 141.0),
+      );
+      await repository.setShopArea(visit.shopId, '石狩市');
+
+      await repository.setShopLocation(
+        visit.shopId,
+        latitude: sapporo.latitude,
+        longitude: sapporo.longitude,
+      );
+
+      final shop = (await repository.allShops()).single;
+      expect(shop.latitude, sapporo.latitude);
+      expect(shop.longitude, sapporo.longitude);
+      expect(shop.area, isNull);
+    });
+
+    test('指した場所で記録すると、位置のわからない同じ名前の店に位置を補い、店は増えない', () async {
+      final first = await save(const ShopInput(name: '麺屋北'));
+
+      final second = await save(
+        ShopInput(
+          name: '麺屋北',
+          latitude: sapporo.latitude,
+          longitude: sapporo.longitude,
+        ),
+      );
+
+      expect(second.shopId, first.shopId);
+      final shop = (await repository.allShops()).single;
+      expect(shop.latitude, sapporo.latitude);
+    });
+
+    test('同じ名前の2店のうち片方の場所を直しても、まとめたり分けたりせず、次の記録は近い方に付く', () async {
+      final a = await save(
+        ShopInput(
+          name: '麺屋北',
+          latitude: sapporo.latitude,
+          longitude: sapporo.longitude,
+        ),
+      );
+      final b = await save(
+        const ShopInput(name: '麺屋北', latitude: 43.2, longitude: 141.3),
+      );
+      expect(b.shopId, isNot(a.shopId));
+
+      // 2店目を1店目から約200mの場所に直す。
+      await repository.setShopLocation(
+        b.shopId,
+        latitude: sapporo.latitude + 0.0018,
+        longitude: sapporo.longitude,
+      );
+      expect(await repository.allShops(), hasLength(2));
+
+      final next = await save(
+        ShopInput(
+          name: '麺屋北',
+          latitude: sapporo.latitude + 0.0017,
+          longitude: sapporo.longitude,
+        ),
+      );
+      expect(next.shopId, b.shopId);
+      expect(await repository.allShops(), hasLength(2));
+    });
+  });
+
   test('位置のわからない店で、位置つきの同じ名前の店を選んで記録すると、位置を補う', () async {
     final first = await save(const ShopInput(name: '麺屋ふじみち'));
     final second = await save(

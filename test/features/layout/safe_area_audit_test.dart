@@ -12,6 +12,7 @@ import 'package:ramen_in_cho/features/home_base/home_base_picker_screen.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/journal/shugyoroku_screen.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
+import 'package:ramen_in_cho/features/map/location_picker_screen.dart';
 import 'package:ramen_in_cho/features/map/washi_map.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
 import 'package:ramen_in_cho/features/onboarding/onboarding_screen.dart';
@@ -355,6 +356,13 @@ final List<_Screen> _screens = [
       await _settle(tester);
       await audit('これまでの拠点の窓');
     },
+  ),
+  (
+    name: '店の場所を指す画面',
+    home: const LocationPickerScreen(shopName: '麺屋北'),
+    tab: null,
+    checkin: null,
+    visit: (tester, audit) => audit('地図'),
   ),
   (
     name: 'はじめの案内',

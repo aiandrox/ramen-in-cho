@@ -357,7 +357,8 @@ class RecordRepository {
     WishesCompanion(fulfilledVisitId: Value(visitId), shopId: Value(shopId)),
   );
 
-  /// 位置のわからない店に、店名で探した店の位置を付ける（地図に載るようにする）。
+  /// 店に位置を付ける・直す（店名で探した店の位置か、地図で指した場所）。
+  /// 市区町村は新しい位置で調べ直すよう空に戻す。
   Future<void> setShopLocation(
     String shopId, {
     required double latitude,
@@ -370,6 +371,7 @@ class RecordRepository {
       longitude: Value(longitude),
       osmId: osmId == null ? const Value.absent() : Value(osmId),
       dataSource: dataSource == null ? const Value.absent() : Value(dataSource),
+      area: const Value(null),
     ),
   );
 

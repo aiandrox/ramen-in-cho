@@ -1822,6 +1822,66 @@ abstract class AppLocalizations {
   /// **'地図アプリを開けませんでした'**
   String get openInMapsFailed;
 
+  /// No description provided for @locationPickTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'店の場所を指す'**
+  String get locationPickTitle;
+
+  /// No description provided for @locationPickIntro.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図を動かして、「{name}」の場所に真ん中のピンの先を合わせてください。'**
+  String locationPickIntro(String name);
+
+  /// No description provided for @locationPickUseCenter.
+  ///
+  /// In ja, this message translates to:
+  /// **'ここを店の場所にする'**
+  String get locationPickUseCenter;
+
+  /// No description provided for @locationPickCenterLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図の真ん中。ピンの先が店の場所になります'**
+  String get locationPickCenterLabel;
+
+  /// No description provided for @locationPickSealChar.
+  ///
+  /// In ja, this message translates to:
+  /// **'店'**
+  String get locationPickSealChar;
+
+  /// No description provided for @locationPickOpen.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図で場所を指す'**
+  String get locationPickOpen;
+
+  /// No description provided for @locationPicked.
+  ///
+  /// In ja, this message translates to:
+  /// **'場所: 地図で指定済み'**
+  String get locationPicked;
+
+  /// No description provided for @locationPickRedo.
+  ///
+  /// In ja, this message translates to:
+  /// **'指し直す'**
+  String get locationPickRedo;
+
+  /// No description provided for @locationPickClear.
+  ///
+  /// In ja, this message translates to:
+  /// **'外す'**
+  String get locationPickClear;
+
+  /// No description provided for @shopRelocate.
+  ///
+  /// In ja, this message translates to:
+  /// **'店の場所を直す'**
+  String get shopRelocate;
+
   /// No description provided for @yahooAttribution.
   ///
   /// In ja, this message translates to:
