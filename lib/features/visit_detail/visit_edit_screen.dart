@@ -262,7 +262,6 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
           rating: _rating,
           style: _style,
           isLimited: _isLimited,
-          hasTicket: widget.entry.visit.hasTicket,
           memo: _memoController.text.trim(),
           shopMemo:
               !_shopMemoShown ||

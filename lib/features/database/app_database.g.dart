@@ -520,21 +520,6 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
     ),
     defaultValue: const Constant(false),
   );
-  static const VerificationMeta _hasTicketMeta = const VerificationMeta(
-    'hasTicket',
-  );
-  @override
-  late final GeneratedColumn<bool> hasTicket = GeneratedColumn<bool>(
-    'has_ticket',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("has_ticket" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
   static const VerificationMeta _memoMeta = const VerificationMeta('memo');
   @override
   late final GeneratedColumn<String> memo = GeneratedColumn<String>(
@@ -567,7 +552,6 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
     style,
     rating,
     isLimited,
-    hasTicket,
     memo,
     createdAt,
   ];
@@ -629,12 +613,6 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
       context.handle(
         _isLimitedMeta,
         isLimited.isAcceptableOrUnknown(data['is_limited']!, _isLimitedMeta),
-      );
-    }
-    if (data.containsKey('has_ticket')) {
-      context.handle(
-        _hasTicketMeta,
-        hasTicket.isAcceptableOrUnknown(data['has_ticket']!, _hasTicketMeta),
       );
     }
     if (data.containsKey('memo')) {
@@ -700,10 +678,6 @@ class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_limited'],
       )!,
-      hasTicket: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}has_ticket'],
-      )!,
       memo: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}memo'],
@@ -738,7 +712,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
   final Value<RamenStyle?> style;
   final Value<int?> rating;
   final Value<bool> isLimited;
-  final Value<bool> hasTicket;
   final Value<String> memo;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -752,7 +725,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     this.style = const Value.absent(),
     this.rating = const Value.absent(),
     this.isLimited = const Value.absent(),
-    this.hasTicket = const Value.absent(),
     this.memo = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -767,7 +739,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     this.style = const Value.absent(),
     this.rating = const Value.absent(),
     this.isLimited = const Value.absent(),
-    this.hasTicket = const Value.absent(),
     this.memo = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -786,7 +757,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     Expression<String>? style,
     Expression<int>? rating,
     Expression<bool>? isLimited,
-    Expression<bool>? hasTicket,
     Expression<String>? memo,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -801,7 +771,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
       if (style != null) 'style': style,
       if (rating != null) 'rating': rating,
       if (isLimited != null) 'is_limited': isLimited,
-      if (hasTicket != null) 'has_ticket': hasTicket,
       if (memo != null) 'memo': memo,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -818,7 +787,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     Value<RamenStyle?>? style,
     Value<int?>? rating,
     Value<bool>? isLimited,
-    Value<bool>? hasTicket,
     Value<String>? memo,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -833,7 +801,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
       style: style ?? this.style,
       rating: rating ?? this.rating,
       isLimited: isLimited ?? this.isLimited,
-      hasTicket: hasTicket ?? this.hasTicket,
       memo: memo ?? this.memo,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -874,9 +841,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
     if (isLimited.present) {
       map['is_limited'] = Variable<bool>(isLimited.value);
     }
-    if (hasTicket.present) {
-      map['has_ticket'] = Variable<bool>(hasTicket.value);
-    }
     if (memo.present) {
       map['memo'] = Variable<String>(memo.value);
     }
@@ -901,7 +865,6 @@ class VisitsCompanion extends UpdateCompanion<Visit> {
           ..write('style: $style, ')
           ..write('rating: $rating, ')
           ..write('isLimited: $isLimited, ')
-          ..write('hasTicket: $hasTicket, ')
           ..write('memo: $memo, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -2563,7 +2526,6 @@ typedef $$VisitsTableCreateCompanionBuilder = VisitsCompanion Function({
   Value<RamenStyle?> style,
   Value<int?> rating,
   Value<bool> isLimited,
-  Value<bool> hasTicket,
   Value<String> memo,
   required DateTime createdAt,
   Value<int> rowid,
@@ -2578,7 +2540,6 @@ typedef $$VisitsTableUpdateCompanionBuilder = VisitsCompanion Function({
   Value<RamenStyle?> style,
   Value<int?> rating,
   Value<bool> isLimited,
-  Value<bool> hasTicket,
   Value<String> memo,
   Value<DateTime> createdAt,
   Value<int> rowid,
@@ -2654,11 +2615,6 @@ class $$VisitsTableFilterComposer
 
   ColumnFilters<bool> get isLimited => $composableBuilder(
     column: $table.isLimited,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get hasTicket => $composableBuilder(
-    column: $table.hasTicket,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2745,11 +2701,6 @@ class $$VisitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get hasTicket => $composableBuilder(
-    column: $table.hasTicket,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get memo => $composableBuilder(
     column: $table.memo,
     builder: (column) => ColumnOrderings(column),
@@ -2819,9 +2770,6 @@ class $$VisitsTableAnnotationComposer
   GeneratedColumn<bool> get isLimited =>
       $composableBuilder(column: $table.isLimited, builder: (column) => column);
 
-  GeneratedColumn<bool> get hasTicket =>
-      $composableBuilder(column: $table.hasTicket, builder: (column) => column);
-
   GeneratedColumn<String> get memo =>
       $composableBuilder(column: $table.memo, builder: (column) => column);
 
@@ -2889,7 +2837,6 @@ class $$VisitsTableTableManager
                 Value<RamenStyle?> style = const Value.absent(),
                 Value<int?> rating = const Value.absent(),
                 Value<bool> isLimited = const Value.absent(),
-                Value<bool> hasTicket = const Value.absent(),
                 Value<String> memo = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2903,7 +2850,6 @@ class $$VisitsTableTableManager
                 style: style,
                 rating: rating,
                 isLimited: isLimited,
-                hasTicket: hasTicket,
                 memo: memo,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -2919,7 +2865,6 @@ class $$VisitsTableTableManager
                 Value<RamenStyle?> style = const Value.absent(),
                 Value<int?> rating = const Value.absent(),
                 Value<bool> isLimited = const Value.absent(),
-                Value<bool> hasTicket = const Value.absent(),
                 Value<String> memo = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -2933,7 +2878,6 @@ class $$VisitsTableTableManager
                 style: style,
                 rating: rating,
                 isLimited: isLimited,
-                hasTicket: hasTicket,
                 memo: memo,
                 createdAt: createdAt,
                 rowid: rowid,

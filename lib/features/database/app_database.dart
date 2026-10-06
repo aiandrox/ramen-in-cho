@@ -56,7 +56,6 @@ class Visits extends Table {
   TextColumn get style => textEnum<RamenStyle>().nullable()();
   IntColumn get rating => integer().nullable()();
   BoolColumn get isLimited => boolean().withDefault(const Constant(false))();
-  BoolColumn get hasTicket => boolean().withDefault(const Constant(false))();
   TextColumn get memo => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -122,7 +121,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'ramen_in_cho'));
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -168,6 +167,8 @@ class AppDatabase extends _$AppDatabase {
       if ((from >= 6 && from < 8) || from == 11) {
         await migrator.addColumn(wishes, wishes.link);
       }
+      // 整理券の列（has_ticket）を消す。表を作り直し、ほかの列の値はそのまま移す。
+      if (from < 13) await migrator.alterTable(TableMigration(visits));
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

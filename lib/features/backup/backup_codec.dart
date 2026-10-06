@@ -87,7 +87,6 @@ Map<String, Object?> encodeBackup(
         'style': visit.style?.name,
         'rating': visit.rating,
         'isLimited': visit.isLimited,
-        'hasTicket': visit.hasTicket,
         'memo': visit.memo,
         'createdAt': visit.createdAt.toUtc().toIso8601String(),
       },
@@ -199,7 +198,6 @@ Visit _decodeVisit(Object? json) {
     style: RamenStyle.values.asNameMap()[map['style']],
     rating: rating is int && rating >= 1 && rating <= 5 ? rating : null,
     isLimited: map['isLimited'] == true,
-    hasTicket: map['hasTicket'] == true,
     memo: _stringOrNull(map['memo']) ?? '',
     createdAt: _dateTime(map['createdAt']),
   );

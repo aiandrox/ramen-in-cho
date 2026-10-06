@@ -46,7 +46,6 @@ Visit buildVisit({
   RamenStyle? style,
   int? rating = 3,
   bool isLimited = false,
-  bool hasTicket = false,
   String memo = '',
   String? photoPath,
 }) {
@@ -63,7 +62,6 @@ Visit buildVisit({
     style: style,
     rating: result == VisitResult.eaten ? rating : null,
     isLimited: isLimited,
-    hasTicket: hasTicket,
     memo: memo,
     createdAt: at,
   );
@@ -76,7 +74,6 @@ VisitWithShop buildEntry({
   int? waitMinutes,
   RamenStyle? style,
   bool isLimited = false,
-  bool hasTicket = false,
   String memo = '',
 }) {
   final resolvedShop = shop ?? buildShop();
@@ -89,7 +86,6 @@ VisitWithShop buildEntry({
       waitMinutes: waitMinutes,
       style: style,
       isLimited: isLimited,
-      hasTicket: hasTicket,
       memo: memo,
     ),
   );

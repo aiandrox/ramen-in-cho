@@ -153,7 +153,6 @@ void main() {
               result: VisitResult.eaten,
               eatenAt: now,
               isLimited: false,
-              hasTicket: false,
               memo: '',
               createdAt: now,
             ),
