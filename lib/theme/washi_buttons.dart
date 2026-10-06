@@ -32,14 +32,15 @@ abstract final class FudaStyle {
     bool night = false,
     double height = defaultHeight,
     double fontSize = 20,
+    double paddingX = 22,
     bool expand = false,
   }) {
     return ButtonStyle(
       minimumSize: WidgetStatePropertyAll(
         expand ? Size.fromHeight(height) : Size(64, height),
       ),
-      padding: const WidgetStatePropertyAll(
-        EdgeInsets.symmetric(horizontal: 22),
+      padding: WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: paddingX),
       ),
       shape: const WidgetStatePropertyAll(_shape),
       elevation: const WidgetStatePropertyAll(0),
@@ -72,12 +73,14 @@ abstract final class FudaStyle {
     bool night = false,
     double height = defaultHeight,
     double fontSize = 16,
+    double paddingX = 20,
     bool expand = false,
   }) {
     final ink = night ? Washi.paper : Washi.ink;
     return _brushFramed(
       height: height,
       fontSize: fontSize,
+      paddingX: paddingX,
       expand: expand,
       foreground: ink,
       disabled: night ? Washi.inkSoft : Washi.line,
@@ -92,11 +95,13 @@ abstract final class FudaStyle {
     bool night = false,
     double height = defaultHeight,
     double fontSize = 16,
+    double paddingX = 20,
     bool expand = false,
   }) {
     return _brushFramed(
       height: height,
       fontSize: fontSize,
+      paddingX: paddingX,
       expand: expand,
       foreground: night ? Washi.nightSoft : Washi.inkSoft,
       disabled: night ? Washi.inkSoft : Washi.line,
@@ -142,6 +147,7 @@ abstract final class FudaStyle {
   static ButtonStyle _brushFramed({
     required double height,
     required double fontSize,
+    required double paddingX,
     required bool expand,
     required Color foreground,
     required Color disabled,
@@ -154,8 +160,8 @@ abstract final class FudaStyle {
       minimumSize: WidgetStatePropertyAll(
         expand ? Size.fromHeight(height) : Size(64, height),
       ),
-      padding: const WidgetStatePropertyAll(
-        EdgeInsets.symmetric(horizontal: 20),
+      padding: WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: paddingX),
       ),
       shape: const WidgetStatePropertyAll(_shape),
       side: const WidgetStatePropertyAll(BorderSide.none),
@@ -362,10 +368,12 @@ class AiFuda extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final row = _FudaRowScope.of(context);
     final style = FudaStyle.ai(
       night: night,
       height: height,
-      fontSize: fontSize ?? _FudaRowScope.fontSizeOf(context) ?? 20,
+      fontSize: fontSize ?? row?.fontSize ?? 20,
+      paddingX: row == null ? 22 : _FudaRowScope.paddingX,
       expand: expand,
     );
     return switch (icon) {
@@ -405,10 +413,12 @@ class SumiFuda extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final row = _FudaRowScope.of(context);
     final style = FudaStyle.sumi(
       night: night,
       height: height,
-      fontSize: fontSize ?? _FudaRowScope.fontSizeOf(context) ?? 16,
+      fontSize: fontSize ?? row?.fontSize ?? 16,
+      paddingX: row == null ? 20 : _FudaRowScope.paddingX,
       expand: expand,
     );
     return switch (icon) {
@@ -448,10 +458,12 @@ class KeshiFuda extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final row = _FudaRowScope.of(context);
     final style = FudaStyle.keshi(
       night: night,
       height: height,
-      fontSize: fontSize ?? _FudaRowScope.fontSizeOf(context) ?? 16,
+      fontSize: fontSize ?? row?.fontSize ?? 16,
+      paddingX: row == null ? 20 : _FudaRowScope.paddingX,
       expand: expand,
     );
     return switch (icon) {
@@ -514,8 +526,11 @@ class _FudaRowScope extends InheritedWidget {
 
   final double fontSize;
 
-  static double? fontSizeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<_FudaRowScope>()?.fontSize;
+  /// 並ぶと札の幅が狭くなるので、字の左右の余白を詰めて折り返しにくくする。
+  static const paddingX = 10.0;
+
+  static _FudaRowScope? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_FudaRowScope>();
 
   @override
   bool updateShouldNotify(_FudaRowScope oldWidget) =>

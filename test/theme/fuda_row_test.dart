@@ -52,6 +52,31 @@ void main() {
     }
   });
 
+  testWidgets('幅の狭い画面でも、2つ並べた札の字は1行に収まる', (tester) async {
+    await pump(
+      tester,
+      SizedBox(
+        width: 320 - 32,
+        child: FudaRow(
+          height: 56,
+          children: [
+            AiFuda(
+              onPressed: () {},
+              icon: const Icon(Icons.ios_share),
+              child: const Text('共有する'),
+            ),
+            SumiFuda(onPressed: () {}, child: const Text('印帳にもどる')),
+          ],
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    for (final text in ['共有する', '印帳にもどる']) {
+      final height = tester.getSize(find.text(text)).height;
+      expect(height, lessThan(FudaStyle.rowFontSize * 2), reason: text);
+    }
+  });
+
   testWidgets('縦に積んだ札も、同じ幅・同じ高さになる', (tester) async {
     await pump(
       tester,
