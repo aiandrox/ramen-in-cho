@@ -34,6 +34,8 @@ class RecordDraft {
     this.memo = '',
     this.shopMemo = '',
     this.shopMemoOriginal = '',
+    this.shopFamous = false,
+    this.shopFamousOriginal = false,
     this.manualWaitMinutes,
     this.arrivedAt,
     this.arrivedCheckin,
@@ -60,6 +62,8 @@ class RecordDraft {
       memo: state.memo,
       shopMemo: state.shopMemo,
       shopMemoOriginal: state.shopMemoOriginal,
+      shopFamous: state.shopFamous,
+      shopFamousOriginal: state.shopFamousOriginal,
       manualWaitMinutes: state.manualWaitMinutes,
       arrivedAt: arrivedAt,
       arrivedCheckin: arrivedAt == null ? null : state.checkin,
@@ -83,6 +87,10 @@ class RecordDraft {
   /// 店の覚え書きの入力と、そのときの店のもとの覚え書き（record_state.dart）。
   final String shopMemo;
   final String shopMemoOriginal;
+
+  /// 名店の印と、そのときの店のもとの印。
+  final bool shopFamous;
+  final bool shopFamousOriginal;
   final int? manualWaitMinutes;
 
   /// 「着」を押した時刻と、そのときの並び。
@@ -98,6 +106,7 @@ class RecordDraft {
       !isLimited &&
       memo.trim().isEmpty &&
       shopMemo.trim() == shopMemoOriginal.trim() &&
+      shopFamous == shopFamousOriginal &&
       manualWaitMinutes == null &&
       arrivedAt == null;
 
@@ -116,6 +125,8 @@ class RecordDraft {
     memo: memo,
     shopMemo: shopMemo,
     shopMemoOriginal: shopMemoOriginal,
+    shopFamous: shopFamous,
+    shopFamousOriginal: shopFamousOriginal,
     manualWaitMinutes: manualWaitMinutes,
   );
 
@@ -134,6 +145,8 @@ class RecordDraft {
     memo: memo,
     shopMemo: shopMemo,
     shopMemoOriginal: shopMemoOriginal,
+    shopFamous: shopFamous,
+    shopFamousOriginal: shopFamousOriginal,
     manualWaitMinutes: manualWaitMinutes,
     arrivedAt: arrivedAt,
     arrivedCheckin: arrivedCheckin,
@@ -155,6 +168,8 @@ class RecordDraft {
     'memo': memo,
     'shopMemo': shopMemo,
     'shopMemoOriginal': shopMemoOriginal,
+    'shopFamous': shopFamous,
+    'shopFamousOriginal': shopFamousOriginal,
     'manualWaitMinutes': manualWaitMinutes,
     'arrivedAt': arrivedAt?.toUtc().toIso8601String(),
     'arrivedCheckin': _checkinToJson(arrivedCheckin),
@@ -173,6 +188,8 @@ class RecordDraft {
     // 店の覚え書きの欄ができる前の下書きは、選んだ店の覚え書きのままにする。
     final shopMemoOriginal =
         _string(json['shopMemoOriginal']) ?? selectedShop?.strategyMemo ?? '';
+    final shopFamousOriginal =
+        _bool(json['shopFamousOriginal']) ?? selectedShop?.isFamous ?? false;
     return RecordDraft(
       photoPath: photoPath,
       photoTakenAt: photoPath == null
@@ -190,6 +207,8 @@ class RecordDraft {
       memo: _string(json['memo']) ?? '',
       shopMemo: _string(json['shopMemo']) ?? shopMemoOriginal,
       shopMemoOriginal: shopMemoOriginal,
+      shopFamous: _bool(json['shopFamous']) ?? shopFamousOriginal,
+      shopFamousOriginal: shopFamousOriginal,
       manualWaitMinutes: wait != null && wait > 0 ? wait : null,
       arrivedAt: arrived ? arrivedAt : null,
       arrivedCheckin: arrived ? arrivedCheckin : null,
@@ -262,6 +281,7 @@ Map<String, Object?>? _shopToJson(ShopCandidate? shop) {
     'name': shop.name,
     'location': _geoToJson(shop.location),
     'strategyMemo': shop.strategyMemo,
+    'isFamous': shop.isFamous,
     'dataSource': _sourceToJson(source),
     'wishId': shop.wishId,
   };
@@ -278,6 +298,7 @@ ShopCandidate? _shopFromJson(Object? json) {
     name: name,
     location: _geoFromJson(json['location']),
     strategyMemo: _string(json['strategyMemo']) ?? '',
+    isFamous: json['isFamous'] == true,
     dataSource: _sourceFromJson(source),
     wishId: _string(json['wishId']),
   );
@@ -286,6 +307,8 @@ ShopCandidate? _shopFromJson(Object? json) {
 String? _string(Object? value) => value is String ? value : null;
 
 int? _int(Object? value) => value is int ? value : null;
+
+bool? _bool(Object? value) => value is bool ? value : null;
 
 List<String> _strings(Object? value) =>
     value is List ? [for (final v in value) ?_string(v)] : const [];

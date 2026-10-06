@@ -591,6 +591,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopFamousToggle => '名店の印をつける';
 
   @override
+  String get shopFamousNeedsShop => '店を決めると付けられます';
+
+  @override
   String get shopMemoEmpty => 'まだありません';
 
   @override

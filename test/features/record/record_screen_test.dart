@@ -41,6 +41,13 @@ String _photoFile() {
   return file.path;
 }
 
+/// 名店の印の切り替えを、下の保存ボタンに隠れない位置まで出す。
+Future<void> showFamous(WidgetTester tester) async {
+  await tester.ensureVisible(find.byKey(VisitDetailsForm.shopFamousSwitchKey));
+  await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   late AppDatabase database;
   late FakeShopFinder overpass;
@@ -206,6 +213,41 @@ void main() {
     );
     expect(visits!.single.visit.memo, '麺かため');
     expect(visits.single.shop.strategyMemo, '券売機は現金のみ');
+  });
+
+  testWidgets('名店の印は店を決めるまで押せず、決めると付けられて新しい店と一緒に保存する', (tester) async {
+    await pumpScreen(tester);
+    final famous = find.byKey(VisitDetailsForm.shopFamousSwitchKey);
+    await showFamous(tester);
+    expect(tester.widget<SwitchListTile>(famous).onChanged, isNull);
+    expect(find.text(ja.shopFamousNeedsShop), findsOneWidget);
+
+    final name = find.widgetWithText(TextField, ja.shopNameLabel);
+    await tester.dragUntilVisible(
+      name,
+      find.byType(ListView).first,
+      const Offset(0, 300),
+    );
+    await tester.enterText(name, 'はじめての店');
+    await tester.pump();
+    await showFamous(tester);
+    expect(find.text(ja.shopFamousNeedsShop), findsNothing);
+    await tester.tap(famous);
+    await tester.pump();
+    expect(tester.widget<SwitchListTile>(famous).value, isTrue);
+
+    await tester.runAsync(() async {
+      await tester.tap(find.widgetWithText(AiFuda, ja.save));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final visits = await tester.runAsync(
+      () => RecordRepository(database).watchVisits().first,
+    );
+    expect(visits!.single.shop.name, 'はじめての店');
+    expect(visits.single.shop.isFamous, isTrue);
   });
 
   testWidgets('店名を1文字入れても入力欄が作り直されない（変換中の文字が確定しない）', (tester) async {

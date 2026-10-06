@@ -16,6 +16,7 @@ import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/records/wait_time.dart';
+import 'package:ramen_in_cho/features/scoring/points.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/location_service.dart';
 import 'package:ramen_in_cho/features/shop_search/overpass.dart';
@@ -1171,6 +1172,151 @@ void main() {
       controller().setManualName('別の店');
       expect(state().selectedShop, isNull);
       expect(state().shopMemo, '');
+    });
+  });
+
+  group('名店の印', () {
+    Future<String> knownShop(String name, {bool famous = false}) async {
+      final repository = container.read(recordRepositoryProvider);
+      final visit = await repository.saveEatenVisit(
+        shop: ShopInput(name: name),
+        eatenAt: DateTime(2026, 9, 1),
+        now: DateTime(2026, 9, 1),
+      );
+      await repository.setShopFamous(visit.shopId, famous);
+      return visit.shopId;
+    }
+
+    Future<VisitWithShop> saved(String name) async => (await visits())
+        .firstWhere((e) => e.shop.name == name && e.visit.memo == 'かため');
+
+    test('初めての店で付けると、新しい店と一緒に保存し、名店の点がつく', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller()
+        ..selectShop(state().candidates.single)
+        ..setMemo('かため');
+      expect(state().shopFamous, isFalse);
+
+      controller().setShopFamous(true);
+      expect(await controller().save(), isNotNull);
+
+      final entry = await saved('麺屋テスト');
+      expect(entry.shop.isFamous, isTrue);
+      final scored = scoreVisits([entry]).single;
+      expect(scored.points.famousBonus, famousBonus);
+    });
+
+    test('手入力の新しい店でも付けられる', () async {
+      await controller().start();
+      await pumpEventQueue();
+      controller()
+        ..setManualName('はじめての店')
+        ..setShopFamous(true)
+        ..setMemo('かため');
+      expect(await controller().save(), isNotNull);
+
+      expect((await saved('はじめての店')).shop.isFamous, isTrue);
+    });
+
+    test('記録済みの店を選ぶとその店の印が入り、外すと店に保存する', () async {
+      await knownShop('行きつけの店', famous: true);
+      await controller().start();
+      await pumpEventQueue();
+
+      controller().setManualName('行きつけ');
+      controller().selectShop(state().nameMatches.single);
+      expect(state().shopFamous, isTrue);
+      expect(state().shopFamousEdited, isFalse);
+
+      controller()
+        ..setMemo('かため')
+        ..setShopFamous(false);
+      expect(await controller().save(), isNotNull);
+
+      expect((await saved('行きつけの店')).shop.isFamous, isFalse);
+    });
+
+    test('触らなければ店の印を書き換えない', () async {
+      final shopId = await knownShop('行きつけの店', famous: true);
+      await controller().start();
+      await pumpEventQueue();
+      controller()
+        ..setManualName('行きつけの店')
+        ..setMemo('かため');
+      expect(state().shopFamous, isTrue);
+      expect(state().shopFamousEdited, isFalse);
+      // 記録画面を開いたあとに店のページで外していても、上書きしない。
+      await container
+          .read(recordRepositoryProvider)
+          .setShopFamous(shopId, false);
+      expect(await controller().save(), isNotNull);
+
+      expect((await saved('行きつけの店')).shop.isFamous, isFalse);
+    });
+
+    test('同じ名前の名店でも、離れた場所で新しい店になれば、見えていた印を付ける', () async {
+      final repository = container.read(recordRepositoryProvider);
+      final far = await repository.saveEatenVisit(
+        shop: const ShopInput(name: '行きつけの店', latitude: 35.1, longitude: 139.0),
+        eatenAt: DateTime(2026, 9, 1),
+        now: DateTime(2026, 9, 1),
+      );
+      await repository.setShopFamous(far.shopId, true);
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller()
+        ..setManualName('行きつけの店')
+        ..setMemo('かため');
+      expect(state().shopFamous, isTrue);
+      expect(await controller().save(), isNotNull);
+
+      final entry = await saved('行きつけの店');
+      expect(entry.shop.id, isNot(far.shopId));
+      expect(entry.shop.isFamous, isTrue);
+    });
+
+    test('店を選び替えると、その店の印に入れ替わる', () async {
+      await knownShop('行きつけの店', famous: true);
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+
+      controller().setManualName('行きつけ');
+      final known = state().nameMatches.single;
+      controller().selectShop(state().candidates.single);
+      controller().setShopFamous(true);
+      expect(state().shopFamousEdited, isTrue);
+
+      controller().selectShop(known);
+      expect(state().shopFamous, isTrue);
+      expect(state().shopFamousEdited, isFalse);
+
+      controller().selectShop(state().candidates.single);
+      expect(state().shopFamous, isFalse);
+      expect(state().shopFamousEdited, isFalse);
+
+      controller().setManualName('別の店');
+      expect(state().selectedShop, isNull);
+      expect(state().shopFamous, isFalse);
+    });
+
+    test('下書きに残り、次に開くと付けたまま再開する', () async {
+      await controller().start();
+      await pumpEventQueue();
+      controller()
+        ..setManualName('はじめての店')
+        ..setShopFamous(true);
+      await container.read(recordDraftStoreProvider).load();
+      container.dispose();
+
+      final next = newSession();
+      await next.read(recordControllerProvider.notifier).start();
+      final resumed = next.read(recordControllerProvider);
+      expect(resumed.shopFamous, isTrue);
+      expect(resumed.shopFamousEdited, isTrue);
     });
   });
 }
