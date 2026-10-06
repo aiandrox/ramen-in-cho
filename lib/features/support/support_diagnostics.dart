@@ -1,7 +1,7 @@
 import '../../l10n/app_localizations.dart';
 import '../error_reporting/error_reporting.dart';
 
-const supportEmailAddress = 'face-seal@aiandrox.com';
+const supportEmailAddress = 'ramen-in-cho@aiandrox.com';
 
 const _separator = '------------------------------';
 
