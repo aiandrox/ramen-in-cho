@@ -34,6 +34,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get startEatenBody => '写真を撮って記録する';
 
   @override
+  String get sharedPlaceRecordTitle => 'ここで着丼した';
+
+  @override
+  String get sharedPlaceRecordBody => 'この店で食べた一杯を記録する';
+
+  @override
+  String get sharedPlaceWishTitle => '願を掛ける';
+
+  @override
+  String get sharedPlaceWishBody => '行きたい店として書き留める';
+
+  @override
   String get startQueueTitle => 'いま並んでいる';
 
   @override

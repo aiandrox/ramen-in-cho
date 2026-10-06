@@ -142,6 +142,30 @@ abstract class AppLocalizations {
   /// **'写真を撮って記録する'**
   String get startEatenBody;
 
+  /// No description provided for @sharedPlaceRecordTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ここで着丼した'**
+  String get sharedPlaceRecordTitle;
+
+  /// No description provided for @sharedPlaceRecordBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'この店で食べた一杯を記録する'**
+  String get sharedPlaceRecordBody;
+
+  /// No description provided for @sharedPlaceWishTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'願を掛ける'**
+  String get sharedPlaceWishTitle;
+
+  /// No description provided for @sharedPlaceWishBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'行きたい店として書き留める'**
+  String get sharedPlaceWishBody;
+
   /// No description provided for @startQueueTitle.
   ///
   /// In ja, this message translates to:

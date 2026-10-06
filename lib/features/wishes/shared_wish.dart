@@ -25,6 +25,10 @@ class SharedWish {
   /// リンクそのものに書かれていた位置。短縮リンクは開いて確かめない（通信先を増やさないため）。
   final GeoPoint? location;
 
+  /// 地図アプリの店の共有か（ここで食べた記録にもできる）。
+  bool get isMapPlace =>
+      source == SharedSource.googleMaps || source == SharedSource.appleMaps;
+
   /// 共有の文に書かれていた住所（Google マップの共有など）。位置にするのはサーバーに頼む。
   final String? address;
 }

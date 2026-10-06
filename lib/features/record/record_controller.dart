@@ -13,8 +13,10 @@ import '../records/wait_time.dart';
 import '../shop_search/found_shop.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/location_service.dart';
+import '../shop_search/ramen_in_cho_api.dart';
 import '../shop_search/shop_candidate.dart';
 import '../shop_search/shop_search_service.dart';
+import '../wishes/shared_wish.dart';
 import '../wishes/wish_repository.dart';
 import '../wishes/wishes.dart';
 import 'photo_metadata.dart';
@@ -30,6 +32,7 @@ final recordControllerProvider =
 class RecordController extends Notifier<RecordState> {
   List<Shop> _knownShops = const [];
   List<Wish> _pendingWishes = const [];
+  Future<void>? _knownShopsLoad;
   GeoPoint? _here;
 
   /// 店を探さずに取った現在地。店名で探すときの基準にだけ使う。
@@ -111,9 +114,10 @@ class RecordController extends Notifier<RecordState> {
     bool sharedPhoto = false,
     bool startOver = false,
     DateTime? arrivedAt,
+    SharedWish? sharedPlace,
   }) async {
     _tappedArrivedAt = arrivedAt;
-    unawaited(_loadKnownShops());
+    _knownShopsLoad = _loadKnownShops();
     await _loadCheckin();
     if (!ref.mounted) return;
     if (startOver) {
@@ -147,13 +151,60 @@ class RecordController extends Notifier<RecordState> {
       await _setGalleryPhoto(recoveredPhotoPath, incoming: true);
       if (!ref.mounted) return;
     }
+    if (sharedPlace != null) {
+      await _useSharedPlace(sharedPlace);
+      if (!ref.mounted) return;
+    }
     // 開いただけでは探さない。下書きの写真に店が決まっていなければ、その写真で探し直す。
+
     if (state.photoPath != null &&
         state.selectedShop == null &&
         state.searchStatus == ShopSearchStatus.idle) {
       await searchShops(requestPermission: state.photoLocation == null);
     } else {
       unawaited(_loadQuietHere());
+    }
+  }
+
+  /// 地図アプリから共有された店を選んだ状態にする。下書きに店が決まっていれば、下書きのままにする。
+  /// 位置はリンクに書かれた座標、無ければ住所をサーバーで位置にしたもの。記録済みの店や願の店と
+  /// 同じ店なら、そちらを選ぶ。位置がわからなければ店名だけ入れ、店名から探す・地図で指すに任せる。
+  Future<void> _useSharedPlace(SharedWish shared) async {
+    final name = shared.name.trim();
+    if (name.isEmpty || state.hasShop) return;
+    final address = shared.address;
+    final location =
+        shared.location ??
+        (address == null
+            ? null
+            : await ref.read(addressGeocoderProvider)(address));
+    await _knownShopsLoad;
+    // 調べている間に店を選んだり打ったりしていれば、そちらを優先する。
+    if (!ref.mounted || state.hasShop) return;
+    final incoming = ShopCandidate(name: name, location: location);
+    final wish = _pendingWishes
+        .where((w) => wishMatchesPlace(w, name: name, location: location))
+        .firstOrNull;
+    final known = _knownShops
+        .map(ShopCandidate.fromShop)
+        .where((shop) => isSameShop(shop, incoming))
+        .firstOrNull;
+    final match = wish == null
+        ? known
+        : ShopCandidate(
+            shopId: wish.shopId ?? known?.shopId,
+            osmId: wish.osmId,
+            name: wish.name,
+            location: wishLocation(wish) ?? location,
+            dataSource: wish.dataSource,
+            wishId: wish.id,
+          );
+    if (match != null) {
+      selectShop(match);
+    } else if (location != null) {
+      selectShop(incoming);
+    } else {
+      setManualName(name);
     }
   }
 
