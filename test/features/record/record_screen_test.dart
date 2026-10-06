@@ -205,6 +205,13 @@ void main() {
     expect(tester.widget<AiFuda>(saveButton).onPressed, isNotNull);
   });
 
+  Future<void> openPickerFromNameSearch(WidgetTester tester) async {
+    await tester.tap(find.text(ja.nameSearchOpen));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ja.nameSearchPickOnMap));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('店名を手入力して地図で場所を指すと、その場所の店として保存する', (tester) async {
     overpass.shops = const [];
     await pumpScreen(tester);
@@ -215,8 +222,9 @@ void main() {
       '路地裏の麺屋',
     );
     await tester.pump();
-    await tester.tap(find.text(ja.locationPickOpen));
-    await tester.pumpAndSettle();
+    // 地図で指すのは、店名から探しても見つからないときの逃げ道（記録画面には最初から出さない）。
+    expect(find.text(ja.locationPickOpen), findsNothing);
+    await openPickerFromNameSearch(tester);
 
     expect(find.byType(LocationPickerScreen), findsOneWidget);
     tester
@@ -253,8 +261,7 @@ void main() {
       '路地裏の麺屋',
     );
     await tester.pump();
-    await tester.tap(find.text(ja.locationPickOpen));
-    await tester.pumpAndSettle();
+    await openPickerFromNameSearch(tester);
     await tester.tap(find.text(ja.locationPickUseCenter));
     await tester.pumpAndSettle();
 
@@ -262,7 +269,7 @@ void main() {
     await tester.pump();
 
     expect(find.text(ja.locationPicked), findsNothing);
-    expect(find.text(ja.locationPickOpen), findsOneWidget);
+    expect(find.text(ja.locationPickOpen), findsNothing);
   });
 
   Future<void> typeShopAndBack(WidgetTester tester) async {

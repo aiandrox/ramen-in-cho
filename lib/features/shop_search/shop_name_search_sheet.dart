@@ -10,24 +10,36 @@ import 'openpoi_client.dart';
 import 'ramen_in_cho_api.dart';
 import 'yahoo_local.dart';
 import 'yahoo_local_client.dart';
+import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
 
 /// 店名で全国の店を探し、選んだ店を返す。やめたらnull。
+/// [onPickOnMap]があれば、結果の下に「地図で場所を指す」を出し、押されたら窓を閉じて呼ぶ。
 Future<FoundShop?> showShopNameSearch(
   BuildContext context, {
   required String initialName,
   GeoPoint? near,
+  VoidCallback? onPickOnMap,
 }) => showWashiSheet<FoundShop>(
   context: context,
   isScrollControlled: true,
-  builder: (_) => _ShopNameSearchSheet(initialName: initialName, near: near),
+  builder: (_) => _ShopNameSearchSheet(
+    initialName: initialName,
+    near: near,
+    onPickOnMap: onPickOnMap,
+  ),
 );
 
 class _ShopNameSearchSheet extends ConsumerStatefulWidget {
-  const _ShopNameSearchSheet({required this.initialName, this.near});
+  const _ShopNameSearchSheet({
+    required this.initialName,
+    this.near,
+    this.onPickOnMap,
+  });
 
   final String initialName;
   final GeoPoint? near;
+  final VoidCallback? onPickOnMap;
 
   @override
   ConsumerState<_ShopNameSearchSheet> createState() =>
@@ -212,6 +224,23 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
                         ].join('・'),
                       ),
                       onTap: () => Navigator.of(context).pop(shop),
+                    ),
+                  // 探しても見つからないときの逃げ道。最初からは使わない想定なので、結果の下に置く。
+                  if ((results != null || _failed) &&
+                      widget.onPickOnMap != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: FudeLink(
+                          icon: const Icon(Icons.push_pin_outlined),
+                          onPressed: () {
+                            closeWashiSheet(context);
+                            widget.onPickOnMap!();
+                          },
+                          child: Text(l10n.nameSearchPickOnMap),
+                        ),
+                      ),
                     ),
                   if (results != null && results.isNotEmpty)
                     Padding(

@@ -1667,4 +1667,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get notificationSettingsNote => 'スマホの設定で、麺印帳の通知を切り替えます';
+
+  @override
+  String get nameSearchPickOnMap => '見つからないときは、地図で場所を指す';
 }
