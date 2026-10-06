@@ -156,7 +156,7 @@ abstract final class _Beat {
 
   /// 1つの知らせを出し終えるまで（印がにじみ、名前が浮かぶ／叶の印を押す）。
   static const noticeLength = Duration(milliseconds: 600);
-  static const journalAfterNotices = Duration(milliseconds: 200);
+  static const journalAfterNotices = Duration(milliseconds: 600);
 }
 
 class _ResultBody extends StatelessWidget {

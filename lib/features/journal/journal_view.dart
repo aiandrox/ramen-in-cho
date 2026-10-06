@@ -19,9 +19,9 @@ class JournalView extends StatelessWidget {
   /// 指定すると、このときから1文ずつ浮かび上がらせる（着丼直後の画面の余韻）。
   final Duration? revealAt;
 
-  /// 1文ずつ出す間隔と、1文が浮かび上がる長さ。
-  static const revealStagger = Duration(milliseconds: 220);
-  static const revealDuration = Duration(milliseconds: 420);
+  /// 1文ずつ出す間隔と、1文が浮かび上がる長さ。読み味わえるよう、ゆっくり出す。
+  static const revealStagger = Duration(milliseconds: 750);
+  static const revealDuration = Duration(milliseconds: 1200);
 
   /// [revealAt]から、[lines]をすべて出し終えるまで（見出しとその下の間も1つずつに数える）。
   static Duration revealLength(int lines) => StaggeredReveal.lengthOf(
