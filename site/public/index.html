@@ -3,89 +3,446 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>麺印帳（Ramen-In-Cho）｜攻略の難しさで遊ぶ、ラーメンの修行帳</title>
-  <meta name="description" content="食べたラーメンを印帳に記録し、行列・限定・遠征など「攻略の難しさ」で修行点を貯めて段位を上げる、ひとりで遊ぶラーメン記録アプリ。">
+  <title>麺印帳（Ramen-In-Cho）｜一杯ごとに印を押す、ラーメンの修行帳</title>
+  <meta name="description" content="食べたラーメンを一杯ずつ印帳に残し、並んだ時間・遠征・通った回数で修行点を積んで段位を上げる、ひとりで遊ぶラーメン記録アプリ。記録と写真は端末の中だけ、ログイン不要、無料・広告なし。">
+  <meta name="theme-color" content="#26344A">
   <link rel="canonical" href="https://ramen-in-cho.aiandrox.com/">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ramen-in-cho.aiandrox.com/">
   <meta property="og:title" content="麺印帳（Ramen-In-Cho）">
-  <meta property="og:description" content="杯数ではなく、攻略の難しさで遊ぶ。一杯ごとに印を押す、ラーメンの修行帳。">
+  <meta property="og:description" content="一杯ごとに、印を押す。杯数ではなく、一杯までの道のりで遊ぶラーメンの修行帳。">
+  <meta property="og:image" content="https://ramen-in-cho.aiandrox.com/img/og-icon.png">
   <meta property="og:locale" content="ja_JP">
   <meta name="twitter:card" content="summary">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Yuji+Syuku&display=swap">
-  <link rel="stylesheet" href="/lp.css?v=1">
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="preload" href="/fonts/yuji-syuku.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/shippori-mincho.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/lp.css?v=2">
+  <script>document.documentElement.classList.add('js');</script>
 </head>
-<body>
-  <main>
-    <section class="hero">
-      <span class="seal" aria-hidden="true">麺</span>
-      <h1 class="name">麺印帳</h1>
-      <p class="name-en">Ramen-In-Cho</p>
-      <p class="catch"><span>杯数ではなく、</span><span><em>攻略の難しさ</em>で遊ぶ。</span></p>
-      <p class="sub">並んだ時間、限定の一杯、昼だけ・平日だけの店、遠くの名店。食べたラーメンを一杯ずつ印帳に残し、修行点を貯めて段位を上げる、ひとりで遊ぶラーメンの修行帳です。</p>
-      <!-- ストアで公開されたら、ここをストアへのリンクに差し替える -->
-      <p class="store-soon">App Store・Google Play で近日公開<small>無料・iPhone / Android</small></p>
+<body class="lp">
+  <svg width="0" height="0" class="defs" aria-hidden="true" focusable="false">
+    <filter id="kasure" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03 0.45" numOctaves="3" seed="11" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -7 5.6" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+  </svg>
+
+  <!-- 表紙。スクロールすると開く -->
+  <header class="stage" id="top">
+    <div class="stage-sticky">
+      <div class="book" aria-hidden="false">
+        <div class="book-inside" aria-hidden="true">
+          <div class="inside-body">
+            <p class="inside-copy">ある一日の道中記</p>
+            <ol class="toc">
+              <li><span>其の一</span>願を掛ける</li>
+              <li><span>其の二</span>並ぶ</li>
+              <li><span>其の三</span>着丼</li>
+              <li><span>其の四</span>印を押す</li>
+              <li><span>其の五</span>修行を積む</li>
+              <li><span>其の六</span>旅路をたどる</li>
+              <li><span>結び</span>免許皆伝</li>
+            </ol>
+          </div>
+        </div>
+        <div class="cover">
+          <div class="cover-front">
+            <h1 class="slip"><span class="slip-text">麺印帳</span><span class="sr">（Ramen-In-Cho）</span></h1>
+            <img class="bowl-seal" src="/img/bowl-seal.webp" width="300" height="300" alt="">
+          </div>
+          <div class="cover-back" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="hero-copy">
+        <p class="name-en" lang="en">Ramen-In-Cho</p>
+        <p class="catch">一杯ごとに、<br>印を押す。</p>
+
+        <p class="sub">杯数ではなく、一杯までの<em>道のり</em>で遊ぶ。<br class="pc"><span class="sub-more">並んだ時間、遠くの街、通いつづけた日々。食べたラーメンを一杯ずつ印帳に残し、修行点を積んで段位を上げる、ひとりで遊ぶラーメンの修行帳である。</span></p>
+        <!-- ストアで公開されたら、ここをストアへのリンクに差し替える -->
+        <p class="soon">App Store・Google Play で近日公開<small>iPhone / Android　無料・広告なし</small></p>
+      </div>
+      <a class="scroll-cue" href="#negai"><span>ひらく</span></a>
+    </div>
+  </header>
+
+  <main class="jabara">
+    <!-- 其の一 願を掛ける -->
+    <section class="leaf" id="negai" aria-labelledby="h-negai">
+      <div class="leaf-inner">
+        <div class="leaf-text">
+          <p class="leaf-no">其の一</p>
+          <h2 id="h-negai">願を掛ける</h2>
+          <p class="copy">行きたい店は、願掛け帳へ。<br>誰に聞いたか、どこで見たか。<br>地図の店からも、<br>ほかのアプリの共有からも掛けられる。</p>
+        </div>
+        <div class="leaf-visual">
+          <div class="phone" role="img" aria-label="願掛け帳の画面。まだの願として、麺屋こよみ・中華そば灯火・つけ麺みなとの三軒が並んでいる">
+            <div class="screen">
+              <div class="status"><span>9:41</span><i></i></div>
+              <div class="appbar"><span class="title">願掛け帳</span><span class="gear"></span></div>
+              <div class="tabs-seg"><span class="on">まだの願 3</span><span>叶った願 5</span></div>
+              <ul class="wish-list">
+                <li><span class="wish-mark">願</span><b>麺屋 こよみ</b><small>きっかけ: 同僚に聞いた</small><small>限定の煮干しを食べたい</small></li>
+                <li><span class="wish-mark">願</span><b>中華そば 灯火</b><small>きっかけ: YouTube</small></li>
+                <li><span class="wish-mark">願</span><b>つけ麺 みなと</b><small>きっかけ: Google マップ</small><small>旅行のついでに</small></li>
+              </ul>
+              <div class="add-ema"><img src="/img/ema.webp" width="140" height="128" alt=""></div>
+              <nav class="tabbar" aria-hidden="true">
+                <span><img src="/img/tab-inchou.webp" alt="" width="36" height="36">印帳</span>
+                <span class="on"><img src="/img/tab-negai-on.webp" alt="" width="36" height="36">願掛け</span>
+                <span class="hub"><img src="/img/stamp-men.webp" alt="" width="64" height="64"></span>
+                <span><img src="/img/tab-shugyo.webp" alt="" width="36" height="36">修行</span>
+                <span><img src="/img/tab-chizu.webp" alt="" width="36" height="36">地図</span>
+              </nav>
+            </div>
+          </div>
+          <img class="stamp" style="--r:-8deg" src="/img/ema.webp" width="140" height="128" alt="願の絵馬">
+        </div>
+      </div>
     </section>
 
-    <section class="features">
-      <h2>一杯ごとに、印を押す。</h2>
-      <ul class="feature-list">
-        <li>
-          <span class="mark" aria-hidden="true">帳</span>
-          <h3>印帳</h3>
-          <p>一杯が一ページ。写真と縦書きの店名に、その一杯の印を押します。印の形は難しさで変わり、真ん中には醤油・味噌・二郎などの系統の字。食べるたびに、一杯ごとの短い道中記も添えられます。</p>
-        </li>
-        <li>
-          <span class="mark filled" aria-hidden="true">段</span>
-          <h3>修行点と段位</h3>
-          <p>行列の待ち時間、限定メニュー、昼のみ・平日のみ・週三日以下の店、拠点から遠く離れた遠征、朝ラーや深夜の一杯、撤退からの再挑戦。攻略が難しいほど修行点が増え、入門から級・段を経て、師範代・免許皆伝へ。</p>
-        </li>
-        <li>
-          <span class="mark square" aria-hidden="true">型</span>
-          <h3>型と秘伝</h3>
-          <p>続けるほど段が上がる「型」と、一度きりの「秘伝」。六十分の行列、一日二杯、三度目の正直、年越しの一杯――お題を果たすと、その場で印が授けられます。年の終わりには一年の修行を振り返れます。</p>
-        </li>
-        <li>
-          <span class="mark" aria-hidden="true">願</span>
-          <h3>願掛けと地図</h3>
-          <p>行きたい店に願を掛けておけば、近くで記録するとき候補の先頭に。食べれば「願成就」。地図には行った店と願の店が並び、食べた順に結ぶと、あなたの旅路になります。</p>
-        </li>
-      </ul>
+    <!-- 其の二 並ぶ -->
+    <section class="leaf" id="narabu" aria-labelledby="h-narabu">
+      <div class="leaf-inner">
+        <div class="leaf-text">
+          <p class="leaf-no">其の二</p>
+          <h2 id="h-narabu">並ぶ</h2>
+          <p class="copy">店に着いたら「いま並んでいる」。<br>真ん中の判子が「着」に変わり、<br>着丼までの時間を測りはじめる。<br>経過は通知でも見られる。<br>店の覚え書きは、列の中で読み返す。</p>
+        </div>
+        <div class="leaf-visual">
+          <div class="phone" role="img" aria-label="並んでいる最中の画面。上の帯に、麺屋こよみに並び中、並び始めてから三十二分、店の覚え書きが出ている。下の真ん中の判子が「着」になっている">
+            <div class="screen">
+              <div class="status"><span>11:14</span><i></i></div>
+              <div class="queue-band">
+                <p class="qb-shop">麺屋 こよみ に並び中</p>
+                <p class="qb-time"><b>32</b>分</p>
+                <p class="qb-note">券売機は現金のみ。十一時前に着けば一巡目。</p>
+                <p class="qb-actions"><span>取り消す</span><span>撤退</span></p>
+              </div>
+              <div class="appbar"><span class="title">麺印帳</span><span class="gear"></span></div>
+              <div class="ghost-pages">
+                <i><b>中華そば 灯火</b><img src="/img/seal-kanto-1.webp" alt="" width="168" height="168"></i>
+                <i><b>らぁ麺 しずく</b><img src="/img/seal-tokyo-1.webp" alt="" width="168" height="168"></i>
+                <i><b>麺処 ほたる</b><img src="/img/seal-kanto-0.webp" alt="" width="168" height="168"></i>
+                <i><b>つけ麺 みなと</b><img src="/img/seal-tohoku-2.webp" alt="" width="168" height="168"></i>
+              </div>
+              <p class="qb-hint">着丼したら、真ん中の「着」を押す</p>
+              <nav class="tabbar" aria-hidden="true">
+                <span class="on"><img src="/img/tab-inchou-on.webp" alt="" width="36" height="36">印帳</span>
+                <span><img src="/img/tab-negai.webp" alt="" width="36" height="36">願掛け</span>
+                <span class="hub pulse"><img src="/img/stamp-chaku.webp" alt="" width="64" height="64"></span>
+                <span><img src="/img/tab-shugyo.webp" alt="" width="36" height="36">修行</span>
+                <span><img src="/img/tab-chizu.webp" alt="" width="36" height="36">地図</span>
+              </nav>
+            </div>
+          </div>
+          <img class="stamp round" style="--r:6deg" src="/img/stamp-chaku.webp" width="160" height="160" alt="「着」の判子">
+        </div>
+      </div>
     </section>
 
-    <section class="howto">
-      <h2>店の中で、片手で。</h2>
-      <ol class="steps">
-        <li>写真を撮る</li>
-        <li>近くの店をタップ</li>
-        <li class="last">着丼！</li>
-      </ol>
-      <p>近くのラーメン店を候補に出すので、記録はタップ数回。電波がなくても、店名を打てば記録できます。★は食べ終わってからでかまいません。</p>
+    <!-- 其の三 着丼 -->
+    <section class="leaf" id="chakudon" aria-labelledby="h-chakudon">
+      <div class="leaf-inner">
+        <div class="leaf-text">
+          <p class="leaf-no">其の三</p>
+          <h2 id="h-chakudon">着丼</h2>
+          <p class="copy">丼が届いたら「着」を押して一枚。<br>写真の場所から近くの店を探す。<br>選んで「着丼！」を押せば記録になる。<br>電波がなくても、店名で残せる。</p>
+        </div>
+        <div class="leaf-visual">
+          <div class="phone" role="img" aria-label="記録の画面。ラーメンの写真の下に、近くの店の候補が三つ。並んだ店の麺屋こよみが選ばれ、着丼まで四十二分と出ている。下に着丼のボタン">
+            <div class="screen record">
+              <div class="status"><span>11:24</span><i></i></div>
+              <div class="appbar"><span class="close">×</span><span class="title">記録</span><span></span></div>
+              <figure class="photo">
+                <svg viewBox="0 0 200 150" aria-hidden="true">
+                  <defs>
+                    <radialGradient id="soup" cx="45%" cy="40%" r="65%">
+                      <stop offset="0" stop-color="#C98B4A"/><stop offset=".7" stop-color="#9A5A26"/><stop offset="1" stop-color="#6E3B15"/>
+                    </radialGradient>
+                    <radialGradient id="table" cx="50%" cy="50%" r="75%">
+                      <stop offset="0" stop-color="#8A6A4A"/><stop offset="1" stop-color="#4A3424"/>
+                    </radialGradient>
+                  </defs>
+                  <rect width="200" height="150" fill="url(#table)"/>
+                  <circle cx="100" cy="76" r="66" fill="#F4EFE6"/>
+                  <circle cx="100" cy="76" r="61" fill="none" stroke="#B3261E" stroke-width="3" stroke-dasharray="6 3"/>
+                  <circle cx="100" cy="76" r="54" fill="url(#soup)"/>
+                  <g fill="none" stroke="#F2D58A" stroke-width="2.2" stroke-linecap="round" opacity=".9">
+                    <path d="M62 92c8-6 16 6 24 0s16 6 24 0 16 6 24 0"/>
+                    <path d="M66 100c8-6 16 6 24 0s16 6 24 0 14 5 20 1"/>
+                    <path d="M74 108c8-5 14 5 22 0s14 5 22 0"/>
+                  </g>
+                  <rect x="118" y="34" width="26" height="36" rx="2" fill="#1F2A1E" transform="rotate(18 131 52)"/>
+                  <ellipse cx="80" cy="62" rx="20" ry="15" fill="#B9806A"/>
+                  <ellipse cx="80" cy="62" rx="15" ry="10.5" fill="#D9A790"/>
+                  <ellipse cx="96" cy="50" rx="17" ry="13" fill="#B07560"/>
+                  <ellipse cx="96" cy="50" rx="12" ry="9" fill="#D7A08A"/>
+                  <ellipse cx="124" cy="88" rx="13" ry="10" fill="#FBF6E8"/>
+                  <ellipse cx="124" cy="88" rx="7" ry="5.5" fill="#E89A2C"/>
+                  <g fill="#C9A86A"><rect x="104" y="98" width="16" height="5" rx="1" transform="rotate(-20 112 100)"/><rect x="100" y="106" width="16" height="5" rx="1" transform="rotate(10 108 108)"/></g>
+                  <g fill="none" stroke="#5E8F3A" stroke-width="2"><circle cx="112" cy="70" r="3"/><circle cx="106" cy="76" r="2.6"/><circle cx="116" cy="78" r="2.4"/><circle cx="110" cy="64" r="2.2"/></g>
+                </svg>
+              </figure>
+              <p class="wait-chip">着丼まで 42分</p>
+              <p class="label">近くの店</p>
+              <ul class="candidates">
+                <li class="on"><b>麺屋 こよみ</b><span>並んだ店</span></li>
+                <li><b>中華そば 灯火</b><span>120m</span></li>
+                <li><b>つけ麺 みなと</b><span>260m</span></li>
+              </ul>
+              <p class="link">店名から探す</p>
+              <img class="style-tiles" src="/img/styles.webp" width="700" height="284" alt="">
+              <p class="fuda">着丼！</p>
+            </div>
+          </div>
+          <img class="stamp" style="--r:-6deg" src="/img/hiden-first-bowl.webp" width="168" height="168" alt="秘伝「はじめての着丼」の印">
+        </div>
+      </div>
     </section>
 
-    <section class="promise">
-      <p>記録も写真も、スマホの中に。</p>
-      <small>ログインはありません。記録・写真・メモはすべて端末の中に保存し、運営者のサーバーに送ることはありません。誰かと競う機能もありません。</small>
+    <!-- 其の四 印が押される -->
+    <section class="leaf" id="in" aria-labelledby="h-in">
+      <div class="leaf-inner">
+        <div class="leaf-text">
+          <p class="leaf-no">其の四</p>
+          <h2 id="h-in">印を押す</h2>
+          <p class="copy">その一杯の修行点で、印の格が決まる。<br>良・秀・妙・極。<br>外枠は、店のある地方の形。<br>真ん中には、醤油・二郎・つけ麺など<br>系統の字が入る。</p>
+        </div>
+        <div class="leaf-visual wide">
+          <div class="phone dark" role="img" aria-label="着丼の直後の画面。極の豚骨の印が押され、修行点は五十五点。内訳は基本十点、着丼まで四十二分で二十点、限定二十点、初訪問五点。願成就、十二日越し">
+            <div class="screen">
+              <div class="status"><span>11:25</span><i></i></div>
+              <p class="result-title">着丼！</p>
+              <p class="result-shop">麺屋 こよみ</p>
+              <img class="result-seal stamp-inner" src="/img/seal-kanto-3.webp" width="168" height="168" alt="">
+              <p class="result-points">修行点 <b>+55</b>点</p>
+              <dl class="breakdown">
+                <dt>基本</dt><dd>10</dd>
+                <dt>着丼まで 42分</dt><dd>+20</dd>
+                <dt>限定</dt><dd>+20</dd>
+                <dt>初訪問</dt><dd>+5</dd>
+              </dl>
+              <p class="result-wish">願成就　十二日越し</p>
+              <p class="result-story">同僚に聞いてから十二日。四十二分の列の果てに、ついに着丼。</p>
+              <p class="result-buttons"><span>印帳にもどる</span><span class="ai">共有する</span></p>
+            </div>
+          </div>
+          <div class="seal-book">
+            <p class="sb-label">格は、修行点の高さ</p>
+            <ul class="sb-grid four">
+              <li><img src="/img/seal-kanto-0.webp" width="168" height="168" alt="良の印（醤油）"><span>良</span></li>
+              <li><img src="/img/seal-kanto-1.webp" width="168" height="168" alt="秀の印（味噌）"><span>秀</span></li>
+              <li><img src="/img/seal-kanto-2.webp" width="168" height="168" alt="妙の印（塩）"><span>妙</span></li>
+              <li><img src="/img/seal-kanto-3.webp" width="168" height="168" alt="極の印（豚骨）"><span>極</span></li>
+            </ul>
+            <p class="sb-label">外枠は、地方の形</p>
+            <ul class="sb-grid four">
+              <li><img src="/img/seal-hokkaido-0.webp" width="168" height="168" alt="北海道の印（六角）"><span>北海道</span></li>
+              <li><img src="/img/seal-tohoku-2.webp" width="168" height="168" alt="東北の印（楕円、つけ麺）"><span>東北</span></li>
+              <li><img src="/img/seal-tokyo-1.webp" width="168" height="168" alt="東京の印（隅入り角、二郎）"><span>東京</span></li>
+              <li><img src="/img/seal-hokuriku-0.webp" width="168" height="168" alt="北陸の印（雪輪、家系）"><span>北陸</span></li>
+              <li><img src="/img/seal-tokai-2.webp" width="168" height="168" alt="東海の印（富士の稜線）"><span>東海</span></li>
+              <li><img src="/img/seal-kinki-1.webp" width="168" height="168" alt="近畿の印（瓦、二郎）"><span>近畿</span></li>
+              <li><img src="/img/seal-chugoku-3.webp" width="168" height="168" alt="中国の印（瀬戸内の波）"><span>中国</span></li>
+              <li><img src="/img/seal-kyushu-3.webp" width="168" height="168" alt="九州の印（椿）"><span>九州</span></li>
+            </ul>
+            <img class="sb-retreat" src="/img/seal-kanto-4.webp" width="168" height="168" alt="撤退の印（灰色の敗）">
+            <p class="sb-note">食べられなかった日は、灰色の「敗」。<br>次に同じ店で食べれば、再挑戦成功。</p>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="closing">
-      <span class="seal" aria-hidden="true">麺</span>
-      <p class="closing-copy"><span>今日の一杯を、</span><span>修行の一頁に。</span></p>
-      <p class="store-soon">近日公開</p>
+    <!-- 其の五 修行 -->
+    <section class="leaf" id="shugyo" aria-labelledby="h-shugyo">
+      <div class="leaf-inner">
+        <div class="leaf-text">
+          <p class="leaf-no">其の五</p>
+          <h2 id="h-shugyo">修行を積む</h2>
+          <p class="copy">修行点を積み、入門から級・段へ。<br>師範代を経て、免許皆伝まで。<br>続けるほど深まる「型」と、<br>一度きりの「秘伝」。<br>一年の修行は、修行録で読み返す。</p>
+        </div>
+        <div class="leaf-visual">
+          <div class="phone" role="img" aria-label="修行の画面。段位は二段、修行点六百十二点、三段まであと二十三点。型と秘伝の印が並び、修行録・年の振り返り・都道府県の印帳への入口がある">
+            <div class="screen">
+              <div class="status"><span>21:03</span><i></i></div>
+              <div class="appbar"><span class="title">修行</span><span class="gear"></span></div>
+              <div class="rank-card">
+                <span class="rank-seal">二段</span>
+                <div><p>修行点 612</p><i class="bar"><b style="width:78%"></b></i><small>三段まで あと23点</small></div>
+              </div>
+              <p class="label">型</p>
+              <ul class="kata">
+                <li><span class="kata-seal">参</span><b>着丼の道</b><small>30杯 ／ 次は50杯</small></li>
+                <li><span class="kata-seal">弐</span><b>行列の覇者</b><small>次の段まで あと2杯</small></li>
+              </ul>
+              <p class="label">秘伝</p>
+              <ul class="hiden-grid">
+                <li><img src="/img/hiden-first-bowl.webp" alt="" width="168" height="168"></li>
+                <li><img src="/img/hiden-queue-60.webp" alt="" width="168" height="168"></li>
+                <li><img src="/img/hiden-double-bowl.webp" alt="" width="168" height="168"></li>
+                <li><img src="/img/hiden-dawn.webp" alt="" width="168" height="168"></li>
+                <li><img src="/img/hiden-jiro.webp" alt="" width="168" height="168"></li>
+                <li><img src="/img/hiden-long-wish.webp" alt="" width="168" height="168"></li>
+                <li><img src="/img/hiden-third-time.webp" alt="" width="168" height="168"></li>
+              </ul>
+              <ul class="menu">
+                <li>修行録<small>これまでの一杯を、物語で読み返す</small></li>
+                <li>年の振り返り</li>
+              </ul>
+              <nav class="tabbar" aria-hidden="true">
+                <span><img src="/img/tab-inchou.webp" alt="" width="36" height="36">印帳</span>
+                <span><img src="/img/tab-negai.webp" alt="" width="36" height="36">願掛け</span>
+                <span class="hub"><img src="/img/stamp-men.webp" alt="" width="64" height="64"></span>
+                <span class="on"><img src="/img/tab-shugyo-on.webp" alt="" width="36" height="36">修行</span>
+                <span><img src="/img/tab-chizu.webp" alt="" width="36" height="36">地図</span>
+              </nav>
+            </div>
+          </div>
+          <img class="stamp" style="--r:7deg" src="/img/hiden-queue-60.webp" width="168" height="168" alt="秘伝「六十分の試練」の印">
+        </div>
+      </div>
+    </section>
+
+    <!-- 間 まだ見ぬ秘伝 -->
+    <section class="leaf interlude" id="hiden" aria-labelledby="h-hiden">
+      <div class="leaf-inner">
+        <div class="leaf-text">
+          <p class="leaf-no">間</p>
+          <h2 id="h-hiden">まだ見ぬ秘伝がある</h2>
+          <p class="copy">名も条件も、ここには記さない。<br>食べ歩くうちに、ある日ふと授かる。</p>
+        </div>
+        <ul class="unknown" aria-label="伏せられた秘伝の印">
+          <li><img src="/img/hiden-unknown-0.webp" width="120" height="120" alt=""><span>？</span></li>
+          <li><img src="/img/hiden-unknown-1.webp" width="120" height="120" alt=""><span>？</span></li>
+          <li><img src="/img/hiden-unknown-2.webp" width="120" height="120" alt=""><span>？</span></li>
+          <li><img src="/img/hiden-unknown-3.webp" width="120" height="120" alt=""><span>？</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 其の六 旅路 -->
+    <section class="leaf" id="tabiji" aria-labelledby="h-tabiji">
+      <div class="leaf-inner">
+        <div class="leaf-text">
+          <p class="leaf-no">其の六</p>
+          <h2 id="h-tabiji">旅路をたどる</h2>
+          <p class="copy">地図には、行った店と願の店。<br>食べた順に朱の線でつなげば、<br>それがあなたの旅路になる。<br>遠くの街の一杯は、遠征の修行点に。<br>都道府県の印帳を、ひとつずつ埋める。</p>
+        </div>
+        <div class="leaf-visual wide">
+          <div class="phone" role="img" aria-label="地図の画面。行った店のピンが朱の線で食べた順につながれ、願を掛けた店は朱の輪のピンで出ている。上に、十八軒をめぐる麺の道六十四キロ">
+            <div class="screen map">
+              <div class="status"><span>20:10</span><i></i></div>
+              <div class="appbar"><span class="title">地図</span><span class="gear"></span></div>
+              <div class="map-area">
+                <svg viewBox="0 0 240 330" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <rect width="240" height="330" fill="#ECE5D6"/>
+                  <path d="M-10 250C40 230 70 260 120 236S200 200 260 214" fill="none" stroke="#C7D3DC" stroke-width="14"/>
+                  <rect x="150" y="40" width="70" height="52" rx="6" fill="#DDE3CF"/>
+                  <rect x="20" y="150" width="46" height="40" rx="6" fill="#DDE3CF"/>
+                  <g fill="none" stroke="#FBF8F1" stroke-width="5">
+                    <path d="M0 110H240M0 190H240M70 0V330M170 0V330M0 300L240 150"/>
+                  </g>
+                  <g fill="none" stroke="#FBF8F1" stroke-width="2.4">
+                    <path d="M0 60H240M0 150H240M0 280H240M30 0V330M120 0V330M210 0V330M0 20L240 90"/>
+                  </g>
+                  <path class="journey" d="M44 276L70 228 112 196 104 150 152 120 176 70 210 52" fill="none" stroke="#B3261E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <g fill="#B3261E" stroke="#FBF8F1" stroke-width="2">
+                    <circle cx="44" cy="276" r="6"/><circle cx="70" cy="228" r="6"/><circle cx="112" cy="196" r="6"/><circle cx="104" cy="150" r="6"/><circle cx="152" cy="120" r="6"/><circle cx="176" cy="70" r="6"/><circle cx="210" cy="52" r="7"/>
+                  </g>
+                  <g fill="#FBF8F1" stroke="#B3261E" stroke-width="2.6">
+                    <circle cx="198" cy="236" r="6"/><circle cx="34" cy="96" r="6"/>
+                  </g>
+                  <g fill="#FBF8F1" stroke="#8A8175" stroke-width="2"><circle cx="140" cy="262" r="4.5"/><circle cx="92" cy="92" r="4.5"/></g>
+                </svg>
+                <p class="journey-chip">令和八年　18軒をめぐる麺の道 64km</p>
+                <span class="fab ai">旅</span>
+                <p class="osm">© OpenStreetMap contributors</p>
+              </div>
+              <nav class="tabbar" aria-hidden="true">
+                <span><img src="/img/tab-inchou.webp" alt="" width="36" height="36">印帳</span>
+                <span><img src="/img/tab-negai.webp" alt="" width="36" height="36">願掛け</span>
+                <span class="hub"><img src="/img/stamp-men.webp" alt="" width="64" height="64"></span>
+                <span><img src="/img/tab-shugyo.webp" alt="" width="36" height="36">修行</span>
+                <span class="on"><img src="/img/tab-chizu-on.webp" alt="" width="36" height="36">地図</span>
+              </nav>
+            </div>
+          </div>
+          <div class="seal-book pref">
+            <p class="sb-label">都道府県の印帳　<b>7</b> / 47</p>
+            <ul class="sb-grid six">
+              <li><img src="/img/seal-hokkaido-0.webp" width="168" height="168" alt="北海道（食べた）"><span>北海道</span></li>
+              <li><img src="/img/blank-tohoku.webp" width="120" height="120" alt="宮城（まだ）"><span>宮城</span></li>
+              <li><img src="/img/seal-kanto-1.webp" width="168" height="168" alt="神奈川（食べた）"><span>神奈川</span></li>
+              <li><img src="/img/seal-tokyo-3.webp" width="168" height="168" alt="東京（食べた）"><span>東京</span></li>
+              <li><img src="/img/seal-koshinetsu-1.webp" width="168" height="168" alt="長野（食べた）"><span>長野</span></li>
+              <li><img src="/img/blank-hokuriku.webp" width="120" height="120" alt="石川（まだ）"><span>石川</span></li>
+              <li><img src="/img/seal-tokai-2.webp" width="168" height="168" alt="静岡（食べた）"><span>静岡</span></li>
+              <li><img src="/img/blank-kinki.webp" width="120" height="120" alt="京都（まだ）"><span>京都</span></li>
+              <li><img src="/img/blank-chugoku.webp" width="120" height="120" alt="広島（まだ）"><span>広島</span></li>
+              <li><img src="/img/seal-shikoku-0.webp" width="168" height="168" alt="香川（食べた）"><span>香川</span></li>
+              <li><img src="/img/seal-kyushu-3.webp" width="168" height="168" alt="福岡（食べた）"><span>福岡</span></li>
+              <li><img src="/img/blank-okinawa.webp" width="120" height="120" alt="沖縄（まだ）"><span>沖縄</span></li>
+            </ul>
+            <p class="sb-note">まだの県は、薄い外枠のまま待っている。</p>
+          </div>
+          <img class="stamp" style="--r:-5deg" src="/img/hiden-far-journey.webp" width="168" height="168" alt="秘伝「遥かなる遠征」の印">
+        </div>
+      </div>
+    </section>
+
+    <!-- 結び 免許皆伝 -->
+    <section class="leaf finale" id="kaiden" aria-labelledby="h-kaiden">
+      <div class="leaf-inner">
+        <div class="leaf-text">
+          <p class="leaf-no">結び</p>
+          <h2 id="h-kaiden">免許皆伝</h2>
+          <p class="copy">今日の一杯を、修行の一頁に。<br>道は長い。一杯ずつ、印を押していく。</p>
+        </div>
+        <div class="kaiden">
+          <svg class="kaiden-seal stamp" style="--r:-4deg" viewBox="0 0 200 200" role="img" aria-label="免許皆伝の印">
+            <g filter="url(#kasure)">
+              <rect x="8" y="8" width="184" height="184" rx="14" fill="#B3261E"/>
+              <rect x="20" y="20" width="160" height="160" rx="6" fill="none" stroke="#FBF8F1" stroke-width="3"/>
+              <g fill="#FBF8F1" font-family="'Yuji Syuku LP', serif" font-size="66" text-anchor="middle">
+                <text x="142" y="92">免</text><text x="142" y="166">許</text>
+                <text x="60" y="92">皆</text><text x="60" y="166">伝</text>
+              </g>
+            </g>
+          </svg>
+          <div class="stores">
+            <!-- ストアで公開されたら、それぞれをストアへのリンクに差し替える -->
+            <p class="store"><span class="store-name" lang="en">App Store</span><small>近日公開</small></p>
+            <p class="store"><span class="store-name" lang="en">Google Play</span><small>近日公開</small></p>
+          </div>
+          <ul class="promises">
+            <li><b>記録と写真は、端末の中だけ</b><small>記録・写真・メモはスマホの中に保存し、サーバーに送らない。</small></li>
+            <li><b>ログインはいらない</b><small>アカウントを作らずに、すぐ始められる。</small></li>
+            <li><b>無料・広告なし・課金なし</b><small>修行の邪魔をするものは置かない。</small></li>
+          </ul>
+        </div>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <nav>
+    <nav aria-label="このサイトについて">
       <a href="/terms">利用規約</a>
       <a href="/privacy">プライバシーポリシー</a>
       <a href="/support">サポート・お問い合わせ</a>
     </nav>
+    <div class="credits">
+      <p>画面と店名はイメージです。</p>
+      <p>地図・店の情報: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>／出典: <a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API</a>／<a href="https://developer.yahoo.co.jp/sitemap/" target="_blank" rel="noopener">Web Services by Yahoo! JAPAN</a></p>
+      <p>都道府県の境界: 出典 <a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html" target="_blank" rel="noopener">国土数値情報（行政区域データ）</a>（国土交通省）を加工して作成（CC BY 4.0）</p>
+      <p>書体: Yuji Syuku・Shippori Mincho（<a href="/fonts/YujiSyuku-OFL.txt">SIL Open Font License 1.1</a>／<a href="/fonts/ShipporiMincho-OFL.txt">同</a>）</p>
+    </div>
     <small>© 2026 麺印帳 / Ramen-In-Cho</small>
-    <small class="attribution">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></small>
   </footer>
+
+  <script src="/lp.js?v=2" defer></script>
 </body>
 </html>

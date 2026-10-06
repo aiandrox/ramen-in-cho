@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <circle cx="32" cy="32" r="30" fill="#c0392b"/>
-  <circle cx="32" cy="32" r="26.5" fill="none" stroke="#f6f1e7" stroke-width="1.6" opacity="0.85"/>
-  <text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-family="'Yuji Syuku','Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif" font-size="34" font-weight="700" fill="#f6f1e7">麺</text>
+  <rect x="9" y="3" width="46" height="58" rx="4" fill="#26344A"/>
+  <rect x="42" y="8" width="8" height="28" fill="#FBF8F1"/>
+  <circle cx="26" cy="44" r="12" fill="#B3261E"/>
+  <path d="M18.5 43h15a7.5 7.5 0 0 1-15 0z" fill="#FBF8F1"/>
 </svg>
