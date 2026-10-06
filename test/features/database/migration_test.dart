@@ -72,7 +72,7 @@ void main() {
 
     final entry = (await repository.watchVisits().first).single;
     expect(entry.shop.name, '麺屋');
-    // 以前の「週3日以下」は、条件「週3日以下」として表に残す（今は使っていない）。
+    // 以前の営業時間の種類は持ち越さない。
     expect(
       await _columns(database, 'shops'),
       isNot(contains('hours_conditions')),

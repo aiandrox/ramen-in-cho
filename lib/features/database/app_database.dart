@@ -34,7 +34,6 @@ class Shops extends Table {
   RealColumn get latitude => real().nullable()();
   RealColumn get longitude => real().nullable()();
   TextColumn get osmId => text().nullable()();
-  // 店の条件（攻略しにくさ）。2026-10-06 に使うのをやめた。保存済みの値は消さずに残す。
   BoolColumn get isFamous => boolean().withDefault(const Constant(false))();
   TextColumn get strategyMemo => text().withDefault(const Constant(''))();
   TextColumn get dataSource =>
@@ -79,7 +78,6 @@ class Wishes extends Table {
   TextColumn get note => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
   TextColumn get fulfilledVisitId => text().nullable()();
-  // 店の条件。2026-10-06 に使うのをやめた。保存済みの値は消さずに残す。
 
   @override
   Set<Column> get primaryKey => {id};
