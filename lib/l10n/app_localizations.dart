@@ -2272,6 +2272,12 @@ abstract class AppLocalizations {
   /// **'拉麺'**
   String get inkanNoStyle;
 
+  /// No description provided for @inkanOverseas.
+  ///
+  /// In ja, this message translates to:
+  /// **'海外'**
+  String get inkanOverseas;
+
   /// No description provided for @inkanStyleShoyu.
   ///
   /// In ja, this message translates to:
@@ -2469,6 +2475,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'沖縄'**
   String get prefectureBookRegionOkinawa;
+
+  /// No description provided for @prefectureBookOverseas.
+  ///
+  /// In ja, this message translates to:
+  /// **'海外'**
+  String get prefectureBookOverseas;
 
   /// No description provided for @prefectureBookFirst.
   ///

@@ -42,8 +42,8 @@ String kanjiEraDate(AppLocalizations l10n, DateTime date) {
   );
 }
 
-/// 1杯ごとの印。上に格（再挑戦成功なら「雪辱」も）、真ん中に系統の漢字、下に日付と都道府県。
-/// 都道府県のわかる店は、外枠の形を地方ごとに変える（格の飾りはその上に重ねる）。
+/// 1杯ごとの印。上に格（再挑戦成功なら「雪辱」も）、真ん中に系統の漢字、下に日付。
+/// 都道府県のわかる店は外枠の形を地方ごとに、海外の店は羅針盤の形に変える（格の飾りはその上に重ねる）。
 class InkanStamp extends StatelessWidget {
   const InkanStamp({super.key, required this.scored, this.size = 84});
 
@@ -58,7 +58,11 @@ class InkanStamp extends StatelessWidget {
     final date = kanjiEraDate(l10n, visit.eatenAt);
     final isRetreat = shape == InkanShape.retreat;
     final prefecture = scored.prefecture;
-    final frame = prefecture == null ? null : sealFrameFor(prefecture);
+    final frame = scored.isOverseas
+        ? SealFrame.overseas
+        : prefecture == null
+        ? null
+        : sealFrameFor(prefecture);
     final color = switch (shape) {
       InkanShape.retreat => Washi.faded,
       InkanShape.filled => Washi.page,
@@ -175,7 +179,11 @@ class InkanStamp extends StatelessWidget {
     );
 
     return Semantics(
-      label: [center, date, ?prefecture].join(' '),
+      label: [
+        center,
+        date,
+        ?(scored.isOverseas ? l10n.inkanOverseas : prefecture),
+      ].join(' '),
       child: ExcludeSemantics(
         child: Transform.rotate(
           angle: inkanAngle(visit.id),

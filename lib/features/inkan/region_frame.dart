@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import '../prefecture/regions.dart';
 
-/// 印の外枠の形。地方ごとの形に、東京だけの形を足す（印帳の分類は地方のまま）。
+/// 印の外枠の形。地方ごとの形に、東京だけの形と海外の形を足す（印帳の分類は地方のまま）。
 enum SealFrame {
   hokkaido,
   tohoku,
@@ -16,7 +16,8 @@ enum SealFrame {
   chugoku,
   shikoku,
   kyushu,
-  okinawa;
+  okinawa,
+  overseas;
 
   factory SealFrame.ofRegion(Region region) =>
       SealFrame.values.byName(region.name);
@@ -97,6 +98,12 @@ double sealFrameRadius(SealFrame frame, double angle) {
     // 沖縄: 南国の花（デイゴ。八枚の花びら）。
     case SealFrame.okinawa:
       return 0.78 + 0.15 * math.pow((math.cos(4 * angle)).abs(), 0.7);
+    // 海外: 羅針盤（東西南北に長い針、そのあいだに短い針を出した丸）。
+    case SealFrame.overseas:
+      double needles(double offset, double width) =>
+          [for (var i = 0; i < 4; i++) peak(offset + i * math.pi / 2, width)]
+              .reduce(math.max);
+      return 0.76 + 0.19 * needles(0, 0.26) + 0.08 * needles(math.pi / 4, 0.2);
   }
 }
 

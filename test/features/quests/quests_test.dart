@@ -49,6 +49,8 @@ void main() {
       '遥かなる遠征',
       '年越しの一杯',
       '夏の涼麺',
+      '全国行脚',
+      '麺の道は海を越えて',
     ]);
     for (final quest in quests) {
       final sorted = [...quest.thresholds]..sort();
