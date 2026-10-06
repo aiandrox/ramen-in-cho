@@ -696,6 +696,9 @@ void main() {
         photoPickerProvider.overrideWithValue(picker),
         photoMetadataReaderProvider.overrideWithValue(metadata),
         clockProvider.overrideWithValue(() => now),
+        addressGeocoderProvider.overrideWithValue(
+          (address) => geocoder(address),
+        ),
       ]);
       await checkIn();
 
