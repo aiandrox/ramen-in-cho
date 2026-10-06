@@ -582,6 +582,7 @@ class RecordController extends Notifier<RecordState> {
       name: draft.manualName,
       latitude: here?.latitude,
       longitude: here?.longitude,
+      locationPinned: draft.pinnedLocation != null,
     );
   }
 }

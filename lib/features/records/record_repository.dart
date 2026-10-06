@@ -28,6 +28,7 @@ class ShopInput {
     this.longitude,
     this.dataSource,
     this.wishId,
+    this.locationPinned = false,
   });
 
   final String? shopId;
@@ -39,6 +40,9 @@ class ShopInput {
 
   /// 願掛け帳の店を選んだときの願。食べた記録を保存すると、この願が叶う。
   final String? wishId;
+
+  /// 位置が地図で指した場所か。同じ店（OpenStreetMap 以外）が見つかれば、その店の位置も直す。
+  final bool locationPinned;
 }
 
 class RecordRepository {
@@ -375,10 +379,24 @@ class RecordRepository {
     ),
   );
 
-  Future<void> setShopArea(String shopId, String area) =>
-      (_db.update(_db.shops)..where((s) => s.id.equals(shopId))).write(
-        ShopsCompanion(area: Value(area)),
-      );
+  /// [latitude]・[longitude]を渡すと、調べている間に位置が直されていたら書かない。
+  Future<void> setShopArea(
+    String shopId,
+    String area, {
+    double? latitude,
+    double? longitude,
+  }) =>
+      (_db.update(_db.shops)..where(
+            (s) =>
+                s.id.equals(shopId) &
+                (latitude == null
+                    ? const Constant(true)
+                    : s.latitude.equals(latitude)) &
+                (longitude == null
+                    ? const Constant(true)
+                    : s.longitude.equals(longitude)),
+          ))
+          .write(ShopsCompanion(area: Value(area)));
 
   Future<void> setShopMemo(String shopId, String memo) =>
       (_db.update(_db.shops)..where((s) => s.id.equals(shopId))).write(
@@ -557,7 +575,15 @@ class RecordRepository {
           existing.latitude == null &&
           input.latitude != null &&
           input.longitude != null;
-      final setsLocation = adoptsOsm || adoptsLocation;
+      // 地図で指した場所は利用者が直した位置なので、OpenStreetMap 以外の店ならその位置に移す。
+      final movesToPin =
+          input.locationPinned &&
+          existing.osmId == null &&
+          input.latitude != null &&
+          input.longitude != null &&
+          (existing.latitude != input.latitude ||
+              existing.longitude != input.longitude);
+      final setsLocation = adoptsOsm || adoptsLocation || movesToPin;
       if (setsLocation || changesHours || adoptsSource) {
         await (_db.update(
           _db.shops,
@@ -570,6 +596,7 @@ class RecordRepository {
             longitude: setsLocation
                 ? Value(input.longitude)
                 : const Value.absent(),
+            area: movesToPin ? const Value(null) : const Value.absent(),
             hoursConditions: changesHours
                 ? Value(hoursConditions)
                 : const Value.absent(),

@@ -106,8 +106,9 @@ class _ShopRepickSheetState extends ConsumerState<_ShopRepickSheet> {
       initial: _center,
     );
     if (picked == null || !mounted) return;
-    Navigator.of(context)
-        .pop(ShopCandidate(name: widget.name, location: picked));
+    Navigator.of(context).pop(
+      ShopCandidate(name: widget.name, location: picked, locationPinned: true),
+    );
   }
 
   @override

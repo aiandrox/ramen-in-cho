@@ -16,6 +16,7 @@ class ShopCandidate {
     this.dataSource,
     this.wishId,
     this.conditionsDraftSource,
+    this.locationPinned = false,
   });
 
   factory ShopCandidate.fromShop(Shop shop, {double? distanceMeters}) {
@@ -55,6 +56,9 @@ class ShopCandidate {
 
   /// [hoursConditions]が下書き（手で持つ店の条件か、地図の営業時間から推し量った条件）なら、その出どころ。
   final ConditionsDraftSource? conditionsDraftSource;
+
+  /// 店名で見つからず、地図で指した場所の店か（店を選び直すとき）。
+  final bool locationPinned;
 
   /// 願で入れた条件は、下書きより優先する。
   ShopCandidate withWish(Wish wish) {

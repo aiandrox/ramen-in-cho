@@ -303,6 +303,69 @@ void main() {
       expect(shop.latitude, sapporo.latitude);
     });
 
+    test('300m以内の同じ名前の手入力の店で指して記録すると、その店を指した場所に移す', () async {
+      final first = await save(
+        const ShopInput(name: '麺屋北', latitude: 43.0687, longitude: 141.3508),
+      );
+      await repository.setShopArea(first.shopId, '札幌市中央区');
+
+      final second = await save(
+        const ShopInput(
+          name: '麺屋北',
+          latitude: 43.0700,
+          longitude: 141.3508,
+          locationPinned: true,
+        ),
+      );
+
+      expect(second.shopId, first.shopId);
+      final shop = (await repository.allShops()).single;
+      expect(shop.latitude, 43.0700);
+      expect(shop.area, isNull);
+    });
+
+    test('OpenStreetMap の店は、指して記録しても位置を変えない', () async {
+      await save(
+        const ShopInput(
+          osmId: 'node/9',
+          name: '麺屋北',
+          latitude: 43.0687,
+          longitude: 141.3508,
+        ),
+      );
+
+      await save(
+        const ShopInput(
+          name: '麺屋北',
+          latitude: 43.0700,
+          longitude: 141.3508,
+          locationPinned: true,
+        ),
+      );
+
+      expect((await repository.allShops()).single.latitude, 43.0687);
+    });
+
+    test('市区町村を調べている間に場所が直されたら、古い位置の地名を書かない', () async {
+      final visit = await save(
+        const ShopInput(name: '麺屋北', latitude: 43.0, longitude: 141.0),
+      );
+      await repository.setShopLocation(
+        visit.shopId,
+        latitude: 43.0687,
+        longitude: 141.3508,
+      );
+
+      await repository.setShopArea(
+        visit.shopId,
+        '石狩市',
+        latitude: 43.0,
+        longitude: 141.0,
+      );
+
+      expect((await repository.allShops()).single.area, isNull);
+    });
+
     test('同じ名前の2店のうち片方の場所を直しても、まとめたり分けたりせず、次の記録は近い方に付く', () async {
       final a = await save(
         ShopInput(
