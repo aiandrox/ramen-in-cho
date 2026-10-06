@@ -133,7 +133,7 @@ void main() {
           result: VisitResult.eaten,
           eatenAt: DateTime(2026, 9, 30, 12, 34),
           rating: 4,
-          isLimited: false,
+          isLimited: true,
           hasTicket: false,
           memo: '',
           createdAt: DateTime(2026, 9, 30, 12, 40),
@@ -145,7 +145,8 @@ void main() {
 
     expect(find.byType(InkanStamp), findsOneWidget);
     expect(find.text(ja.rankKyu('五')), findsOneWidget);
-    expect(find.text(ja.totalPoints(20)), findsOneWidget);
+    // 10 + 初訪問 5 + 限定 20
+    expect(find.text(ja.totalPoints(35)), findsOneWidget);
     expect(find.text(ja.homeEmpty), findsNothing);
   });
 

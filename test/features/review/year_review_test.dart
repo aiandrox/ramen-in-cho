@@ -12,22 +12,23 @@ void main() {
   final shopA = buildShop(id: 'a', name: 'A店');
   final shopB = buildShop(id: 'b', name: 'B店');
   final scored = scoreVisits([
-    // 20点（初訪問）
-    buildEntry(shop: shopA, eatenAt: DateTime(2025, 12, 31, 23, 59)),
+    // 25点（初訪問・深夜）
+    buildEntry(shop: shopA, eatenAt: DateTime(2025, 12, 31, 4, 30)),
     // 10点
     buildEntry(shop: shopA, eatenAt: DateTime(2026, 1, 1, 12)),
-    // 30点（45分待ち）。累計60点で初段
+    // 30点（45分待ち）。累計65点で四級
     buildEntry(shop: shopA, eatenAt: DateTime(2026, 3, 5, 12), waitMinutes: 45),
     buildEntry(
       shop: shopB,
       eatenAt: DateTime(2026, 3, 10, 12),
       result: VisitResult.retreated,
     ),
-    // 35点（初訪問・再挑戦成功）
+    // 35点（初訪問・再挑戦成功・10分待ち）
     buildEntry(
       shop: shopB,
       eatenAt: DateTime(2026, 7, 1, 12),
       style: RamenStyle.shoyu,
+      waitMinutes: 10,
     ),
     buildEntry(shop: shopB, eatenAt: DateTime(2027, 1, 1)),
   ]);
@@ -71,7 +72,7 @@ void main() {
   test('その年に上がった段位と、届いた型・秘伝', () {
     final r = review(2026);
 
-    // 累計 20（2025年・五級）→ 30 → 60 → 95（四級）。
+    // 累計 25（2025年・五級）→ 35 → 65（四級）→ 100。
     expect(r.ranks.map((a) => a.rank), [AdventurerRank.kyu4]);
     expect(r.quests.map((q) => q.quest.id), containsAll(['queue', 'retry']));
     expect(r.quests.map((q) => q.quest.id), isNot(contains('first_bowl')));

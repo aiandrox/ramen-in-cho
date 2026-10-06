@@ -52,10 +52,10 @@ void main() {
       expect(_points(waitMinutes: -30).waitBonus, 0);
     });
 
-    test('限定+20、初訪問+10、再挑戦成功+15、名店+15。整理券は点にしない', () {
+    test('限定+20、初訪問+5、再挑戦成功+15、名店+15。整理券は点にしない', () {
       expect(_points(isLimited: true).total, 30);
       expect(_points(hasTicket: true).total, 10);
-      expect(_points(isFirstVisit: true).total, 20);
+      expect(_points(isFirstVisit: true).total, 15);
       expect(_points(isRetrySuccess: true).total, 25);
       expect(_points(isFamous: true).famousBonus, 15);
       expect(_points(isFamous: true).total, 25);
@@ -78,9 +78,9 @@ void main() {
         isFamous: true,
       );
 
-      // 10 + 待ち20 + 限定20 + 初訪問10 + 再挑戦15 + 遠征40 + 朝ラー10
-      // + 都道府県30 + 市区町村10 + 常連20 + 連続6 + 名店15
-      expect(points.total, 206);
+      // 10 + 待ち20 + 限定20 + 初訪問5 + 再挑戦15 + 遠征40 + 朝ラー10
+      // + 都道府県10 + 市区町村5 + 常連20 + 連続6 + 名店15
+      expect(points.total, 176);
     });
 
     test('朝ラー（5〜9時台）と深夜（0〜4時台）は+10。自動でつく', () {
@@ -175,7 +175,7 @@ void main() {
       ]);
 
       expect(scored.map((s) => s.isFirstVisit), [true, true, false]);
-      expect(scored.map((s) => s.points.total), [20, 20, 10]);
+      expect(scored.map((s) => s.points.total), [15, 15, 10]);
     });
 
     test('渡した順番に関係なく、食べた時刻の古い順に採点する', () {
@@ -197,8 +197,8 @@ void main() {
 
       expect(scored.map((s) => s.isRetrySuccess), [false, true, false]);
       expect(scored.map((s) => s.isFirstVisit), [false, true, false]);
-      // 撤退 0 / 10 + 10 + 15 / 10
-      expect(scored.map((s) => s.points.total), [0, 35, 10]);
+      // 撤退 0 / 10 + 5 + 15 / 10
+      expect(scored.map((s) => s.points.total), [0, 30, 10]);
     });
 
     test('撤退のあとに別の店で食べても再挑戦成功にならない', () {
@@ -235,10 +235,10 @@ void main() {
         buildEntry(shop: shopA, eatenAt: day(4)),
       ]);
 
-      // 10 + 15 + 10 + 15 = 50、10 + 15 = 25、撤退 0、10 + 10 = 20
+      // 10 + 15 + 5 + 15 = 45、10 + 15 = 25、撤退 0、10 + 5 = 15
       expect(scored.map((s) => s.points.famousBonus), [15, 15, 0, 0]);
-      expect(scored.map((s) => s.points.total), [50, 25, 0, 20]);
-      expect(totalPoints(scored), 95);
+      expect(scored.map((s) => s.points.total), [45, 25, 0, 15]);
+      expect(totalPoints(scored), 85);
     });
 
     group('常連（その店で何杯目か）', () {
@@ -361,7 +361,7 @@ void main() {
       };
       String? prefectureOf(Shop shop) => prefectures[shop.id];
 
-      test('その都道府県で最初に食べた1杯だけに+30。撤退や位置のわからない店にはつかない', () {
+      test('その都道府県で最初に食べた1杯だけに+10。撤退や位置のわからない店にはつかない', () {
         final tokyo1 = buildShop(id: 'tokyo1');
         final tokyo2 = buildShop(id: 'tokyo2');
         final osaka = buildShop(id: 'osaka');
@@ -389,9 +389,9 @@ void main() {
         ]);
         expect(scored.map((s) => s.points.newPrefectureBonus), [
           0,
-          30,
+          10,
           0,
-          30,
+          10,
           0,
         ]);
       });
@@ -410,10 +410,10 @@ void main() {
         ], prefectureOf: prefectureOf);
 
         expect(scored.map((s) => s.visit.id), ['a', 'b']);
-        expect(scored.map((s) => s.points.newPrefectureBonus), [30, 0]);
+        expect(scored.map((s) => s.points.newPrefectureBonus), [10, 0]);
       });
 
-      test('市区町村は、同じ名前でも都道府県が違えば別の土地として+10', () {
+      test('市区町村は、同じ名前でも都道府県が違えば別の土地として+5', () {
         final scored = scoreVisits([
           buildEntry(
             shop: buildShop(id: 'tokyo1', area: '府中市'),
@@ -429,7 +429,7 @@ void main() {
           ),
         ], prefectureOf: prefectureOf);
 
-        expect(scored.map((s) => s.points.newAreaBonus), [10, 0, 10]);
+        expect(scored.map((s) => s.points.newAreaBonus), [5, 0, 5]);
       });
 
       test('市区町村がまだわからない（調べても分からなかった）店にはつかない', () {
@@ -527,8 +527,8 @@ void main() {
           homeBases: [base],
         ).single;
 
-        // 10 + 初訪問10 + 遠征20 = 40
-        expect(scored.points.total, 40);
+        // 10 + 初訪問5 + 遠征20 = 35
+        expect(scored.points.total, 35);
         expect(scored.isExpedition, isTrue);
       });
     });

@@ -118,24 +118,29 @@ void main() {
     test('店ごとの最高ポイントでランクをつけ、高い順に返す', () {
       final shops = rankedShops(
         scoreVisits([
-          // A店: 20, 10 → 最高20（C）
+          // A店: 15, 10 → 最高15（C）
           buildEntry(shop: shopA, eatenAt: day(1)),
           buildEntry(shop: shopA, eatenAt: day(2)),
-          // B店: 10 + 10 + 20 = 40（A）
-          buildEntry(shop: shopB, eatenAt: day(3), isLimited: true),
-          // C店: 10 + 初訪問 10 + 限定 20 + 待ち 5 + 名店 15 = 60（S）
+          // B店: 10 + 5 + 20 + 待ち 5 = 40（A）
+          buildEntry(
+            shop: shopB,
+            eatenAt: day(3),
+            isLimited: true,
+            waitMinutes: 10,
+          ),
+          // C店: 10 + 初訪問 5 + 限定 20 + 待ち 10 + 名店 15 = 60（S）
           buildEntry(
             shop: shopC,
             eatenAt: day(4),
             isLimited: true,
-            waitMinutes: 10,
+            waitMinutes: 20,
           ),
         ]),
       );
 
       expect(shops.map((s) => s.shop.name), ['C店', 'B店', 'A店']);
       expect(shops.map((s) => s.rank), [ShopRank.s, ShopRank.a, ShopRank.c]);
-      expect(shops.map((s) => s.bestPoints), [60, 40, 20]);
+      expect(shops.map((s) => s.bestPoints), [60, 40, 15]);
       expect(shops.map((s) => s.count), [1, 1, 2]);
     });
 
@@ -162,12 +167,12 @@ void main() {
         scoreVisits([
           buildEntry(shop: shopA, eatenAt: day(1), waitMinutes: 45),
           buildEntry(shop: shopB, eatenAt: day(2), waitMinutes: 70),
-          // 10 + 初訪問 10 + 限定 20 + 待ち 5 + 名店 15 = 60
+          // 10 + 初訪問 5 + 限定 20 + 待ち 10 + 名店 15 = 60
           buildEntry(
             shop: shopC,
             eatenAt: day(3),
             isLimited: true,
-            waitMinutes: 10,
+            waitMinutes: 20,
           ),
           buildEntry(
             shop: shopA,
@@ -242,7 +247,7 @@ void main() {
 
       expect(bests.longestWait, isNull);
       expect(bests.mostRetreats, isNull);
-      expect(bests.highestPoints!.value, 20);
+      expect(bests.highestPoints!.value, 15);
     });
 
     test('撤退で並んだ時間は最長の待ち時間に数えない', () {

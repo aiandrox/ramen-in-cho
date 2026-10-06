@@ -382,7 +382,6 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.shopFamousToggle),
-                  subtitle: Text(l10n.shopFamousHint),
                   value: entry.shop.isFamous,
                   onChanged: (value) => _setFamous(entry.shop, value),
                 ),

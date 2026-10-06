@@ -1120,12 +1120,6 @@ abstract class AppLocalizations {
   /// **'名店の印をつける'**
   String get shopFamousToggle;
 
-  /// No description provided for @shopFamousHint.
-  ///
-  /// In ja, this message translates to:
-  /// **'自分が名店と思う店に。この店で食べるたびに修行点 +15'**
-  String get shopFamousHint;
-
   /// No description provided for @shopMemoEmpty.
   ///
   /// In ja, this message translates to:
