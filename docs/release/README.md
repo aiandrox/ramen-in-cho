@@ -45,7 +45,6 @@ PLAY_SERVICE_ACCOUNT_JSON=$HOME/.config/ramen-in-cho/play-service-account.json
 PLAY_TRACK=internal
 ```
 
-- **Yahoo! の Client ID**: `~/.config/ramen-in-cho/local.json`（無いと止まる）
 - **iOS**: App Store Connect → ユーザとアクセス → 統合 → App Store Connect API → チームキーで、役割「App Manager」の鍵を麺印帳のアップロード用に作る。`.p8` は1回しかダウンロードできない。`~/.appstoreconnect/private_keys/AuthKey_<キーID>.p8` に置く。署名は Xcode の自動管理（Team `CJ99DCYQKL`）なので、この Mac の Xcode にログインしていること
 - **Android**: アップロード鍵 `~/.config/ramen-in-cho/upload-keystore.jks` とパスワードの `key.properties` を `android/key.properties` に写す。**鍵を失うと Play のアプリを更新できない。** パスワードの管理アプリにも控える。アップロードには Play Console のサービスアカウントの JSON 鍵と `fastlane`（`gem install fastlane`）が要る
 - Play Console の**最初の1回**は API で上げられないので、画面から aab を上げる。そのあとで `--no-bump` 無しの通常の手順に戻る

@@ -61,7 +61,7 @@
 | 端末内のデータ | `drift`（SQLite） |
 | 写真 | `image_picker`。撮った写真はアプリの documents ディレクトリにコピーして保存する（一時ファイルのままにしない） |
 | 現在地 | `geolocator`（アプリ使用中のみ） |
-| 店の検索 | OpenStreetMap の Overpass API と OpenPOI API を `http` で同時に呼び、結果をまとめる（どちらも API キー不要） |
+| 店の検索 | 麺印帳のサーバー（手で持つ店・Overpass・OpenPOI・Yahoo! をまとめる）に聞く。届かなければ OpenStreetMap の Overpass API と OpenPOI API を `http` で同時に呼び、結果をまとめる（どちらも API キー不要） |
 | 地図表示（後の段階） | `flutter_map` |
 | サーバーの API の保護 | Firebase App Check（`firebase_core`・`firebase_app_check`。Firebase プロジェクト `ramen-in-cho`）。リリースは App Attest / Play Integrity、デバッグはデバッグ用トークン |
 | 状態管理・フォルダ構成・lint | **既存アプリ `../face-seal` に揃える**（状態管理は `flutter_riverpod`、フォルダは `lib/features/<機能名>/`・`lib/theme/`・`lib/l10n/`、`analysis_options.yaml` も同じものを使う） |
@@ -69,7 +69,7 @@
 - **ログインは作らない。** 記録・写真はすべて端末内に保存し、アプリの側で写真や記録をサーバーに保存・送信しない。店のデータと検索だけは Cloudflare Pages（`site/`、https://ramen-in-cho.aiandrox.com）に移していく（issue #172。アプリから呼ぶのは第2段階から）
 - 本人が OS の共有画面で写真や記録（画像・バックアップなど）を送るのはよい
 - 店のページの「地図アプリで開く」は、店の位置と店名を端末の地図アプリ（開けなければブラウザの Google マップ）に渡すだけ。アプリが自分から通信するのではなく、本人のタップで OS に任せる
-- アプリが自分から通信する先は、麺印帳のサーバー（https://ramen-in-cho.aiandrox.com 。店の検索・手で持つ店の一覧・住所から位置を求める。サーバーは店の住所を Yahoo! ジオコーダで位置にする）、サーバーに届かないときの逃げ道として Overpass API・OpenPOI API・Yahoo! ローカルサーチ（Yahoo! は Client ID を渡してビルドしたときだけ）、OpenStreetMap のタイルサーバー（地図の画像）、Firebase App Check（Google。アプリからの問い合わせだと示すトークンを取る）だけ。サーバーに伝わるのは検索の中心・半径・店名と、位置にしたい店の住所だけで、タイルサーバーに伝わるのは地図の表示範囲だけ
+- アプリが自分から通信する先は、麺印帳のサーバー（https://ramen-in-cho.aiandrox.com 。店の検索・手で持つ店の一覧・住所から位置を求める。サーバーは店の住所を Yahoo! ジオコーダで位置にする）、サーバーに届かないときの逃げ道として Overpass API・OpenPOI API（Yahoo! にはサーバーだけが問い合わせ、アプリは Client ID を持たない）、OpenStreetMap のタイルサーバー（地図の画像）、Firebase App Check（Google。アプリからの問い合わせだと示すトークンを取る）だけ。サーバーに伝わるのは検索の中心・半径・店名と、位置にしたい店の住所だけで、タイルサーバーに伝わるのは地図の表示範囲だけ
 - アプリを閉じている間の位置情報（バックグラウンド位置情報）は**使わない**。自動チェックインは将来の検討事項とする
 
 ## 機能（上から順に作る）
@@ -243,7 +243,7 @@ flutter run          # 実機で動かす（起動中に r でホットリロー
 flutter analyze      # 静的解析
 flutter test         # テスト
 flutter gen-l10n     # 文言ファイル（app_ja.arb）からコードを生成
-flutter build apk --release --dart-define-from-file=$HOME/.config/ramen-in-cho/local.json   # Yahoo! の Client ID を入れてビルド（ID はリポジトリの外に置く）
+flutter build apk --release   # 実機用のビルド（Yahoo! の Client ID はサーバーにだけ置くので、渡すものは無い）
 scripts/release.sh <ios|android|all>   # ビルド番号を上げてストアに上げ、v<版>+<番号> のタグを打つ（docs/release/README.md）
 dart run build_runner build --delete-conflicting-outputs   # drift のコード生成
 ```
@@ -427,6 +427,7 @@ dart run build_runner build --delete-conflicting-outputs   # drift のコード�
 | 2026-10-06 | 地図アプリからの共有では、記録（着丼）と願掛けを選べる。記録を選ぶと、共有された店を選んだ状態で記録画面を開く（写真はいつもどおり撮る・選ぶ。食べた日時は今）。位置は願と同じく、リンクの座標か住所をサーバーで位置にしたもの。記録済みの店や願の店と同じなら、そちらを選ぶ（願なら叶う）。位置がわからなければ店名だけ入れ、店名から探す・地図で指すに任せる。下書きがあれば、写真の共有と同じく破棄するか先に確かめ、続けるなら下書きの店のままにする。YouTube・そのほかのサイトの共有は、これまでどおり願掛けへ進み、動画やページの題が添えられていれば、きっかけをその題にする（「"…" を YouTube で見る」「 - YouTube」などの飾りは外す。題が無ければ「YouTube」やサイト名） | 利用者の要望 |
 | 2026-10-06 | サーバーの API で App Check を「断る」にした（`APP_CHECK_ENFORCE = "true"`、#192）。家族の Android は Mac から直接入れているので、Firebase の Android アプリに開発用の鍵とアップロード鍵の SHA-256 も登録し、Play Integrity の `allowUnrecognizedVersion` を有効にした（登録した鍵で署名したものだけ通る）。Android のトークンの有効期限も1日にそろえた | iPhone・Android とも `ok` になるのを確かめたため。断られてもアプリは端末から直接探すので、記録や検索は止まらない |
 | 2026-10-06 | 地図のピンは、画面の上で重なると1つの印（藍の丸に軒数。行った店を含めば朱の点、願を含めば朱の輪を添える。まだ行っていない店だけなら灰色）にまとめ、タップでその店がおさまるまで寄る。寄りきってもまとまっていれば（同じビルなど）、中の店を一覧で見せる。まとめ方は自前の純粋関数（`lib/features/map/pin_clusters.dart`、倍率の整数の段ごとに画面上 34px より近いピンをまとめる）。旅路の再生中はまとめない。地図の店は右下の「一覧」で、地図の真ん中から近い順に見られ（すべて／行った店／まだ／願で絞れる）、タップでその店へ寄って詳しく見せる | 利用者の要望。周辺検索で店が密集すると、ピンが重なって見づらかったため。パッケージは足さずに済む規模のため |
+| 2026-10-06 | アプリのビルドから Yahoo! の Client ID を外す（#131）。Yahoo! に問い合わせるのはサーバーだけにし、サーバーに届かないときの端末からの直接の検索は Overpass・OpenPOI・手で持つ店だけで探す。ビルドに `--dart-define-from-file` は要らない（`scripts/release.sh` も local.json を求めない）。サーバーの結果には Yahoo! の店が混ざるので、検索結果・地図・出典の画面には「Web Services by Yahoo! JAPAN」をいつも出す | 公開するアプリの中に ID を入れると取り出されて使われうるため。ID はサーバーの secret（`YAHOO_APP_ID`）だけに置く |
 | 初版 | アプリ名は「着丼クエスト」（`chakudon-quest`） | 同名のアプリ・サービスが見つからず、名前で検索したときに埋もれにくいため。遊びの中心を「クエスト（お題）の達成」に置く |
 
 ## 未決の論点

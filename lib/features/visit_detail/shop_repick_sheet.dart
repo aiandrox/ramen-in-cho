@@ -12,7 +12,6 @@ import '../shop_search/shop_candidate.dart';
 import '../shop_search/shop_name_search_sheet.dart';
 import '../shop_search/shop_search_service.dart';
 import '../shop_search/shop_tile.dart';
-import '../shop_search/yahoo_local.dart';
 import '../../theme/washi_sheet.dart';
 
 /// 保存した記録の店を選び直す。店の位置（無ければ写真の撮影場所、それも無ければ現在地）の
@@ -163,7 +162,7 @@ class _ShopRepickSheetState extends ConsumerState<_ShopRepickSheet> {
                 child: Text(
                   [
                     l10n.shopSearchAttribution,
-                    if (isYahooEnabled) l10n.yahooAttribution,
+                    l10n.yahooAttribution,
                   ].join('\n'),
                   style: textTheme.labelSmall,
                 ),
