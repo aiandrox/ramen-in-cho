@@ -10,6 +10,7 @@ Cloudflare Pages の1つのプロジェクトに、紹介ページ（`public/`�
 | `GET /api/v1/curated-shops` | アプリに持たせる店の一覧（閉店も含む）。`ETag` 付きで、`If-None-Match` が同じなら 304 |
 | `GET /api/v1/shops/nearby?lat=&lon=&radius=` | 近くの店（半径 1000m まで）。手で持つ店・Overpass・OpenPOI・Yahoo! をまとめて返す |
 | `GET /api/v1/shops/search?q=&lat=&lon=` | 店名で全国から探す。空白があれば詰めた言葉でも探してまとめる |
+| `GET /api/v1/geocode?q=` | 住所を位置にする（Yahoo! ジオコーダ）。`{ result: { latitude, longitude, address, level, attribution } }`、見つからなければ `{ result: null }`。1週間ためる（失敗は1日） |
 
 検索結果は Cache API に **1週間** ためる（どれかの検索が失敗したときは1日）。近くの店は緯度経度 0.003 度（約300m）のマスごと、
 店名は言葉と 0.5 度（約50km）の場所ごと。誰が探したかは残さない。手で持つ店はため置かず、毎回 D1 から読む。
