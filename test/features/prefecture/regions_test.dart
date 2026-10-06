@@ -104,7 +104,7 @@ void main() {
     expect(stamps['大阪府']!.bowls, hasLength(1));
   });
 
-  testWidgets('都道府県のわかる1杯の印には、短い都道府県名を入れる', (tester) async {
+  testWidgets('1杯の印には都道府県名を書かず（形で表す）、読み上げにだけ入れる', (tester) async {
     await tester.pumpWidget(
       localizedApp(
         home: InkanStamp(
@@ -113,7 +113,7 @@ void main() {
       ),
     );
 
-    expect(find.text('東京'), findsOneWidget);
+    expect(find.text('東京'), findsNothing);
     expect(find.bySemanticsLabel(RegExp(r'東京都$')), findsOneWidget);
   });
 

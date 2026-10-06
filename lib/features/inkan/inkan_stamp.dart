@@ -171,15 +171,6 @@ class InkanStamp extends StatelessWidget {
           size * (shape == InkanShape.square ? 0.6 : 0.5),
           Text(date, style: small, maxLines: 2, textAlign: TextAlign.center),
         ),
-        if (prefecture != null && frame != null)
-          _fit(
-            size * 0.4,
-            Text(
-              shortPrefectureName(prefecture),
-              maxLines: 1,
-              style: small.copyWith(fontSize: size * 0.1),
-            ),
-          ),
       ],
     );
 
