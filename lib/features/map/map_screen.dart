@@ -484,7 +484,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       point: LatLng(here.latitude, here.longitude),
                       width: 22,
                       height: 22,
-                      child: const MapHereDot(),
+                      // 現在地の点の下にある店の印も押せるように。
+                      child: const IgnorePointer(child: MapHereDot()),
                     ),
                   ],
                 ),
@@ -668,7 +669,11 @@ class _PlacePin extends StatelessWidget {
     };
     return GestureDetector(
       onTap: onTap,
-      child: Semantics(button: true, label: label, child: pin),
+      child: Semantics(
+        button: true,
+        label: label,
+        child: ExcludeSemantics(child: pin),
+      ),
     );
   }
 }
@@ -777,10 +782,12 @@ class _ClusterPin extends StatelessWidget {
       child: Semantics(
         button: true,
         label: AppLocalizations.of(context).mapClusterLabel(members.length),
-        child: MapClusterSeal(
-          count: members.length,
-          hasVisited: members.any((place) => place is VisitedPlace),
-          hasWish: members.any((place) => place is WishedPlace),
+        child: ExcludeSemantics(
+          child: MapClusterSeal(
+            count: members.length,
+            hasVisited: members.any((place) => place is VisitedPlace),
+            hasWish: members.any((place) => place is WishedPlace),
+          ),
         ),
       ),
     );
