@@ -112,34 +112,25 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
         },
         // 共有は、結果を見ているどの時点でも押せるよう、下に固定して「印帳にもどる」と並べる。
         bottomNavigationBar: SafeBottomBar(
-          child: Row(
+          child: FudaRow(
+            height: 56,
             children: [
-              if (outcome != null) ...[
-                Expanded(
-                  child: AiFuda(
-                    night: true,
-                    expand: true,
-                    height: 56,
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) =>
-                            ShareScreen(visitId: outcome.scored.visit.id),
-                      ),
-                    ),
-                    icon: const Icon(Icons.ios_share),
-                    child: Text(l10n.resultShare),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: SumiFuda(
+              if (outcome != null)
+                AiFuda(
                   night: true,
-                  expand: true,
-                  height: 56,
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.resultOk),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          ShareScreen(visitId: outcome.scored.visit.id),
+                    ),
+                  ),
+                  icon: const Icon(Icons.ios_share),
+                  child: Text(l10n.resultShare),
                 ),
+              SumiFuda(
+                night: true,
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.resultOk),
               ),
             ],
           ),

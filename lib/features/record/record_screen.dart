@@ -188,20 +188,26 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
       builder: (context) => AlertDialog(
         title: Text(l10n.leaveRecordTitle),
         content: Text(l10n.leaveRecordMessage),
-        // 縦に並ぶときは、下書きに残すボタンをいちばん上にする。
-        actionsOverflowDirection: VerticalDirection.up,
+        // 札の字が長く横に並ぶと窮屈なので、同じ大きさの札を縦に積む。
         actions: [
+          FudaRow(
+            direction: Axis.vertical,
+            children: [
+              AiFuda(
+                onPressed: () =>
+                    Navigator.of(context).pop(_LeaveChoice.keepDraft),
+                child: Text(l10n.leaveRecordKeepDraft),
+              ),
+              KeshiFuda(
+                onPressed: () =>
+                    Navigator.of(context).pop(_LeaveChoice.discard),
+                child: Text(l10n.leaveRecordDiscard),
+              ),
+            ],
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(l10n.leaveRecordCancel),
-          ),
-          KeshiFuda(
-            onPressed: () => Navigator.of(context).pop(_LeaveChoice.discard),
-            child: Text(l10n.leaveRecordDiscard),
-          ),
-          AiFuda(
-            onPressed: () => Navigator.of(context).pop(_LeaveChoice.keepDraft),
-            child: Text(l10n.leaveRecordKeepDraft),
           ),
         ],
       ),

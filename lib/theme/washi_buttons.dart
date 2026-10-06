@@ -16,23 +16,31 @@ const _aiOnNight = Color(0xFF3D5278);
 /// - 消し札（[keshi]）: 取り消し・撤退・削除。赤で脅かさず、灰の墨で控えめに
 ///
 /// [night]は、墨色の背景（着丼直後の画面・並び中の帯）に置くとき。
+/// 役割の違う札を横に並べるときは[FudaRow]で、高さ・幅・字の大きさをそろえる。
 abstract final class FudaStyle {
+  /// 札の高さ。3つの札で同じにし、縦に積んでも横に並べても大きさがそろうようにする。
+  static const defaultHeight = 52.0;
+
+  /// [FudaRow]で並べたときの字の大きさ（筆文字も明朝も同じ大きさにする）。
+  static const rowFontSize = 18.0;
+
   static const _shape = RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(2)),
   );
 
   static ButtonStyle ai({
     bool night = false,
-    double height = 52,
+    double height = defaultHeight,
     double fontSize = 20,
+    double paddingX = 22,
     bool expand = false,
   }) {
     return ButtonStyle(
       minimumSize: WidgetStatePropertyAll(
         expand ? Size.fromHeight(height) : Size(64, height),
       ),
-      padding: const WidgetStatePropertyAll(
-        EdgeInsets.symmetric(horizontal: 22),
+      padding: WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: paddingX),
       ),
       shape: const WidgetStatePropertyAll(_shape),
       elevation: const WidgetStatePropertyAll(0),
@@ -63,12 +71,16 @@ abstract final class FudaStyle {
 
   static ButtonStyle sumi({
     bool night = false,
-    double height = 48,
+    double height = defaultHeight,
+    double fontSize = 16,
+    double paddingX = 20,
     bool expand = false,
   }) {
     final ink = night ? Washi.paper : Washi.ink;
     return _brushFramed(
       height: height,
+      fontSize: fontSize,
+      paddingX: paddingX,
       expand: expand,
       foreground: ink,
       disabled: night ? Washi.inkSoft : Washi.line,
@@ -81,11 +93,15 @@ abstract final class FudaStyle {
 
   static ButtonStyle keshi({
     bool night = false,
-    double height = 48,
+    double height = defaultHeight,
+    double fontSize = 16,
+    double paddingX = 20,
     bool expand = false,
   }) {
     return _brushFramed(
       height: height,
+      fontSize: fontSize,
+      paddingX: paddingX,
       expand: expand,
       foreground: night ? Washi.nightSoft : Washi.inkSoft,
       disabled: night ? Washi.inkSoft : Washi.line,
@@ -130,6 +146,8 @@ abstract final class FudaStyle {
 
   static ButtonStyle _brushFramed({
     required double height,
+    required double fontSize,
+    required double paddingX,
     required bool expand,
     required Color foreground,
     required Color disabled,
@@ -142,8 +160,8 @@ abstract final class FudaStyle {
       minimumSize: WidgetStatePropertyAll(
         expand ? Size.fromHeight(height) : Size(64, height),
       ),
-      padding: const WidgetStatePropertyAll(
-        EdgeInsets.symmetric(horizontal: 20),
+      padding: WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: paddingX),
       ),
       shape: const WidgetStatePropertyAll(_shape),
       side: const WidgetStatePropertyAll(BorderSide.none),
@@ -159,7 +177,11 @@ abstract final class FudaStyle {
             states.contains(WidgetState.disabled) ? disabled : foreground,
       ),
       textStyle: WidgetStatePropertyAll(
-        TextStyle(fontFamily: Washi.mincho, fontSize: 16, fontWeight: weight),
+        TextStyle(
+          fontFamily: Washi.mincho,
+          fontSize: fontSize,
+          fontWeight: weight,
+        ),
       ),
       backgroundBuilder: (context, states, child) => CustomPaint(
         painter: _BrushFramePainter(
@@ -330,8 +352,8 @@ class AiFuda extends StatelessWidget {
     this.icon,
     this.night = false,
     this.expand = false,
-    this.height = 52,
-    this.fontSize = 20,
+    this.height = FudaStyle.defaultHeight,
+    this.fontSize,
   });
 
   final VoidCallback? onPressed;
@@ -340,14 +362,18 @@ class AiFuda extends StatelessWidget {
   final bool night;
   final bool expand;
   final double height;
-  final double fontSize;
+
+  /// 字の大きさ。指定しなければ、[FudaRow]の中では並びの大きさ、ほかは20。
+  final double? fontSize;
 
   @override
   Widget build(BuildContext context) {
+    final row = _FudaRowScope.of(context);
     final style = FudaStyle.ai(
       night: night,
       height: height,
-      fontSize: fontSize,
+      fontSize: fontSize ?? row?.fontSize ?? 20,
+      paddingX: row == null ? 22 : _FudaRowScope.paddingX,
       expand: expand,
     );
     return switch (icon) {
@@ -371,7 +397,8 @@ class SumiFuda extends StatelessWidget {
     this.icon,
     this.night = false,
     this.expand = false,
-    this.height = 48,
+    this.height = FudaStyle.defaultHeight,
+    this.fontSize,
   });
 
   final VoidCallback? onPressed;
@@ -381,9 +408,19 @@ class SumiFuda extends StatelessWidget {
   final bool expand;
   final double height;
 
+  /// 字の大きさ。指定しなければ、[FudaRow]の中では並びの大きさ、ほかは16。
+  final double? fontSize;
+
   @override
   Widget build(BuildContext context) {
-    final style = FudaStyle.sumi(night: night, height: height, expand: expand);
+    final row = _FudaRowScope.of(context);
+    final style = FudaStyle.sumi(
+      night: night,
+      height: height,
+      fontSize: fontSize ?? row?.fontSize ?? 16,
+      paddingX: row == null ? 20 : _FudaRowScope.paddingX,
+      expand: expand,
+    );
     return switch (icon) {
       final icon? => OutlinedButton.icon(
         style: style,
@@ -405,7 +442,8 @@ class KeshiFuda extends StatelessWidget {
     this.icon,
     this.night = false,
     this.expand = false,
-    this.height = 48,
+    this.height = FudaStyle.defaultHeight,
+    this.fontSize,
   });
 
   final VoidCallback? onPressed;
@@ -415,9 +453,19 @@ class KeshiFuda extends StatelessWidget {
   final bool expand;
   final double height;
 
+  /// 字の大きさ。指定しなければ、[FudaRow]の中では並びの大きさ、ほかは16。
+  final double? fontSize;
+
   @override
   Widget build(BuildContext context) {
-    final style = FudaStyle.keshi(night: night, height: height, expand: expand);
+    final row = _FudaRowScope.of(context);
+    final style = FudaStyle.keshi(
+      night: night,
+      height: height,
+      fontSize: fontSize ?? row?.fontSize ?? 16,
+      paddingX: row == null ? 20 : _FudaRowScope.paddingX,
+      expand: expand,
+    );
     return switch (icon) {
       final icon? => OutlinedButton.icon(
         style: style,
@@ -428,6 +476,65 @@ class KeshiFuda extends StatelessWidget {
       null => OutlinedButton(style: style, onPressed: onPressed, child: child),
     };
   }
+}
+
+/// 役割の違う札（藍札・墨札・消し札）を並べるときの入れ物。
+///
+/// どの札も同じ幅・同じ高さにし、字の大きさもそろえる。並ぶ札の数は2〜3つまで。
+/// 幅が足りないところ（確かめる窓など）では[direction]を縦にして、同じ大きさのまま積む。
+class FudaRow extends StatelessWidget {
+  const FudaRow({
+    super.key,
+    required this.children,
+    this.direction = Axis.horizontal,
+    this.height = FudaStyle.defaultHeight,
+    this.fontSize = FudaStyle.rowFontSize,
+    this.spacing = 12,
+  });
+
+  final List<Widget> children;
+  final Axis direction;
+  final double height;
+  final double fontSize;
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) {
+    final sized = [
+      for (final child in children) SizedBox(height: height, child: child),
+    ];
+    return _FudaRowScope(
+      fontSize: fontSize,
+      child: switch (direction) {
+        Axis.horizontal => Row(
+          spacing: spacing,
+          children: [for (final child in sized) Expanded(child: child)],
+        ),
+        Axis.vertical => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: spacing / 1.5,
+          children: sized,
+        ),
+      },
+    );
+  }
+}
+
+class _FudaRowScope extends InheritedWidget {
+  const _FudaRowScope({required this.fontSize, required super.child});
+
+  final double fontSize;
+
+  /// 並ぶと札の幅が狭くなるので、字の左右の余白を詰めて折り返しにくくする。
+  static const paddingX = 10.0;
+
+  static _FudaRowScope? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_FudaRowScope>();
+
+  @override
+  bool updateShouldNotify(_FudaRowScope oldWidget) =>
+      fontSize != oldWidget.fontSize;
 }
 
 /// 筆の下線を引いた文字リンク。控えめな寄り道に使う。

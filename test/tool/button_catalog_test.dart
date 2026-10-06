@@ -108,6 +108,36 @@ Widget _panel({required bool night}) {
         KeshiFuda(night: night, onPressed: null, child: const Text('押せない')),
       ],
     ),
+    _label('並んだとき（役割が違っても同じ大きさ・同じ字の大きさ）', night: night),
+    if (night)
+      FudaRow(
+        height: 56,
+        children: [
+          AiFuda(
+            night: true,
+            onPressed: _noop,
+            icon: const Icon(Icons.ios_share),
+            child: const Text('共有する'),
+          ),
+          SumiFuda(night: true, onPressed: _noop, child: const Text('印帳にもどる')),
+        ],
+      )
+    else ...[
+      FudaRow(
+        children: [
+          KeshiFuda(onPressed: _noop, child: const Text('撤退')),
+          AiFuda(onPressed: _noop, child: const Text('着丼！')),
+        ],
+      ),
+      const SizedBox(height: 8),
+      FudaRow(
+        children: [
+          KeshiFuda(onPressed: _noop, child: const Text('削除')),
+          SumiFuda(onPressed: _noop, child: const Text('もどる')),
+          AiFuda(onPressed: _noop, child: const Text('保存')),
+        ],
+      ),
+    ],
     _label('筆の下線（控えめな文字リンク）', night: night),
     Wrap(
       children: [
@@ -176,16 +206,26 @@ Widget _panel({required bool night}) {
       ),
       _label('系統の札（椀の絵と名前。選ぶと藍の縁と帯）', night: night),
       RamenStyleTiles(selected: RamenStyle.shoyu, onChanged: (_) {}),
-      _label('確かめる窓の下の並び', night: night),
+      _label('確かめる窓の下の並び（キャンセルは文字のまま）', night: night),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(onPressed: _noop, child: const Text('キャンセル')),
           const SizedBox(width: 8),
           KeshiFuda(onPressed: _noop, child: const Text('削除')),
-          const SizedBox(width: 8),
-          AiFuda(onPressed: _noop, child: const Text('保存')),
         ],
+      ),
+      _label('確かめる窓で札が2つ以上のとき（縦に積む）', night: night),
+      FudaRow(
+        direction: Axis.vertical,
+        children: [
+          AiFuda(onPressed: _noop, child: const Text('下書きに残してやめる')),
+          KeshiFuda(onPressed: _noop, child: const Text('破棄してやめる')),
+        ],
+      ),
+      Align(
+        alignment: Alignment.centerRight,
+        child: TextButton(onPressed: _noop, child: const Text('続ける')),
       ),
     ],
   ];
