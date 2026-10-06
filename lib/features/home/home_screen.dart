@@ -28,6 +28,7 @@ import '../visit_detail/visit_detail_screen.dart';
 import '../wishes/shared_wish.dart';
 import '../wishes/wish_dialog.dart';
 import 'app_tab.dart';
+import 'shared_place_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -118,6 +119,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (text == null || !mounted) return;
     final shared = parseSharedWish(text.text, subject: text.subject);
     if (shared == null) return;
+    if (shared.isMapPlace) {
+      final choice = await showSharedPlaceSheet(context, shopName: shared.name);
+      if (choice == null || !mounted) return;
+      if (choice == SharedPlaceChoice.record) {
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute(builder: (_) => RecordScreen(sharedPlace: shared)),
+        );
+        return;
+      }
+    }
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context);
     final location = shared.location;
     final name = await addWishByName(
@@ -127,8 +139,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       trigger: switch (shared.source) {
         SharedSource.googleMaps => l10n.wishTriggerGoogleMaps,
         SharedSource.appleMaps => l10n.wishTriggerAppleMaps,
-        SharedSource.youtube => l10n.wishTriggerYouTube,
-        SharedSource.web => shared.host ?? '',
+        SharedSource.youtube => shared.title ?? l10n.wishTriggerYouTube,
+        SharedSource.web => shared.title ?? shared.host ?? '',
         SharedSource.text => '',
       },
       link: shared.link,

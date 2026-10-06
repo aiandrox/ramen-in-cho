@@ -18,6 +18,7 @@ import '../shop_search/shop_name_search_sheet.dart';
 import '../shop_search/shop_tile.dart';
 import '../shop_search/yahoo_local.dart';
 import 'record_controller.dart';
+import '../wishes/shared_wish.dart';
 import 'record_draft.dart';
 import 'record_result_screen.dart';
 import 'record_state.dart';
@@ -31,6 +32,7 @@ class RecordScreen extends ConsumerStatefulWidget {
     this.recoveredPhotoPath,
     this.sharedPhoto = false,
     this.arrivedAt,
+    this.sharedPlace,
   });
 
   /// 開いたときに使う写真（取り戻した写真・ほかのアプリから共有された写真）。
@@ -41,6 +43,9 @@ class RecordScreen extends ConsumerStatefulWidget {
 
   /// 並んでいる最中に真ん中の「着」を押した時刻。
   final DateTime? arrivedAt;
+
+  /// 地図アプリから共有された店。その店を選んだ状態で始める。
+  final SharedWish? sharedPlace;
 
   @override
   ConsumerState<RecordScreen> createState() => _RecordScreenState();
@@ -75,7 +80,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
         !widget.sharedPhoto &&
         await controller.draftAwaitsArrivalPhoto();
     if (!mounted) return;
-    if (photo != null && !continuesArrival && await controller.hasDraft()) {
+    final brought =
+        (photo != null && !continuesArrival) || widget.sharedPlace != null;
+    if (brought && await controller.hasDraft()) {
       if (!mounted) return;
       startOver = await _askStartOver();
       if (!mounted) return;
@@ -85,6 +92,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
       sharedPhoto: widget.sharedPhoto,
       startOver: startOver,
       arrivedAt: widget.arrivedAt,
+      sharedPlace: widget.sharedPlace,
     );
   }
 
@@ -164,6 +172,11 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     ref.listen(recordControllerProvider, (previous, next) {
       if (next.resumedFromDraft && !(previous?.resumedFromDraft ?? false)) {
         _fillFromDraft(next);
+      }
+      // 共有された店名を入れたときも、店名の欄にそろえる（打っている間は欄と同じなので何もしない）。
+      if (next.manualName != previous?.manualName &&
+          next.manualName != _nameController.text) {
+        _nameController.text = next.manualName;
       }
       // 店を選び替えると、店の覚え書きがその店のものに入れ替わる。
       if (next.shopMemo != _shopMemoController.text) {

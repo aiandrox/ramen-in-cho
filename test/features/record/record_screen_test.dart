@@ -25,6 +25,8 @@ import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/location_service.dart';
 import 'package:ramen_in_cho/features/shop_search/overpass.dart';
 import 'package:ramen_in_cho/features/shop_search/nearby_shop_finder.dart';
+import 'package:ramen_in_cho/features/shop_search/ramen_in_cho_api.dart';
+import 'package:ramen_in_cho/features/wishes/shared_wish.dart';
 import 'package:ramen_in_cho/theme/washi_buttons.dart';
 
 import '../../support/fakes.dart';
@@ -82,6 +84,7 @@ void main() {
           ),
           recordDraftStoreProvider.overrideWithValue(drafts),
           mapTilesEnabledProvider.overrideWithValue(false),
+          addressGeocoderProvider.overrideWithValue((_) async => null),
         ],
         child: localizedApp(
           home: Builder(
@@ -443,6 +446,49 @@ void main() {
     expect(find.text(ja.draftResumed), findsOneWidget);
     expect(find.text('下書きの店'), findsOneWidget);
     expect(drafts.draft?.manualName, '下書きの店');
+  });
+
+  testWidgets('地図アプリから共有された店を選んだ状態で開く', (tester) async {
+    await pumpScreen(
+      tester,
+      screen: RecordScreen(
+        sharedPlace: parseSharedWish(
+          '麺屋さくら 新宿店\nhttps://maps.google.com/?q=35.6900,139.7000',
+        ),
+      ),
+    );
+
+    expect(find.text(ja.draftDiscardTitle), findsNothing);
+    expect(find.text('麺屋さくら 新宿店'), findsOneWidget);
+    expect(overpass.calls, 0);
+  });
+
+  testWidgets('位置のわからない共有の店は、店名の欄に入れて「店名から探す」を出す', (tester) async {
+    await pumpScreen(
+      tester,
+      screen: RecordScreen(
+        sharedPlace: parseSharedWish('中華そば つばめ https://maps.app.goo.gl/Xyz987'),
+      ),
+    );
+
+    expect(find.widgetWithText(TextField, '中華そば つばめ'), findsOneWidget);
+    expect(find.text(ja.nameSearchOpen), findsOneWidget);
+  });
+
+  testWidgets('共有の店で開いたとき下書きがあれば、破棄するか確かめる', (tester) async {
+    drafts.draft = const RecordDraft(manualName: '下書きの店');
+    await pumpScreen(
+      tester,
+      screen: RecordScreen(
+        sharedPlace: parseSharedWish('中華そば つばめ https://maps.app.goo.gl/Xyz987'),
+      ),
+    );
+
+    expect(find.text(ja.draftDiscardTitle), findsOneWidget);
+    await tester.tap(find.widgetWithText(KeshiFuda, ja.draftDiscardConfirm));
+    await tester.pumpAndSettle();
+    expect(find.text('下書きの店'), findsNothing);
+    expect(find.widgetWithText(TextField, '中華そば つばめ'), findsOneWidget);
   });
 
   testWidgets('写真を渡されて開いても、下書きが無ければ確かめない', (tester) async {

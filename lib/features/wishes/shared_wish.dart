@@ -12,6 +12,7 @@ class SharedWish {
     this.host,
     this.location,
     this.address,
+    this.title,
   });
 
   /// 店名の候補。わからなければ空。
@@ -24,6 +25,13 @@ class SharedWish {
 
   /// リンクそのものに書かれていた位置。短縮リンクは開いて確かめない（通信先を増やさないため）。
   final GeoPoint? location;
+
+  /// 動画やページの題（YouTube・そのほかのサイトの共有で、題が添えられていたとき）。きっかけに使う。
+  final String? title;
+
+  /// 地図アプリの店の共有か（ここで食べた記録にもできる）。
+  bool get isMapPlace =>
+      source == SharedSource.googleMaps || source == SharedSource.appleMaps;
 
   /// 共有の文に書かれていた住所（Google マップの共有など）。位置にするのはサーバーに頼む。
   final String? address;
@@ -75,7 +83,30 @@ SharedWish? parseSharedWish(String text, {String? subject}) {
     host: uri == null ? null : _hostOf(uri),
     location: uri == null ? null : locationInUrl(uri),
     address: address,
+    title: isPlace || lines.isEmpty ? null : sharedTitleOf(lines.first),
   );
+}
+
+const _maxTitleLength = 100;
+
+/// 共有に添えられた題から、「"…" を YouTube で見る」「Watch "…" on YouTube」「… - YouTube」の飾りを外す。
+String? sharedTitleOf(String line) {
+  var title = line.trim();
+  for (final wrapper in [
+    RegExp(r'^["“”「『](.+)["“”」』]\s*を\s*YouTube\s*で見る$'),
+    RegExp(r'^Watch\s+["“”](.+)["“”]\s+on\s+YouTube$', caseSensitive: false),
+  ]) {
+    final match = wrapper.firstMatch(title);
+    if (match != null) {
+      title = match.group(1)!.trim();
+      break;
+    }
+  }
+  title = title.replaceFirst(RegExp(r'\s+[-–—|]\s*YouTube$'), '').trim();
+  if (title.isEmpty) return null;
+  return title.length > _maxTitleLength
+      ? '${title.substring(0, _maxTitleLength)}…'
+      : title;
 }
 
 final _postalCode = RegExp(r'〒?\s*\d{3}[-－ー‐]\d{4}\s*');

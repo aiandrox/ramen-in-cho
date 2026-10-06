@@ -25,14 +25,14 @@ Future<StartChoice?> showStartSheet(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _StartChoiceButton(
+          StartChoiceButton(
             icon: Icons.ramen_dining,
             title: l10n.startEatenTitle,
             body: l10n.startEatenBody,
             onPressed: () => closeWashiSheet(context, StartChoice.eaten),
           ),
           const SizedBox(height: 16),
-          _StartChoiceButton(
+          StartChoiceButton(
             icon: Icons.groups,
             title: l10n.startQueueTitle,
             body: l10n.startQueueBody,
@@ -44,8 +44,10 @@ Future<StartChoice?> showStartSheet(
   },
 );
 
-class _StartChoiceButton extends StatelessWidget {
-  const _StartChoiceButton({
+/// 窓で選ぶ大きな墨札（絵・見出し・説明）。
+class StartChoiceButton extends StatelessWidget {
+  const StartChoiceButton({
+    super.key,
     required this.icon,
     required this.title,
     required this.body,
