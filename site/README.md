@@ -1,4 +1,4 @@
-# ramen-in-cho（着丼クエストの紹介ページと API）
+# ramen-in-cho（麺印帳の紹介ページと API）
 
 Cloudflare Pages の1つのプロジェクトに、紹介ページ（`public/`）と API（`functions/`、Pages Functions）を置く。
 公開先は https://ramen-in-cho.aiandrox.com 。設計と進み具合は issue #172。記録・写真・位置の履歴は受け取らない。

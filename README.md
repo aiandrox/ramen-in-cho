@@ -33,4 +33,4 @@ flutter analyze      # 静的解析
 flutter test         # テスト
 ```
 
-仕様と決定事項は [CLAUDE.md](CLAUDE.md) にまとめています。
+今の仕様は [CLAUDE.md](CLAUDE.md)、決定事項（なぜ今こうなっているのか）は [docs/decisions/](docs/decisions/README.md) にまとめています。
