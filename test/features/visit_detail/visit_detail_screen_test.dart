@@ -10,6 +10,7 @@ import 'package:ramen_in_cho/features/record/star_rating.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
+import 'package:ramen_in_cho/features/records/visit_details_form.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_candidate.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_search_service.dart';
@@ -451,7 +452,7 @@ void main() {
 
     await tester.tap(find.byTooltip(ja.ratingStar(2)));
     await tester.enterText(
-      find.widgetWithText(TextField, ja.memoLabel),
+      find.byKey(VisitDetailsForm.memoFieldKey),
       ' 書き直した ',
     );
     await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
@@ -484,8 +485,8 @@ void main() {
     await openMenu(tester, ja.edit);
     await tester.pumpAndSettle();
 
-    final memo = find.widgetWithText(TextField, ja.memoLabel);
-    final shopMemo = find.widgetWithText(TextField, ja.shopMemoSection);
+    final memo = find.byKey(VisitDetailsForm.memoFieldKey);
+    final shopMemo = find.byKey(VisitDetailsForm.shopMemoFieldKey);
     await tester.ensureVisible(shopMemo);
     expect(tester.widget<TextField>(memo).controller!.text, '麺かため');
     expect(tester.widget<TextField>(shopMemo).controller!.text, '券売機は現金のみ');
@@ -500,7 +501,7 @@ void main() {
     expect(update.shopMemo, '11時前に着けば一巡目');
   });
 
-  testWidgets('店名を打ち直して別の店にするときは、店の覚え書きの欄を出さず店にも書かない', (tester) async {
+  testWidgets('店名を打ち直して別の店にするときは、店の覚え書きの欄を押せなくし店にも書かない', (tester) async {
     await pumpDetail(tester, [
       VisitWithShop(
         shop: buildShop(name: '麺屋テスト', strategyMemo: '券売機は現金のみ'),
@@ -510,15 +511,19 @@ void main() {
     await openMenu(tester, ja.edit);
     await tester.pumpAndSettle();
 
-    final shopMemo = find.widgetWithText(TextField, ja.shopMemoSection);
+    final shopMemo = find.byKey(VisitDetailsForm.shopMemoFieldKey);
     await tester.ensureVisible(shopMemo);
     await tester.enterText(shopMemo, '書きかけ');
-    await tester.enterText(
-      find.widgetWithText(TextField, ja.editShopName),
-      '別の店',
-    );
+    final name = find.widgetWithText(TextField, ja.editShopName);
+    final list = find.byType(ListView).first;
+    await tester.dragUntilVisible(name, list, const Offset(0, 300));
+    await tester.enterText(name, '別の店');
     await tester.pump();
+    final disabled = find.byKey(VisitDetailsForm.shopMemoDisabledFieldKey);
+    await tester.dragUntilVisible(disabled, list, const Offset(0, -300));
     expect(shopMemo, findsNothing);
+    expect(tester.widget<TextField>(disabled).enabled, isFalse);
+    expect(find.text('書きかけ'), findsNothing);
 
     await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
     await tester.pumpAndSettle();
@@ -532,7 +537,7 @@ void main() {
     await openMenu(tester, ja.edit);
     await tester.pumpAndSettle();
 
-    final wait = find.widgetWithText(TextField, ja.waitMinutesLabel);
+    final wait = find.byKey(VisitDetailsForm.waitFieldKey);
     await tester.ensureVisible(wait);
     await tester.enterText(wait, '45');
     await tester.tap(find.widgetWithText(AiFuda, ja.editSave));

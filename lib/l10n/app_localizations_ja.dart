@@ -113,9 +113,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get optionalSection => 'くわしく（任意）';
-
-  @override
   String get styleSection => '系統';
 
   @override
@@ -144,6 +141,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get styleOther => 'その他';
+
+  @override
+  String get limitedSection => '限定';
 
   @override
   String get isLimited => '限定メニュー';
@@ -595,6 +595,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get shopMemoHint => '券売機は現金のみ／11時前に着けば一巡目';
+
+  @override
+  String get shopMemoNeedsShop => '店を決めると書けます';
 
   @override
   String get shopMemoEdit => '店の覚え書きを書く';

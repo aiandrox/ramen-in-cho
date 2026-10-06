@@ -286,12 +286,6 @@ abstract class AppLocalizations {
   /// **'★{stars}'**
   String ratingStar(int stars);
 
-  /// No description provided for @optionalSection.
-  ///
-  /// In ja, this message translates to:
-  /// **'くわしく（任意）'**
-  String get optionalSection;
-
   /// No description provided for @styleSection.
   ///
   /// In ja, this message translates to:
@@ -351,6 +345,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'その他'**
   String get styleOther;
+
+  /// No description provided for @limitedSection.
+  ///
+  /// In ja, this message translates to:
+  /// **'限定'**
+  String get limitedSection;
 
   /// No description provided for @isLimited.
   ///
@@ -1131,6 +1131,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'券売機は現金のみ／11時前に着けば一巡目'**
   String get shopMemoHint;
+
+  /// No description provided for @shopMemoNeedsShop.
+  ///
+  /// In ja, this message translates to:
+  /// **'店を決めると書けます'**
+  String get shopMemoNeedsShop;
 
   /// No description provided for @shopMemoEdit.
   ///

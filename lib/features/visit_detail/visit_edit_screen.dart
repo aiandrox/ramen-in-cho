@@ -123,7 +123,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
     });
   }
 
-  /// 店名を打ち直して別の店になりそうなときは、どの店の覚え書きかわからないので欄を出さない
+  /// 店名を打ち直して別の店になりそうなときは、どの店の覚え書きかわからないので欄を押せなくする
   /// （選び直した店か、もとの店のときだけ書ける）。
   bool get _shopMemoShown =>
       _pickedShop != null ||
@@ -288,7 +288,8 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
             onTap: _pickEatenAt,
           ),
           if (isEaten) ...[
-            SectionTitle(l10n.ratingSection),
+            const SizedBox(height: 16),
+            SectionTitle(l10n.ratingSection, ruled: false),
             Center(
               child: StarRating(
                 rating: _rating,
@@ -296,7 +297,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 8),
+          const SizedBox(height: 24),
           VisitDetailsForm(
             style: _style,
             isLimited: _isLimited,
