@@ -151,7 +151,7 @@ abstract class AppLocalizations {
   /// No description provided for @startQueueBody.
   ///
   /// In ja, this message translates to:
-  /// **'待ち時間を測り始める'**
+  /// **'並び始めから着丼までの時間を測ります'**
   String get startQueueBody;
 
   /// No description provided for @recordTitle.
@@ -757,7 +757,7 @@ abstract class AppLocalizations {
   /// No description provided for @waitTime.
   ///
   /// In ja, this message translates to:
-  /// **'待ち時間 {minutes}分'**
+  /// **'着丼まで {minutes}分'**
   String waitTime(int minutes);
 
   /// No description provided for @rankApprentice.
@@ -823,7 +823,7 @@ abstract class AppLocalizations {
   /// No description provided for @pointsWait.
   ///
   /// In ja, this message translates to:
-  /// **'待ち時間 {minutes}分'**
+  /// **'着丼まで {minutes}分'**
   String pointsWait(int minutes);
 
   /// No description provided for @pointsFirstVisit.
@@ -1993,7 +1993,7 @@ abstract class AppLocalizations {
   /// No description provided for @bestLongestWait.
   ///
   /// In ja, this message translates to:
-  /// **'最長の待ち時間'**
+  /// **'着丼までがいちばん長かった一杯'**
   String get bestLongestWait;
 
   /// No description provided for @bestHighestPoints.
@@ -2251,7 +2251,7 @@ abstract class AppLocalizations {
   /// No description provided for @waitMinutesLabel.
   ///
   /// In ja, this message translates to:
-  /// **'待ち時間'**
+  /// **'着丼までの時間'**
   String get waitMinutesLabel;
 
   /// No description provided for @waitMinutesUnit.
@@ -2659,7 +2659,7 @@ abstract class AppLocalizations {
   /// No description provided for @reviewWaitTitle.
   ///
   /// In ja, this message translates to:
-  /// **'いちばん並んだ一杯'**
+  /// **'着丼までがいちばん長かった一杯'**
   String get reviewWaitTitle;
 
   /// No description provided for @reviewMonthlyTitle.

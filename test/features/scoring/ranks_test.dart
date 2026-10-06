@@ -58,8 +58,8 @@ void main() {
       expect(shopRankFor(25), ShopRank.b);
       expect(shopRankFor(39), ShopRank.b);
       expect(shopRankFor(40), ShopRank.a);
-      expect(shopRankFor(59), ShopRank.a);
-      expect(shopRankFor(60), ShopRank.s);
+      expect(shopRankFor(54), ShopRank.a);
+      expect(shopRankFor(55), ShopRank.s);
       expect(shopRankFor(500), ShopRank.s);
     });
   });

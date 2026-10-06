@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/scoring/points.dart';
+import 'package:ramen_in_cho/features/scoring/ranks.dart';
 
 import '../../support/builders.dart';
 
@@ -78,9 +79,10 @@ void main() {
         isFamous: true,
       );
 
-      // 10 + 待ち20 + 限定20 + 初訪問5 + 再挑戦15 + 遠征40 + 朝ラー10
-      // + 都道府県10 + 市区町村5 + 常連20 + 連続6 + 名店15
-      expect(points.total, 176);
+      // 10 + 待ち20 + 限定20 + 初訪問5 + 再挑戦15 + 遠征25 + 朝ラー10
+      // + 都道府県10（市区町村は重ねない） + 常連20 + 連続6 + 名店15
+      expect(points.newAreaBonus, 0);
+      expect(points.total, 156);
     });
 
     test('朝ラー（5〜9時台）と深夜（0〜4時台）は+10。自動でつく', () {
@@ -122,17 +124,72 @@ void main() {
     });
   });
 
+  group('利用者の感覚に合わせた点と格', () {
+    // 昼どき（朝ラー・深夜がつかない時刻）の1杯。
+    final noon = DateTime(2026, 9, 30, 12);
+    PointsBreakdown bowl({
+      int? waitMinutes,
+      bool isFirstVisit = false,
+      bool isNewPrefecture = false,
+      double? homeBaseMeters,
+    }) => calculatePoints(
+      visit: buildVisit(eatenAt: noon, waitMinutes: waitMinutes),
+      isFirstVisit: isFirstVisit,
+      isRetrySuccess: false,
+      isNewPrefecture: isNewPrefecture,
+      homeBaseMeters: homeBaseMeters,
+    );
+
+    for (final (name, points, total, rank) in [
+      ('地元の再訪・着丼まで30分', bowl(waitMinutes: 30), 25, ShopRank.b),
+      ('地元の再訪・着丼まで60分', bowl(waitMinutes: 60), 40, ShopRank.a),
+      ('地元の再訪・着丼まで90分', bowl(waitMinutes: 90), 55, ShopRank.s),
+      (
+        '遠征80km・初めての都道府県・初めての店・待ちなし',
+        bowl(isFirstVisit: true, isNewPrefecture: true, homeBaseMeters: 80000),
+        45,
+        ShopRank.a,
+      ),
+      (
+        '遠征80km・初めての都道府県・初めての店・着丼まで30分',
+        bowl(
+          waitMinutes: 30,
+          isFirstVisit: true,
+          isNewPrefecture: true,
+          homeBaseMeters: 80000,
+        ),
+        60,
+        ShopRank.s,
+      ),
+      ('遠征先の再訪・待ちなし', bowl(homeBaseMeters: 80000), 30, ShopRank.b),
+    ]) {
+      test('$name は $total 点', () {
+        expect(points.total, total);
+        expect(shopRankFor(points.total), rank);
+      });
+    }
+
+    test('格の境は 秀25・妙40・極55', () {
+      expect(shopRankFor(24), ShopRank.c);
+      expect(shopRankFor(25), ShopRank.b);
+      expect(shopRankFor(39), ShopRank.b);
+      expect(shopRankFor(40), ShopRank.a);
+      expect(shopRankFor(54), ShopRank.a);
+      expect(shopRankFor(55), ShopRank.s);
+    });
+  });
+
   group('遠征の段階', () {
-    test('80km・300km・800kmの境で+20・+40・+60に上がり、足さない', () {
+    test('80km・300km・800kmの境で+20・+25・+30に上がり、足さない', () {
       expect(expeditionBonusFor(null), 0);
       expect(expeditionBonusFor(0), 0);
       expect(expeditionBonusFor(79999.9), 0);
       expect(expeditionBonusFor(80000), 20);
       expect(expeditionBonusFor(299999.9), 20);
-      expect(expeditionBonusFor(300000), 40);
-      expect(expeditionBonusFor(799999.9), 40);
-      expect(expeditionBonusFor(800000), 60);
-      expect(expeditionBonusFor(2000000), 60);
+      expect(expeditionBonusFor(300000), 25);
+      expect(expeditionBonusFor(799999.9), 25);
+      expect(expeditionBonusFor(800000), 30);
+      expect(expeditionBonusFor(2000000), 30);
     });
   });
 
@@ -356,6 +413,8 @@ void main() {
       final prefectures = {
         'tokyo1': '東京都',
         'tokyo2': '東京都',
+        'tokyo3': '東京都',
+        'hiroshima2': '広島県',
         'osaka': '大阪府',
         'hiroshima': '広島県',
       };
@@ -413,10 +472,30 @@ void main() {
         expect(scored.map((s) => s.points.newPrefectureBonus), [10, 0]);
       });
 
+      test('初めての都道府県の1杯には市区町村を重ねず、その都道府県の2つ目の市区町村から+5', () {
+        final scored = scoreVisits([
+          buildEntry(
+            shop: buildShop(id: 'tokyo1', area: '新宿区'),
+            eatenAt: day(1),
+          ),
+          buildEntry(
+            shop: buildShop(id: 'tokyo2', area: '渋谷区'),
+            eatenAt: day(2),
+          ),
+          buildEntry(
+            shop: buildShop(id: 'tokyo3', area: '新宿区'),
+            eatenAt: day(3),
+          ),
+        ], prefectureOf: prefectureOf);
+
+        expect(scored.map((s) => s.points.newPrefectureBonus), [10, 0, 0]);
+        expect(scored.map((s) => s.points.newAreaBonus), [0, 5, 0]);
+      });
+
       test('市区町村は、同じ名前でも都道府県が違えば別の土地として+5', () {
         final scored = scoreVisits([
           buildEntry(
-            shop: buildShop(id: 'tokyo1', area: '府中市'),
+            shop: buildShop(id: 'tokyo1', area: '新宿区'),
             eatenAt: day(1),
           ),
           buildEntry(
@@ -424,12 +503,16 @@ void main() {
             eatenAt: day(2),
           ),
           buildEntry(
-            shop: buildShop(id: 'hiroshima', area: '府中市'),
+            shop: buildShop(id: 'hiroshima', area: '三原市'),
             eatenAt: day(3),
+          ),
+          buildEntry(
+            shop: buildShop(id: 'hiroshima2', area: '府中市'),
+            eatenAt: day(4),
           ),
         ], prefectureOf: prefectureOf);
 
-        expect(scored.map((s) => s.points.newAreaBonus), [5, 0, 5]);
+        expect(scored.map((s) => s.points.newAreaBonus), [0, 5, 0, 5]);
       });
 
       test('市区町村がまだわからない（調べても分からなかった）店にはつかない', () {
@@ -504,9 +587,9 @@ void main() {
         );
 
         expect(bonusAt(day(10), shop: north(2.689)), 20); // 約299.0km
-        expect(bonusAt(day(10), shop: north(2.699)), 40); // 約300.1km
-        expect(bonusAt(day(10), shop: north(7.186)), 40); // 約799.1km
-        expect(bonusAt(day(10), shop: north(7.195)), 60); // 約800.1km
+        expect(bonusAt(day(10), shop: north(2.699)), 25); // 約300.1km
+        expect(bonusAt(day(10), shop: north(7.186)), 25); // 約799.1km
+        expect(bonusAt(day(10), shop: north(7.195)), 30); // 約800.1km
       });
 
       test('拠点を変えると、変えた日から後の1杯だけが新しい拠点で決まる', () {

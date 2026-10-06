@@ -299,7 +299,7 @@ void main() {
   });
 
   group('記録の更新', () {
-    test('自己最高の修行点と、この店で最長の待ちを書く（1つまで）', () {
+    test('自己最高の修行点と、この店で着丼までの最長記録を書く（1つまで）', () {
       final lines = journalOf([
         buildEntry(shop: shop, eatenAt: day(9, 1), waitMinutes: 10),
         buildEntry(
@@ -311,10 +311,10 @@ void main() {
       ]);
 
       expect(lines, contains('自己最高の修行点を更新。'));
-      expect(lines, isNot(contains('この店で最長の待ち。')));
+      expect(lines, isNot(contains('この店で着丼までの最長記録。')));
     });
 
-    test('この店で初めて60点以上なら、印が「極」になったと書く', () {
+    test('この店で初めて55点以上なら、印が「極」になったと書く', () {
       final rare = buildShop(id: 'rare', isFamous: true);
       final lines = journalOf([
         buildEntry(

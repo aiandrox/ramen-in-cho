@@ -37,7 +37,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get startQueueTitle => 'いま並んでいる';
 
   @override
-  String get startQueueBody => '待ち時間を測り始める';
+  String get startQueueBody => '並び始めから着丼までの時間を測ります';
 
   @override
   String get recordTitle => '記録する';
@@ -361,7 +361,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String waitTime(int minutes) {
-    return '待ち時間 $minutes分';
+    return '着丼まで $minutes分';
   }
 
   @override
@@ -404,7 +404,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pointsWait(int minutes) {
-    return '待ち時間 $minutes分';
+    return '着丼まで $minutes分';
   }
 
   @override
@@ -1098,7 +1098,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get statsBests => '自己ベスト';
 
   @override
-  String get bestLongestWait => '最長の待ち時間';
+  String get bestLongestWait => '着丼までがいちばん長かった一杯';
 
   @override
   String get bestHighestPoints => '一杯の最高の修行点';
@@ -1258,7 +1258,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get eraFirstYear => '元';
 
   @override
-  String get waitMinutesLabel => '待ち時間';
+  String get waitMinutesLabel => '着丼までの時間';
 
   @override
   String get waitMinutesUnit => '分';
@@ -1492,7 +1492,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reviewBestTitle => '最高の一杯';
 
   @override
-  String get reviewWaitTitle => 'いちばん並んだ一杯';
+  String get reviewWaitTitle => '着丼までがいちばん長かった一杯';
 
   @override
   String get reviewMonthlyTitle => '月ごとの杯数';
