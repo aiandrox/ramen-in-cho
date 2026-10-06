@@ -1249,6 +1249,58 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get mapListButton => '地図の店の一覧';
+
+  @override
+  String mapListTitle(int count) {
+    return '地図の店 $count軒';
+  }
+
+  @override
+  String mapClusterTitle(int count) {
+    return 'このあたりの店 $count軒';
+  }
+
+  @override
+  String mapClusterLabel(int count) {
+    return '$count軒の店。タップで寄ります';
+  }
+
+  @override
+  String get mapListSortHint => '地図の真ん中から近い順';
+
+  @override
+  String get mapListFilterAll => 'すべて';
+
+  @override
+  String get mapListFilterVisited => '行った店';
+
+  @override
+  String get mapListFilterUnvisited => 'まだ';
+
+  @override
+  String get mapListFilterWished => '願';
+
+  @override
+  String get mapListEmpty => 'この中に当てはまる店はありません';
+
+  @override
+  String get mapListVisited => '行った店';
+
+  @override
+  String get mapFamous => '名店';
+
+  @override
+  String mapListMeters(int meters) {
+    return '${meters}m';
+  }
+
+  @override
+  String mapListKilometers(String km) {
+    return '${km}km';
+  }
+
+  @override
   String mapShopRank(String rank) {
     return '店ランク $rank';
   }

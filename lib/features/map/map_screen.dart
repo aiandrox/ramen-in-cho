@@ -27,6 +27,8 @@ import '../settings/settings_action.dart';
 import 'home_base_line.dart';
 import 'journey.dart';
 import 'map_camera.dart';
+import 'map_places.dart';
+import 'pin_clusters.dart';
 import 'washi_map.dart';
 import '../shop_search/yahoo_local.dart';
 import 'shop_pins.dart';
@@ -259,6 +261,71 @@ class _MapScreenState extends ConsumerState<MapScreen>
     );
   }
 
+  void _showPlaceDetails(MapPlace place) {
+    showWashiSheet<void>(
+      context: context,
+      builder: (_) => switch (place) {
+        VisitedPlace(:final pin) => _PinDetails(pin: pin),
+        WishedPlace(:final wish) => _WishDetails(wish: wish),
+        UnvisitedPlace(:final shop) => _UnvisitedDetails(
+          shop: shop,
+          here: _here,
+        ),
+      },
+    );
+  }
+
+  /// まとめた印をタップしたら、中の店がおさまるまで寄る。もう寄れなければ、中の店を一覧で見せる。
+  void _openCluster(PinCluster<MapPlace> cluster) {
+    final camera = _controller.camera;
+    final fitted = CameraFit.coordinates(
+      coordinates: [
+        for (final place in cluster.members)
+          LatLng(place.location.latitude, place.location.longitude),
+      ],
+      padding: const EdgeInsets.all(72),
+      maxZoom: clusterFitMaxZoom,
+    ).fit(camera);
+    if (fitted.zoom.floor() <= camera.zoom.floor()) {
+      _showPlaceList(
+        cluster.members,
+        title: AppLocalizations.of(context)
+            .mapClusterTitle(cluster.members.length),
+        withFilters: false,
+      );
+      return;
+    }
+    _userMoved = true;
+    _controller.move(fitted.center, fitted.zoom);
+  }
+
+  void _showPlaceList(
+    List<MapPlace> places, {
+    required String title,
+    required bool withFilters,
+  }) {
+    final center = _controller.camera.center;
+    showWashiSheet<void>(
+      context: context,
+      builder: (context) => _PlaceListSheet(
+        places: places,
+        center: GeoPoint(center.latitude, center.longitude),
+        title: title,
+        withFilters: withFilters,
+        onSelect: _focusPlace,
+      ),
+    );
+  }
+
+  void _focusPlace(MapPlace place) {
+    _userMoved = true;
+    _controller.move(
+      LatLng(place.location.latitude, place.location.longitude),
+      math.max(_controller.camera.zoom, 17),
+    );
+    _showPlaceDetails(place);
+  }
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -299,6 +366,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final base = ref.watch(currentHomeBaseProvider);
     final tilesEnabled = ref.watch(mapTilesEnabledProvider);
     final here = _here;
+    final places = <MapPlace>[
+      for (final shop in _nearby)
+        if (!pendingWishes.any(
+          (wish) => wishMatchesPlace(
+            wish,
+            osmId: shop.osmId,
+            name: shop.name,
+            location: shop.location,
+          ),
+        ))
+          UnvisitedPlace(shop),
+      for (final wish in pendingWishes) WishedPlace(wish),
+      for (final pin in pins) VisitedPlace(pin),
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -361,69 +442,52 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     ],
                   ),
                 ),
-              MarkerLayer(
-                markers: [
-                  for (final shop in _nearby)
-                    if (!pendingWishes.any(
-                      (wish) => wishMatchesPlace(
-                        wish,
-                        osmId: shop.osmId,
-                        name: shop.name,
-                        location: shop.location,
-                      ),
-                    ))
-                      Marker(
-                        point: LatLng(
-                          shop.location.latitude,
-                          shop.location.longitude,
-                        ),
-                        width: 44,
-                        height: 44,
-                        alignment: Alignment.topCenter,
-                        child: _UnvisitedPin(shop: shop, here: here),
-                      ),
-                  for (final wish in pendingWishes)
-                    Marker(
-                      point: LatLng(wish.latitude!, wish.longitude!),
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.topCenter,
-                      child: _WishPin(wish: wish),
-                    ),
-                  if (base != null && replayStops == null)
+              if (base != null && replayStops == null)
+                MarkerLayer(
+                  markers: [
                     Marker(
                       point: LatLng(base.latitude, base.longitude),
                       width: 24,
                       height: 24,
                       child: HomeBaseMapPin(base: base),
                     ),
-                  for (final pin in pins)
-                    Marker(
-                      point: LatLng(pin.latitude, pin.longitude),
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.topCenter,
-                      child: replayStops == null
-                          ? _Pin(pin: pin)
-                          : _LightingPin(
-                              animation: _replayController,
-                              plan: replayPlan!,
-                              orders: [
-                                for (var i = 0; i < replayStops.length; i++)
-                                  if (replayStops[i].shop.id == pin.shop.id) i,
-                              ],
-                              child: _Pin(pin: pin),
-                            ),
-                    ),
-                  if (here != null)
+                  ],
+                ),
+              _ClusteredPlaceLayer(
+                places: places,
+                // 旅路の再生中は、灯していくピンを1つずつ見せるため、まとめない。
+                clustered: replayStops == null,
+                pinBuilder: (place) {
+                  final pin = _PlacePin(
+                    place: place,
+                    onTap: () => _showPlaceDetails(place),
+                  );
+                  if (replayStops == null || place is! VisitedPlace) {
+                    return pin;
+                  }
+                  return _LightingPin(
+                    animation: _replayController,
+                    plan: replayPlan!,
+                    orders: [
+                      for (var i = 0; i < replayStops.length; i++)
+                        if (replayStops[i].shop.id == place.pin.shop.id) i,
+                    ],
+                    child: pin,
+                  );
+                },
+                onCluster: _openCluster,
+              ),
+              if (here != null)
+                MarkerLayer(
+                  markers: [
                     Marker(
                       point: LatLng(here.latitude, here.longitude),
                       width: 22,
                       height: 22,
                       child: const MapHereDot(),
                     ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
           // 出典は必要なものだけを小さく出す（部品名は出さない）。
@@ -528,6 +592,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            if (places.isNotEmpty) ...[
+              SealFab(
+                sumi: true,
+                small: true,
+                tooltip: l10n.mapListButton,
+                onPressed: () => _showPlaceList(
+                  places,
+                  title: l10n.mapListTitle(places.length),
+                  withFilters: true,
+                ),
+                child: const Icon(Icons.format_list_bulleted),
+              ),
+              const SizedBox(height: 12),
+            ],
             SealFab(
               sumi: true,
               small: true,
@@ -556,8 +634,336 @@ class _MapScreenState extends ConsumerState<MapScreen>
   }
 }
 
-class _UnvisitedPin extends ConsumerWidget {
-  const _UnvisitedPin({required this.shop, required this.here});
+/// 地図の1軒のピン。行った店は朱で塗った印に店ランクの字、願の店は朱の輪郭に「願」、
+/// まだ行っていない店は灰色の印。細い足の先が店の場所を指す（字が場所に重ならないように）。
+class _PlacePin extends StatelessWidget {
+  const _PlacePin({required this.place, required this.onTap});
+
+  final MapPlace place;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final (label, pin) = switch (place) {
+      VisitedPlace(:final pin) => (
+        pin.shop.name,
+        MapSealPin(
+          color: pin.rank == null ? Washi.faded : Washi.shu,
+          filled: true,
+          label: switch (pin.rank) {
+            final rank? => shopRankLabel(l10n, rank),
+            null => null,
+          },
+        ),
+      ),
+      WishedPlace(:final wish) => (
+        l10n.mapWishedLabel(wish.name),
+        MapSealPin(color: Washi.shu, filled: false, label: l10n.wishSealChar),
+      ),
+      UnvisitedPlace(:final shop) => (
+        shop.name,
+        const MapSealPin(color: Washi.faded, filled: true),
+      ),
+    };
+    return GestureDetector(
+      onTap: onTap,
+      child: Semantics(button: true, label: label, child: pin),
+    );
+  }
+}
+
+/// 店の場所に置く印を、画面の上で重なるものはまとめて出す。
+/// まとめ方は倍率の整数の段ごとに決めるので、動かしたり少し拡大したりしても入れ替わらない。
+class _ClusteredPlaceLayer extends StatefulWidget {
+  const _ClusteredPlaceLayer({
+    required this.places,
+    required this.clustered,
+    required this.pinBuilder,
+    required this.onCluster,
+  });
+
+  final List<MapPlace> places;
+  final bool clustered;
+  final Widget Function(MapPlace place) pinBuilder;
+  final ValueChanged<PinCluster<MapPlace>> onCluster;
+
+  @override
+  State<_ClusteredPlaceLayer> createState() => _ClusteredPlaceLayerState();
+}
+
+class _ClusteredPlaceLayerState extends State<_ClusteredPlaceLayer> {
+  List<PinCluster<MapPlace>>? _clusters;
+  int? _zoom;
+
+  @override
+  void didUpdateWidget(_ClusteredPlaceLayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _clusters = null;
+  }
+
+  static int _order(PinCluster<MapPlace> cluster) => !cluster.isSingle
+      ? 3
+      : switch (cluster.members.single) {
+          UnvisitedPlace() => 0,
+          WishedPlace() => 1,
+          VisitedPlace() => 2,
+        };
+
+  @override
+  Widget build(BuildContext context) {
+    final zoom = MapCamera.of(context).zoom.floor();
+    if (_clusters == null || _zoom != zoom) {
+      _zoom = zoom;
+      final clusters = widget.clustered
+          ? clusterPins(
+              widget.places,
+              locate: (place) => place.location,
+              zoom: zoom,
+            )
+          : [
+              for (final place in widget.places)
+                PinCluster(members: [place], location: place.location),
+            ];
+      // 行った店の印が上に来るよう、まだ行っていない店・願・行った店・まとめた印の順に重ねる。
+      _clusters = [
+        for (var order = 0; order < 4; order++)
+          ...clusters.where((cluster) => _order(cluster) == order),
+      ];
+    }
+    return MarkerLayer(
+      markers: [
+        for (final cluster in _clusters!)
+          if (cluster.isSingle)
+            Marker(
+              point: LatLng(
+                cluster.location.latitude,
+                cluster.location.longitude,
+              ),
+              width: 44,
+              height: 44,
+              alignment: Alignment.topCenter,
+              child: widget.pinBuilder(cluster.members.single),
+            )
+          else
+            Marker(
+              point: LatLng(
+                cluster.location.latitude,
+                cluster.location.longitude,
+              ),
+              width: MapClusterSeal.size,
+              height: MapClusterSeal.size,
+              child: _ClusterPin(
+                cluster: cluster,
+                onTap: () => widget.onCluster(cluster),
+              ),
+            ),
+      ],
+    );
+  }
+}
+
+class _ClusterPin extends StatelessWidget {
+  const _ClusterPin({required this.cluster, required this.onTap});
+
+  final PinCluster<MapPlace> cluster;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final members = cluster.members;
+    return GestureDetector(
+      onTap: onTap,
+      child: Semantics(
+        button: true,
+        label: AppLocalizations.of(context).mapClusterLabel(members.length),
+        child: MapClusterSeal(
+          count: members.length,
+          hasVisited: members.any((place) => place is VisitedPlace),
+          hasWish: members.any((place) => place is WishedPlace),
+        ),
+      ),
+    );
+  }
+}
+
+/// 地図の店の一覧。地図の真ん中から近い順に並べ、タップでその店へ寄って詳しく見せる。
+class _PlaceListSheet extends StatefulWidget {
+  const _PlaceListSheet({
+    required this.places,
+    required this.center,
+    required this.title,
+    required this.withFilters,
+    required this.onSelect,
+  });
+
+  final List<MapPlace> places;
+  final GeoPoint center;
+  final String title;
+  final bool withFilters;
+  final ValueChanged<MapPlace> onSelect;
+
+  @override
+  State<_PlaceListSheet> createState() => _PlaceListSheetState();
+}
+
+class _PlaceListSheetState extends State<_PlaceListSheet> {
+  var _filter = MapListFilter.all;
+
+  String _filterLabel(AppLocalizations l10n, MapListFilter filter) =>
+      switch (filter) {
+        MapListFilter.all => l10n.mapListFilterAll,
+        MapListFilter.visited => l10n.mapListFilterVisited,
+        MapListFilter.unvisited => l10n.mapListFilterUnvisited,
+        MapListFilter.wished => l10n.mapListFilterWished,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final list = mapPlaceList(
+      widget.places,
+      center: widget.center,
+      filter: _filter,
+    );
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.title, style: textTheme.titleLarge),
+            Text(l10n.mapListSortHint, style: textTheme.bodySmall),
+            if (widget.withFilters) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final filter in MapListFilter.values)
+                    ChoiceChip(
+                      label: Text(_filterLabel(l10n, filter)),
+                      selected: _filter == filter,
+                      onSelected: (_) => setState(() => _filter = filter),
+                    ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 8),
+            if (list.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(l10n.mapListEmpty),
+              ),
+            for (final place in list)
+              _PlaceRow(
+                place: place,
+                meters: distanceMeters(widget.center, place.location),
+                onTap: () {
+                  closeWashiSheet<void>(context);
+                  widget.onSelect(place);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlaceRow extends StatelessWidget {
+  const _PlaceRow({
+    required this.place,
+    required this.meters,
+    required this.onTap,
+  });
+
+  final MapPlace place;
+  final double meters;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final (head, status) = switch (place) {
+      VisitedPlace(:final pin) => (
+        MapSealHead(
+          color: pin.rank == null ? Washi.faded : Washi.shu,
+          filled: true,
+          size: 28,
+          label: switch (pin.rank) {
+            final rank? => shopRankLabel(l10n, rank),
+            null => null,
+          },
+        ),
+        [
+          l10n.mapListVisited,
+          if (pin.rank case final rank?)
+            l10n.mapShopRank(shopRankLabel(l10n, rank)),
+        ].join('・'),
+      ),
+      WishedPlace() => (
+        MapSealHead(
+          color: Washi.shu,
+          filled: false,
+          size: 28,
+          label: l10n.wishSealChar,
+        ),
+        l10n.mapWished,
+      ),
+      UnvisitedPlace() => (
+        const MapSealHead(color: Washi.faded, filled: true, size: 28),
+        l10n.mapUnvisited,
+      ),
+    };
+    final distance = meters < 1000
+        ? l10n.mapListMeters(meters.round())
+        : l10n.mapListKilometers((meters / 1000).toStringAsFixed(1));
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            head,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: place.name),
+                        if (place.isFamous)
+                          TextSpan(
+                            text: '　${l10n.mapFamous}',
+                            style: textTheme.labelMedium?.copyWith(
+                              color: Washi.shu,
+                            ),
+                          ),
+                      ],
+                    ),
+                    style: textTheme.titleMedium,
+                  ),
+                  Text(status, style: textTheme.bodySmall),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(distance, style: textTheme.bodyMedium),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UnvisitedDetails extends ConsumerWidget {
+  const _UnvisitedDetails({required this.shop, required this.here});
 
   final FoundShop shop;
   final GeoPoint? here;
@@ -566,82 +972,43 @@ class _UnvisitedPin extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final here = this.here;
-    return GestureDetector(
-      onTap: () => showWashiSheet<void>(
-        context: context,
-        builder: (context) => SafeArea(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(shop.name, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 8),
-                Text(l10n.mapUnvisited),
-                if (here != null)
-                  Text(
-                    l10n.mapDistanceFromHere(
-                      distanceMeters(here, shop.location).round(),
-                    ),
-                  ),
-                const SizedBox(height: 16),
-                AiFuda(
-                  icon: const Icon(Icons.bookmark_add),
-                  child: Text(l10n.wishMakeButton),
-                  onPressed: () {
-                    closeWashiSheet<void>(context);
-                    addWishFor(
-                      context,
-                      ref,
-                      ShopInput(
-                        osmId: shop.osmId,
-                        name: shop.name,
-                        latitude: shop.location.latitude,
-                        longitude: shop.location.longitude,
-                        dataSource: shop.dataSource,
-                      ),
-                    );
-                  },
+    return SafeArea(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(shop.name, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(l10n.mapUnvisited),
+            if (here != null)
+              Text(
+                l10n.mapDistanceFromHere(
+                  distanceMeters(here, shop.location).round(),
                 ),
-              ],
+              ),
+            const SizedBox(height: 16),
+            AiFuda(
+              icon: const Icon(Icons.bookmark_add),
+              child: Text(l10n.wishMakeButton),
+              onPressed: () {
+                closeWashiSheet<void>(context);
+                addWishFor(
+                  context,
+                  ref,
+                  ShopInput(
+                    osmId: shop.osmId,
+                    name: shop.name,
+                    latitude: shop.location.latitude,
+                    longitude: shop.location.longitude,
+                    dataSource: shop.dataSource,
+                  ),
+                );
+              },
             ),
-          ),
-        ),
-      ),
-      child: Semantics(
-        button: true,
-        label: shop.name,
-        child: const MapSealPin(color: Washi.faded, filled: true),
-      ),
-    );
-  }
-}
-
-class _Pin extends StatelessWidget {
-  const _Pin({required this.pin});
-
-  final ShopPin pin;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final rank = pin.rank;
-    return GestureDetector(
-      onTap: () => showWashiSheet<void>(
-        context: context,
-        builder: (_) => _PinDetails(pin: pin),
-      ),
-      child: Semantics(
-        button: true,
-        label: pin.shop.name,
-        // 丸い印の頭に格の字を入れ、細い足の先を店の場所にする（字が場所に重ならないように）。
-        // 行った店は朱で塗った印に、店ランク（良・秀・妙・極）の字を入れる。
-        child: MapSealPin(
-          color: rank == null ? Washi.faded : Washi.shu,
-          filled: true,
-          label: rank == null ? null : shopRankLabel(l10n, rank),
+          ],
         ),
       ),
     );
@@ -704,9 +1071,9 @@ class _PinDetails extends StatelessWidget {
   }
 }
 
-/// 願を掛けた（まだ行っていない）店。輪郭だけの朱のピンに「願」の字。
-class _WishPin extends StatelessWidget {
-  const _WishPin({required this.wish});
+/// 願を掛けた（まだ行っていない）店。
+class _WishDetails extends StatelessWidget {
+  const _WishDetails({required this.wish});
 
   final Wish wish;
 
@@ -714,35 +1081,21 @@ class _WishPin extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    return GestureDetector(
-      onTap: () => showWashiSheet<void>(
-        context: context,
-        builder: (context) => SafeArea(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(wish.name, style: textTheme.titleLarge),
-                const SizedBox(height: 8),
-                Text(l10n.mapWished),
-                if (wish.note.isNotEmpty) Text(wish.note),
-                if (wish.trigger.isNotEmpty)
-                  Text(l10n.wishTriggerLine(wish.trigger)),
-              ],
-            ),
-          ),
-        ),
-      ),
-      child: Semantics(
-        button: true,
-        label: l10n.mapWishedLabel(wish.name),
-        child: MapSealPin(
-          color: Washi.shu,
-          filled: false,
-          label: l10n.wishSealChar,
+    return SafeArea(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(wish.name, style: textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(l10n.mapWished),
+            if (wish.note.isNotEmpty) Text(wish.note),
+            if (wish.trigger.isNotEmpty)
+              Text(l10n.wishTriggerLine(wish.trigger)),
+          ],
         ),
       ),
     );
