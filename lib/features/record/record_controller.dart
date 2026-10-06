@@ -231,6 +231,7 @@ class RecordController extends Notifier<RecordState> {
       photoFromCamera: draft.photoFromCamera,
       photoDateFromPhoto: draft.photoDateFromPhoto,
       photoLocation: draft.photoLocation,
+      pinnedLocation: draft.pinnedLocation,
       // 店名を打っていたときは、並んでいる店の選択も外れていた。
       selectedShop:
           draft.selectedShop ?? (typedName ? null : state.selectedShop),
@@ -469,6 +470,10 @@ class RecordController extends Notifier<RecordState> {
     return [...wished, ...known].take(maxShopCandidates).toList();
   }
 
+  /// 手入力の店の場所を地図で指す。nullで外す。
+  void setPinnedLocation(GeoPoint? location) =>
+      state = state.copyWith(pinnedLocation: location);
+
   void setRating(int rating) => state = state.copyWith(rating: rating);
 
   void setStyle(RamenStyle? style) => state = state.copyWith(style: style);
@@ -567,13 +572,17 @@ class RecordController extends Notifier<RecordState> {
         wishId: selected.wishId,
       );
     }
-    // ギャラリーの写真は店にいるときに選んだとは限らないため、現在地を店の位置にしない。
-    // 写真に撮影場所があれば、そこを店の位置にする。
-    final here = draft.photoLocation ?? (draft.photoFromCamera ? _here : null);
+    // 地図で指した場所を最優先にする。ギャラリーの写真は店にいるときに選んだとは限らないため、
+    // 現在地を店の位置にしない。写真に撮影場所があれば、そこを店の位置にする。
+    final here =
+        draft.pinnedLocation ??
+        draft.photoLocation ??
+        (draft.photoFromCamera ? _here : null);
     return ShopInput(
       name: draft.manualName,
       latitude: here?.latitude,
       longitude: here?.longitude,
+      locationPinned: draft.pinnedLocation != null,
     );
   }
 }

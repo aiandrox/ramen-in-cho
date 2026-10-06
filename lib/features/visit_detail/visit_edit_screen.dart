@@ -143,6 +143,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
       longitude: picked.location?.longitude,
       dataSource: picked.dataSource,
       wishId: picked.wishId,
+      locationPinned: picked.locationPinned,
     );
   }
 

@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/safe_bottom.dart';
 import '../../theme/washi.dart';
 import '../checkin/checkin_rules.dart';
+import '../map/location_picker_screen.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
 import '../records/labels.dart';
@@ -485,6 +486,54 @@ class _PhotoButton extends StatelessWidget {
   }
 }
 
+/// 店名で見つからない店の場所を、地図で指す（指した場所が手入力の店の位置になる）。
+class _PinnedLocationLine extends ConsumerWidget {
+  const _PinnedLocationLine({required this.state});
+
+  final RecordState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final controller = ref.read(recordControllerProvider.notifier);
+    final pinned = state.pinnedLocation;
+    Future<void> pick() async {
+      final picked = await showLocationPicker(
+        context,
+        shopName: state.manualName.trim(),
+        initial: pinned ?? state.photoLocation,
+      );
+      if (picked != null) controller.setPinnedLocation(picked);
+    }
+
+    if (pinned == null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: FudeLink(
+          icon: const Icon(Icons.push_pin_outlined),
+          onPressed: pick,
+          child: Text(l10n.locationPickOpen),
+        ),
+      );
+    }
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
+      children: [
+        Text(
+          l10n.locationPicked,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        FudeLink(onPressed: pick, child: Text(l10n.locationPickRedo)),
+        FudeLink(
+          onPressed: () => controller.setPinnedLocation(null),
+          child: Text(l10n.locationPickClear),
+        ),
+      ],
+    );
+  }
+}
+
 class _ShopSection extends ConsumerWidget {
   const _ShopSection({
     required this.state,
@@ -604,6 +653,8 @@ class _ShopSection extends ConsumerWidget {
               },
             ),
           ),
+        if (state.manualName.trim().isNotEmpty)
+          _PinnedLocationLine(state: state),
       ],
     );
   }

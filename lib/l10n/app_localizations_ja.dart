@@ -1006,6 +1006,38 @@ class AppLocalizationsJa extends AppLocalizations {
   String get openInMapsFailed => '地図アプリを開けませんでした';
 
   @override
+  String get locationPickTitle => '店の場所を指す';
+
+  @override
+  String locationPickIntro(String name) {
+    return '地図を動かして、「$name」の場所に真ん中のピンの先を合わせてください。';
+  }
+
+  @override
+  String get locationPickUseCenter => 'ここを店の場所にする';
+
+  @override
+  String get locationPickCenterLabel => '地図の真ん中。ピンの先が店の場所になります';
+
+  @override
+  String get locationPickSealChar => '店';
+
+  @override
+  String get locationPickOpen => '地図で場所を指す';
+
+  @override
+  String get locationPicked => '場所: 地図で指定済み';
+
+  @override
+  String get locationPickRedo => '指し直す';
+
+  @override
+  String get locationPickClear => '外す';
+
+  @override
+  String get shopRelocate => '店の場所を直す';
+
+  @override
   String get yahooAttribution =>
       'Web Services by Yahoo! JAPAN（https://developer.yahoo.co.jp/sitemap/）';
 

@@ -15,7 +15,6 @@ import '../quests/quests.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
 import '../records/models.dart';
-import '../scoring/rank_labels.dart';
 import '../scoring/scoring_providers.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/location_service.dart';
@@ -24,10 +23,6 @@ import 'home_base_repository.dart';
 
 /// 拠点を選ぶときの地図の倍率。駅や街のあたりが見分けられる広さ。
 const homeBasePickZoom = 13.0;
-
-/// 拠点も行った店も現在地も無いときに見せる、日本全体。
-const _japanCenter = LatLng(36.5, 137.0);
-const _japanZoom = 5.0;
 
 /// 拠点を決める画面。地図を動かして真ん中の「拠」の場所にするか、現在地にする。決めたら true を返して閉じる。
 /// [editing]を渡すと、その拠点の場所を直す画面になる。
@@ -207,10 +202,10 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
                   mapController: _controller,
                   options: MapOptions(
                     initialCenter: current == null
-                        ? _japanCenter
+                        ? mapJapanCenter
                         : LatLng(current.latitude, current.longitude),
                     initialZoom: current == null
-                        ? _japanZoom
+                        ? mapJapanZoom
                         : homeBasePickZoom,
                     initialCameraFit: current != null || pins.isEmpty
                         ? null
@@ -245,23 +240,7 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
                               height: 24,
                               child: HomeBaseMapPin(base: current),
                             ),
-                          for (final pin in pins)
-                            Marker(
-                              point: LatLng(pin.latitude, pin.longitude),
-                              width: 44,
-                              height: 44,
-                              alignment: Alignment.topCenter,
-                              child: MapSealPin(
-                                color: pin.rank == null
-                                    ? Washi.faded
-                                    : Washi.shu,
-                                filled: true,
-                                label: switch (pin.rank) {
-                                  final rank? => shopRankLabel(l10n, rank),
-                                  null => null,
-                                },
-                              ),
-                            ),
+                          ...visitedShopMarkers(l10n, pins),
                           if (here != null)
                             Marker(
                               point: LatLng(here.latitude, here.longitude),

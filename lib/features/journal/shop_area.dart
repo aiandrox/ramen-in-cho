@@ -24,7 +24,12 @@ final ensureShopAreaProvider = FutureProvider.autoDispose.family<void, String>((
         .read(openPoiClientProvider)
         .areaAt(GeoPoint(latitude, longitude));
     // 地名が分からなかった店も、空の地名を残して何度も問い合わせないようにする。
-    await repository.setShopArea(shop.id, area ?? '');
+    await repository.setShopArea(
+      shop.id,
+      area ?? '',
+      latitude: latitude,
+      longitude: longitude,
+    );
   } catch (e) {
     debugPrint('Shop area lookup failed: $e');
   }

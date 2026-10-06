@@ -26,6 +26,7 @@ class RecordDraft {
     this.photoFromCamera = false,
     this.photoDateFromPhoto = false,
     this.photoLocation,
+    this.pinnedLocation,
     this.selectedShop,
     this.manualName = '',
     this.rating,
@@ -50,6 +51,7 @@ class RecordDraft {
       photoFromCamera: state.photoFromCamera,
       photoDateFromPhoto: state.photoDateFromPhoto,
       photoLocation: state.photoLocation,
+      pinnedLocation: state.pinnedLocation,
       selectedShop: identical(selected, state.checkinShop) ? null : selected,
       manualName: state.manualName,
       rating: state.rating,
@@ -69,6 +71,7 @@ class RecordDraft {
   final bool photoFromCamera;
   final bool photoDateFromPhoto;
   final GeoPoint? photoLocation;
+  final GeoPoint? pinnedLocation;
   final ShopCandidate? selectedShop;
   final String manualName;
   final int? rating;
@@ -100,6 +103,7 @@ class RecordDraft {
     photoFromCamera: photoFromCamera,
     photoDateFromPhoto: photoDateFromPhoto,
     photoLocation: photoLocation,
+    pinnedLocation: pinnedLocation,
     selectedShop: selectedShop,
     manualName: manualName,
     rating: rating,
@@ -116,6 +120,7 @@ class RecordDraft {
     photoFromCamera: path != null && photoFromCamera,
     photoDateFromPhoto: path != null && photoDateFromPhoto,
     photoLocation: path == null ? null : photoLocation,
+    pinnedLocation: pinnedLocation,
     selectedShop: selectedShop,
     manualName: manualName,
     rating: rating,
@@ -135,6 +140,7 @@ class RecordDraft {
     'photoFromCamera': photoFromCamera,
     'photoDateFromPhoto': photoDateFromPhoto,
     'photoLocation': _geoToJson(photoLocation),
+    'pinnedLocation': _geoToJson(pinnedLocation),
     'selectedShop': _shopToJson(selectedShop),
     'manualName': manualName,
     'rating': rating,
@@ -166,6 +172,7 @@ class RecordDraft {
       photoFromCamera: json['photoFromCamera'] == true,
       photoDateFromPhoto: json['photoDateFromPhoto'] == true,
       photoLocation: _geoFromJson(json['photoLocation']),
+      pinnedLocation: _geoFromJson(json['pinnedLocation']),
       selectedShop: _shopFromJson(json['selectedShop']),
       manualName: _string(json['manualName']) ?? '',
       rating: rating != null && rating >= 1 && rating <= 5 ? rating : null,

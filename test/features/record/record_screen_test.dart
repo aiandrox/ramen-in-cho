@@ -1,12 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_controller.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
+import 'package:ramen_in_cho/features/map/location_picker_screen.dart';
+import 'package:ramen_in_cho/features/map/washi_map.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
 import 'package:ramen_in_cho/features/record/record_draft.dart';
@@ -57,6 +61,7 @@ void main() {
             FakePhotoMetadataReader(),
           ),
           recordDraftStoreProvider.overrideWithValue(drafts),
+          mapTilesEnabledProvider.overrideWithValue(false),
         ],
         child: localizedApp(
           home: Builder(
@@ -163,6 +168,66 @@ void main() {
 
     final saveButton = find.widgetWithText(AiFuda, ja.save);
     expect(tester.widget<AiFuda>(saveButton).onPressed, isNotNull);
+  });
+
+  testWidgets('店名を手入力して地図で場所を指すと、その場所の店として保存する', (tester) async {
+    overpass.shops = const [];
+    await pumpScreen(tester);
+
+    expect(find.text(ja.locationPickOpen), findsNothing);
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.shopNameLabel),
+      '路地裏の麺屋',
+    );
+    await tester.pump();
+    await tester.tap(find.text(ja.locationPickOpen));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LocationPickerScreen), findsOneWidget);
+    tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!
+        .move(const LatLng(43.0687, 141.3508), locationPickZoom);
+    await tester.pump();
+    await tester.tap(find.text(ja.locationPickUseCenter));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.locationPicked), findsOneWidget);
+
+    await tester.runAsync(() async {
+      await tester.tap(find.widgetWithText(AiFuda, ja.save));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final shop = (await tester.runAsync(
+      () => RecordRepository(database).allShops(),
+    ))!.single;
+    expect(shop.name, '路地裏の麺屋');
+    expect(shop.osmId, isNull);
+    expect(shop.latitude, closeTo(43.0687, 1e-6));
+    expect(shop.longitude, closeTo(141.3508, 1e-6));
+  });
+
+  testWidgets('地図で指した場所は外せる', (tester) async {
+    overpass.shops = const [];
+    await pumpScreen(tester);
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.shopNameLabel),
+      '路地裏の麺屋',
+    );
+    await tester.pump();
+    await tester.tap(find.text(ja.locationPickOpen));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ja.locationPickUseCenter));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(ja.locationPickClear));
+    await tester.pump();
+
+    expect(find.text(ja.locationPicked), findsNothing);
+    expect(find.text(ja.locationPickOpen), findsOneWidget);
   });
 
   Future<void> typeShopAndBack(WidgetTester tester) async {

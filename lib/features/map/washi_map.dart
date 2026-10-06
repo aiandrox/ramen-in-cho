@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi.dart';
 import '../records/models.dart';
+import '../scoring/rank_labels.dart';
+import 'shop_pins.dart';
 
 /// 地図の画像は OpenStreetMap のタイルサーバーから取る。送るのは表示範囲だけ（issue #8）。
 const _tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+/// 拠点も行った店も現在地も無いときに見せる、日本全体。
+const mapJapanCenter = LatLng(36.5, 137.0);
+const mapJapanZoom = 5.0;
 
 /// テストでは地図の画像を取りに行かないよう、falseに差し替える。
 final mapTilesEnabledProvider = Provider<bool>((ref) => true);
@@ -154,3 +161,22 @@ class MapSealPin extends StatelessWidget {
     );
   }
 }
+
+/// 場所を選ぶ地図で、目印に出す行った店の印（地図のタブと同じ。押せない）。
+List<Marker> visitedShopMarkers(AppLocalizations l10n, List<ShopPin> pins) => [
+  for (final pin in pins)
+    Marker(
+      point: LatLng(pin.latitude, pin.longitude),
+      width: 44,
+      height: 44,
+      alignment: Alignment.topCenter,
+      child: MapSealPin(
+        color: pin.rank == null ? Washi.faded : Washi.shu,
+        filled: true,
+        label: switch (pin.rank) {
+          final rank? => shopRankLabel(l10n, rank),
+          null => null,
+        },
+      ),
+    ),
+];

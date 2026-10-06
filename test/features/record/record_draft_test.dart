@@ -19,6 +19,7 @@ void main() {
     photoTakenAt: DateTime(2026, 10, 5, 12, 30),
     photoFromCamera: true,
     photoLocation: const GeoPoint(35.1, 139.2),
+    pinnedLocation: const GeoPoint(43.0687, 141.3508),
     selectedShop: const ShopCandidate(
       osmId: 'node/1',
       name: '麺屋テスト',
@@ -46,6 +47,7 @@ void main() {
     expect(decoded.photoFromCamera, isTrue);
     expect(decoded.photoDateFromPhoto, isFalse);
     expect(decoded.photoLocation?.latitude, 35.1);
+    expect(decoded.pinnedLocation?.longitude, 141.3508);
     final shop = decoded.selectedShop!;
     expect(shop.osmId, 'node/1');
     expect(shop.name, '麺屋テスト');
