@@ -58,7 +58,7 @@ class InkanStamp extends StatelessWidget {
     final date = kanjiEraDate(l10n, visit.eatenAt);
     final isRetreat = shape == InkanShape.retreat;
     final prefecture = scored.prefecture;
-    final region = prefecture == null ? null : regionOf(prefecture);
+    final frame = prefecture == null ? null : sealFrameFor(prefecture);
     final color = switch (shape) {
       InkanShape.retreat => Washi.faded,
       InkanShape.filled => Washi.page,
@@ -171,7 +171,7 @@ class InkanStamp extends StatelessWidget {
           size * (shape == InkanShape.square ? 0.6 : 0.5),
           Text(date, style: small, maxLines: 2, textAlign: TextAlign.center),
         ),
-        if (prefecture != null && region != null)
+        if (prefecture != null && frame != null)
           _fit(
             size * 0.4,
             Text(
@@ -195,16 +195,16 @@ class InkanStamp extends StatelessWidget {
             child: SizedBox.square(
               dimension: size,
               child: CustomPaint(
-                painter: region == null
+                painter: frame == null
                     ? _InkanPainter(shape)
-                    : RegionalInkanPainter(region, shape),
+                    : RegionalInkanPainter(frame, shape),
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Padding(
                     // 丸い印は上下に余裕があるので、格の字を足しても他の字は小さくしない。
                     padding: EdgeInsets.symmetric(
-                      horizontal: size * (region == null ? 0.08 : 0.16),
-                      vertical: size * (region == null ? 0.04 : 0.18),
+                      horizontal: size * (frame == null ? 0.08 : 0.16),
+                      vertical: size * (frame == null ? 0.04 : 0.18),
                     ),
                     child: content,
                   ),
@@ -378,9 +378,9 @@ class _InkanPainter extends CustomPainter {
 
 /// 地方の外枠に、格の飾り（良＝細い枠・秀＝二重枠と点の輪・妙＝三重枠と点線と四隅の菱形・極＝朱塗りと金の輪）を重ねる。
 class RegionalInkanPainter extends CustomPainter {
-  const RegionalInkanPainter(this.region, this.shape);
+  const RegionalInkanPainter(this.frame, this.shape);
 
-  final Region region;
+  final SealFrame frame;
   final InkanShape shape;
 
   @override
@@ -388,8 +388,8 @@ class RegionalInkanPainter extends CustomPainter {
     final center = size.center(Offset.zero);
     final radius = size.shortestSide / 2;
     final stroke = radius * 0.07;
-    Path frame(double scale) =>
-        regionFramePath(region, center, radius, scale: scale);
+    Path outline(double scale) =>
+        sealFramePath(frame, center, radius, scale: scale);
     Paint line(Color color, double width) => Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = width
@@ -400,7 +400,7 @@ class RegionalInkanPainter extends CustomPainter {
     // 外枠に沿って、[count]個の点を等しい間隔で並べる。
     Path dotsAlong(double scale, int count, double dotRadius) {
       final dots = Path();
-      final metric = frame(scale).computeMetrics().first;
+      final metric = outline(scale).computeMetrics().first;
       for (var i = 0; i < count; i++) {
         final tangent = metric.getTangentForOffset(
           metric.length * (i + 0.5) / count,
@@ -415,16 +415,16 @@ class RegionalInkanPainter extends CustomPainter {
 
     switch (shape) {
       case InkanShape.circle:
-        canvas.drawPath(frame(0.97), line(Washi.shu, stroke * 1.7));
+        canvas.drawPath(outline(0.97), line(Washi.shu, stroke * 1.7));
       case InkanShape.doubleCircle:
-        canvas.drawPath(frame(0.99), line(Washi.shu, stroke));
-        canvas.drawPath(frame(0.83), line(Washi.shu, stroke * 0.6));
+        canvas.drawPath(outline(0.99), line(Washi.shu, stroke));
+        canvas.drawPath(outline(0.83), line(Washi.shu, stroke * 0.6));
         canvas.drawPath(dotsAlong(0.91, 28, stroke * 0.38), fill());
       case InkanShape.square:
-        canvas.drawPath(frame(0.99), line(Washi.shu, stroke * 1.2));
-        canvas.drawPath(frame(0.88), line(Washi.shu, stroke * 0.55));
+        canvas.drawPath(outline(0.99), line(Washi.shu, stroke * 1.2));
+        canvas.drawPath(outline(0.88), line(Washi.shu, stroke * 0.55));
         final dashes = Path();
-        final metric = frame(0.8).computeMetrics().first;
+        final metric = outline(0.8).computeMetrics().first;
         const steps = 48;
         for (var i = 0; i < steps; i++) {
           dashes.addPath(
@@ -439,7 +439,7 @@ class RegionalInkanPainter extends CustomPainter {
         final diamonds = Path();
         final d = stroke * 1.4;
         for (final turn in [0.125, 0.375, 0.625, 0.875]) {
-          final c = regionFramePoint(region, center, radius, turn, 0.99);
+          final c = sealFramePoint(frame, center, radius, turn, 0.99);
           diamonds
             ..moveTo(c.dx, c.dy - d)
             ..lineTo(c.dx + d, c.dy)
@@ -449,21 +449,24 @@ class RegionalInkanPainter extends CustomPainter {
         }
         canvas.drawPath(diamonds, fill());
       case InkanShape.filled:
-        canvas.drawPath(frame(0.95), fill());
+        canvas.drawPath(outline(0.95), fill());
         canvas.drawPath(
-          frame(0.88),
+          outline(0.88),
           line(const Color(0xFFE8C77A), stroke * 0.45),
         );
-        canvas.drawPath(frame(0.81), line(Washi.page, stroke * 0.3));
+        canvas.drawPath(outline(0.81), line(Washi.page, stroke * 0.3));
         canvas.drawPath(dotsAlong(1.04, 32, stroke * 0.34), fill());
       case InkanShape.retreat:
-        canvas.drawPath(frame(0.99), fill(Washi.faded.withValues(alpha: 0.85)));
+        canvas.drawPath(
+          outline(0.99),
+          fill(Washi.faded.withValues(alpha: 0.85)),
+        );
     }
   }
 
   @override
   bool shouldRepaint(RegionalInkanPainter oldDelegate) =>
-      oldDelegate.region != region || oldDelegate.shape != shape;
+      oldDelegate.frame != frame || oldDelegate.shape != shape;
 }
 
 /// まだ食べていない都道府県の印の場所（薄い外枠に短い名前）。
@@ -479,11 +482,11 @@ class BlankPrefectureSeal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final region = regionOf(prefecture);
+    final frame = sealFrameFor(prefecture);
     return SizedBox.square(
       dimension: size,
       child: CustomPaint(
-        painter: region == null ? null : _BlankFramePainter(region),
+        painter: frame == null ? null : _BlankFramePainter(frame),
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(size * 0.18),
@@ -506,15 +509,15 @@ class BlankPrefectureSeal extends StatelessWidget {
 }
 
 class _BlankFramePainter extends CustomPainter {
-  const _BlankFramePainter(this.region);
+  const _BlankFramePainter(this.frame);
 
-  final Region region;
+  final SealFrame frame;
 
   @override
   void paint(Canvas canvas, Size size) {
     final radius = size.shortestSide / 2;
     canvas.drawPath(
-      regionFramePath(region, size.center(Offset.zero), radius, scale: 0.97),
+      sealFramePath(frame, size.center(Offset.zero), radius, scale: 0.97),
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = radius * 0.05
@@ -524,7 +527,7 @@ class _BlankFramePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BlankFramePainter oldDelegate) =>
-      oldDelegate.region != region;
+      oldDelegate.frame != frame;
 }
 
 /// 段位の印（四角い朱の枠に段位の名前）。

@@ -65,12 +65,23 @@ void main() {
     expect(shortPrefectureName('北海道'), '北海道');
   });
 
-  test('地方の外枠は、どの向きでも印の箱に収まる', () {
-    for (final region in Region.values) {
+  test('東京都だけは関東と別の外枠にし、ほかの関東の県は関東の外枠のまま', () {
+    expect(sealFrameFor('東京都'), SealFrame.tokyo);
+    expect(sealFrameFor('神奈川県'), SealFrame.kanto);
+    expect(sealFrameFor('茨城県'), SealFrame.kanto);
+    expect(sealFrameFor('京都府'), SealFrame.kinki);
+    expect(sealFrameFor('ソウル'), isNull);
+    // 印帳の分類と地方は、東京も関東のまま。
+    expect(regionOf('東京都'), Region.kanto);
+    expect(prefecturesIn(Region.kanto), contains('東京都'));
+  });
+
+  test('印の外枠は、どの向きでも印の箱に収まる', () {
+    for (final frame in SealFrame.values) {
       for (var i = 0; i < 360; i++) {
         final angle = i * math.pi / 180;
-        final r = regionFrameRadius(region, angle);
-        expect(r, greaterThan(0.6), reason: '$region $i°');
+        final r = sealFrameRadius(frame, angle);
+        expect(r, greaterThan(0.6), reason: '$frame $i°');
         // 印の箱は四角なので、縦と横の幅で確かめる。
         expect((r * math.cos(angle)).abs(), lessThanOrEqualTo(0.95));
         expect((r * math.sin(angle)).abs(), lessThanOrEqualTo(0.95));

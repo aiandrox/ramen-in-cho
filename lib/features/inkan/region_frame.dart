@@ -3,9 +3,35 @@ import 'dart:ui';
 
 import '../prefecture/regions.dart';
 
-/// 地方の印の外枠。中心から見た向き（右が0、反時計回り）ごとの、半径に対する長さで形を決める。
+/// 印の外枠の形。地方ごとの形に、東京だけの形を足す（印帳の分類は地方のまま）。
+enum SealFrame {
+  hokkaido,
+  tohoku,
+  kanto,
+  tokyo,
+  koshinetsu,
+  hokuriku,
+  tokai,
+  kinki,
+  chugoku,
+  shikoku,
+  kyushu,
+  okinawa;
+
+  factory SealFrame.ofRegion(Region region) =>
+      SealFrame.values.byName(region.name);
+}
+
+/// 都道府県の印の外枠。東京都だけは関東の角印と分ける。都道府県がわからなければ null。
+SealFrame? sealFrameFor(String prefecture) {
+  if (prefecture == '東京都') return SealFrame.tokyo;
+  final region = regionOf(prefecture);
+  return region == null ? null : SealFrame.ofRegion(region);
+}
+
+/// 印の外枠。中心から見た向き（右が0、反時計回り）ごとの、半径に対する長さで形を決める。
 /// どの形も縦横 0.95 を超えないので、少し外に点を散らしても印の箱からはみ出さない。
-double regionFrameRadius(Region region, double angle) {
+double sealFrameRadius(SealFrame frame, double angle) {
   final c = math.cos(angle);
   final s = math.sin(angle);
   double superEllipse(double n) =>
@@ -17,29 +43,32 @@ double regionFrameRadius(Region region, double angle) {
     return math.max(0, 1 - d / width);
   }
 
-  switch (region) {
+  switch (frame) {
     // 北海道: 雪の結晶のような、角を上にした六角。
-    case Region.hokkaido:
+    case SealFrame.hokkaido:
       const side = math.pi / 3;
       final local = ((angle - math.pi / 2) % side + side) % side - side / 2;
       return 0.93 * math.cos(side / 2) / math.cos(local);
     // 東北: 米粒のような、縦長の楕円。
-    case Region.tohoku:
+    case SealFrame.tohoku:
       const a = 0.8;
       const b = 0.94;
       return a * b / math.sqrt(math.pow(b * c, 2) + math.pow(a * s, 2));
     // 関東: 角印（角の丸い四角）。
-    case Region.kanto:
+    case SealFrame.kanto:
       return 0.86 * superEllipse(7);
+    // 東京: 江戸の家紋の「隅入り角」（四隅を丸くえぐった角印）。
+    case SealFrame.tokyo:
+      return _cornerNotchedSquare(c, s, half: 0.86, notch: 0.3);
     // 甲信越: 上に三つの山を持つ、角の丸い四角。
-    case Region.koshinetsu:
+    case SealFrame.koshinetsu:
       final base = 0.76 * superEllipse(6);
       return base +
           0.17 * peak(math.pi / 2, 0.38) +
           0.08 * peak(math.pi / 2 + 0.62, 0.3) +
           0.08 * peak(math.pi / 2 - 0.62, 0.3);
     // 北陸: 雪輪（六つの丸い切れ込みのある輪）。
-    case Region.hokuriku:
+    case SealFrame.hokuriku:
       var dip = 0.0;
       for (var i = 0; i < 6; i++) {
         var d = (angle - math.pi / 2 - i * math.pi / 3).abs() % (2 * math.pi);
@@ -48,27 +77,45 @@ double regionFrameRadius(Region region, double angle) {
       }
       return 0.93 - 0.2 * dip;
     // 東海: 富士の稜線（裾の広い台形の山に、平らな頂）。
-    case Region.tokai:
+    case SealFrame.tokai:
       return _convexRadius(_fuji, c, s);
     // 近畿: 瓦（下は角、上は丸い）。
-    case Region.kinki:
+    case SealFrame.kinki:
       return s >= 0 ? 0.86 : 0.86 * superEllipse(7);
     // 中国: 瀬戸内の波（細かくうねる輪）。
-    case Region.chugoku:
+    case SealFrame.chugoku:
       return 0.88 + 0.04 * math.sin(14 * angle);
     // 四国: 四つ割り（上下左右に切れ込みのある輪）。
-    case Region.shikoku:
+    case SealFrame.shikoku:
       final notch = [for (var i = 0; i < 4; i++) peak(i * math.pi / 2, 0.16)]
           .reduce(math.max);
       return 0.92 - 0.13 * notch;
     // 九州: 椿（上に一枚を向けた、五枚の丸い花びら）。
-    case Region.kyushu:
+    case SealFrame.kyushu:
       final petal = (1 + math.cos(5 * (angle - math.pi / 2))) / 2;
       return 0.7 + 0.24 * math.pow(petal, 0.5);
     // 沖縄: 南国の花（デイゴ。八枚の花びら）。
-    case Region.okinawa:
+    case SealFrame.okinawa:
       return 0.78 + 0.15 * math.pow((math.cos(4 * angle)).abs(), 0.7);
   }
+}
+
+/// 半辺[half]の四角の四隅を、隅を中心とした半径[notch]の円でえぐった形の、向き(c, s)の縁までの長さ。
+double _cornerNotchedSquare(
+  double c,
+  double s, {
+  required double half,
+  required double notch,
+}) {
+  final square = half / math.max(c.abs(), s.abs());
+  // 向きに近い隅だけを見ればよい。
+  final cx = c < 0 ? -half : half;
+  final cy = s < 0 ? -half : half;
+  final along = c * cx + s * cy;
+  final disc = along * along - (cx * cx + cy * cy) + notch * notch;
+  if (disc < 0) return square;
+  final enter = along - math.sqrt(disc);
+  return enter > 0 && enter < square ? enter : square;
 }
 
 /// 富士の形の辺（外向きの法線と、中心からの距離）。
@@ -113,15 +160,15 @@ double _convexRadius(List<(double, double, double)> edges, double c, double s) {
 const _samples = 240;
 
 /// 外枠を[scale]倍にした形。[center]と[radius]は印の中心と半径（箱の半分）。
-Path regionFramePath(
-  Region region,
+Path sealFramePath(
+  SealFrame frame,
   Offset center,
   double radius, {
   double scale = 1,
 }) {
   final path = Path();
   for (var i = 0; i < _samples; i++) {
-    final point = regionFramePoint(region, center, radius, i / _samples, scale);
+    final point = sealFramePoint(frame, center, radius, i / _samples, scale);
     if (i == 0) {
       path.moveTo(point.dx, point.dy);
     } else {
@@ -132,14 +179,14 @@ Path regionFramePath(
 }
 
 /// 外枠の上の点。[turn]は真上から時計回りに一周を1とした位置。
-Offset regionFramePoint(
-  Region region,
+Offset sealFramePoint(
+  SealFrame frame,
   Offset center,
   double radius,
   double turn,
   double scale,
 ) {
   final angle = math.pi / 2 - 2 * math.pi * turn;
-  final r = regionFrameRadius(region, angle) * radius * scale;
+  final r = sealFrameRadius(frame, angle) * radius * scale;
   return center + Offset(math.cos(angle), -math.sin(angle)) * r;
 }

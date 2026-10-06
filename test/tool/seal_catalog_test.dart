@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ramen_in_cho/features/inkan/inkan_stamp.dart';
+import 'package:ramen_in_cho/features/inkan/region_frame.dart';
 import 'package:ramen_in_cho/features/prefecture/regions.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/scoring/points.dart';
@@ -31,18 +32,25 @@ const _sources = [
   'lib/features/prefecture/regions.dart',
 ];
 
-const _regions = <Region, (String, String, String)>{
-  Region.hokkaido: ('北海道', '雪の結晶のような、角を上にした六角', '北海道'),
-  Region.tohoku: ('東北', '米粒のような縦長の楕円', '宮城県'),
-  Region.kanto: ('関東', '角印（角の丸い四角）', '東京都'),
-  Region.koshinetsu: ('甲信越', '上に三つの山を持つ四角', '長野県'),
-  Region.hokuriku: ('北陸', '雪輪（六つの丸い切れ込みのある輪）', '石川県'),
-  Region.tokai: ('東海', '富士の稜線（裾の広い山形に平らな頂）', '静岡県'),
-  Region.kinki: ('近畿', '瓦（下は角、上は丸い）', '京都府'),
-  Region.chugoku: ('中国', '瀬戸内の波（細かくうねる輪）', '広島県'),
-  Region.shikoku: ('四国', '四つ割り（上下左右に切れ込みのある輪）', '香川県'),
-  Region.kyushu: ('九州', '椿（五枚の丸い花びら）', '福岡県'),
-  Region.okinawa: ('沖縄', '南国の花（デイゴ。八枚の花びら）', '沖縄県'),
+/// 外枠ごとの（名前、形、都道府県、見本の都道府県）。
+const _frames = <SealFrame, (String, String, String, String)>{
+  SealFrame.hokkaido: ('北海道', '雪の結晶のような、角を上にした六角', '北海道', '北海道'),
+  SealFrame.tohoku: ('東北', '米粒のような縦長の楕円', '青森県・岩手県・宮城県・秋田県・山形県・福島県', '宮城県'),
+  SealFrame.kanto: ('関東', '角印（角の丸い四角）', '茨城県・栃木県・群馬県・埼玉県・千葉県・神奈川県', '神奈川県'),
+  SealFrame.tokyo: ('東京', '隅入り角（江戸の家紋の、四隅を丸くえぐった角印）。印帳では関東に入る', '東京都', '東京都'),
+  SealFrame.koshinetsu: ('甲信越', '上に三つの山を持つ四角', '新潟県・山梨県・長野県', '長野県'),
+  SealFrame.hokuriku: ('北陸', '雪輪（六つの丸い切れ込みのある輪）', '富山県・石川県・福井県', '石川県'),
+  SealFrame.tokai: ('東海', '富士の稜線（裾の広い山形に平らな頂）', '岐阜県・静岡県・愛知県・三重県', '静岡県'),
+  SealFrame.kinki: ('近畿', '瓦（下は角、上は丸い）', '滋賀県・京都府・大阪府・兵庫県・奈良県・和歌山県', '京都府'),
+  SealFrame.chugoku: ('中国', '瀬戸内の波（細かくうねる輪）', '鳥取県・島根県・岡山県・広島県・山口県', '広島県'),
+  SealFrame.shikoku: ('四国', '四つ割り（上下左右に切れ込みのある輪）', '徳島県・香川県・愛媛県・高知県', '香川県'),
+  SealFrame.kyushu: (
+    '九州',
+    '椿（五枚の丸い花びら）',
+    '福岡県・佐賀県・長崎県・熊本県・大分県・宮崎県・鹿児島県',
+    '福岡県',
+  ),
+  SealFrame.okinawa: ('沖縄', '南国の花（デイゴ。八枚の花びら）', '沖縄県', '沖縄県'),
 };
 
 /// 格ごとの見本の修行点（良・秀・妙・極の境の内側）。
@@ -63,7 +71,7 @@ String catalogMarkdown() {
   final buffer = StringBuffer()
     ..writeln('# 地方の印')
     ..writeln()
-    ..writeln('1杯ごとの印の外枠は、店のある都道府県の地方で形が変わる。管理用。')
+    ..writeln('1杯ごとの印の外枠は、店のある都道府県の地方で形が変わる（東京都だけは関東と別の形）。管理用。')
     ..writeln()
     ..writeln(
       '- 外枠は `lib/features/inkan/region_frame.dart`、格の飾りは `lib/features/inkan/inkan_stamp.dart` の `RegionalInkanPainter`',
@@ -80,13 +88,10 @@ String catalogMarkdown() {
     ..writeln()
     ..writeln('![地方の印の見本帳](catalog.png)')
     ..writeln()
-    ..writeln('| 地方 | 外枠 | 都道府県 | 見本 |')
+    ..writeln('| 外枠 | 形 | 都道府県 | 見本 |')
     ..writeln('|---|---|---|---|');
-  for (final MapEntry(key: region, value: (name, frame, sample))
-      in _regions.entries) {
-    buffer.writeln(
-      '| $name | $frame | ${prefecturesIn(region).join('・')} | $sample |',
-    );
+  for (final (name, shape, prefectures, sample) in _frames.values) {
+    buffer.writeln('| $name | $shape | $prefectures | $sample |');
   }
   buffer
     ..writeln()
@@ -144,8 +149,8 @@ Widget _catalog() {
             label('まだ'),
           ],
         ),
-        for (final MapEntry(key: region, value: (name, _, sample))
-            in _regions.entries)
+        for (final MapEntry(key: frame, value: (name, _, _, sample))
+            in _frames.entries)
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -161,7 +166,7 @@ Widget _catalog() {
                 InkanStamp(
                   scored: ScoredVisit(
                     visit: buildVisit(
-                      id: 'seal-$region-retreat',
+                      id: 'seal-$frame-retreat',
                       result: VisitResult.retreated,
                       eatenAt: DateTime(2026, 10, 6, 12),
                     ),
@@ -174,12 +179,7 @@ Widget _catalog() {
                   size: 96,
                 ),
               ),
-              cell(
-                BlankPrefectureSeal(
-                  prefecture: prefecturesIn(region).last,
-                  size: 80,
-                ),
-              ),
+              cell(BlankPrefectureSeal(prefecture: sample, size: 80)),
             ],
           ),
       ],
@@ -188,6 +188,20 @@ Widget _catalog() {
 }
 
 void main() {
+  test('見本帳の外枠ごとの都道府県が、外枠の決め方と合っている', () {
+    expect(_frames.keys, unorderedEquals(SealFrame.values));
+    for (final MapEntry(key: frame, value: (_, _, prefectures, sample))
+        in _frames.entries) {
+      for (final name in prefectures.split('・')) {
+        expect(sealFrameFor(name), frame, reason: name);
+      }
+      expect(sealFrameFor(sample), frame);
+    }
+    expect([
+      for (final (_, _, p, _) in _frames.values) ...p.split('・'),
+    ], unorderedEquals(prefectureNames));
+  });
+
   test('11の地方に、47都道府県がもれなく1回ずつ入る', () {
     expect(Region.values, hasLength(11));
     final all = [for (final region in Region.values) ...prefecturesIn(region)];
@@ -197,7 +211,7 @@ void main() {
 
   testWidgets('地方の印の見本帳が、印の描き方と合っている', (tester) async {
     final readme = File('$_dir/README.md');
-    tester.view.physicalSize = const Size(900, 1100) * 2;
+    tester.view.physicalSize = const Size(900, 1220) * 2;
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     if (_update) {
