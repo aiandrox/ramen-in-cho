@@ -925,34 +925,41 @@ class _PlaceRow extends StatelessWidget {
     final distance = meters < 1000
         ? l10n.mapListMeters(meters.round())
         : l10n.mapListKilometers((meters / 1000).toStringAsFixed(1));
+    // 店名の長さや印の字に関わらず、どの行も同じ高さにそろえる。
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SizedBox(
+        height: 60,
         child: Row(
           children: [
-            head,
+            SizedBox.square(dimension: 32, child: Center(child: head)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    place.name,
+                    style: textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   Text.rich(
                     TextSpan(
                       children: [
-                        TextSpan(text: place.name),
                         if (place.isFamous)
                           TextSpan(
-                            text: '　${l10n.mapFamous}',
-                            style: textTheme.labelMedium?.copyWith(
-                              color: Washi.shu,
-                            ),
+                            text: '${l10n.mapFamous}・',
+                            style: TextStyle(color: Washi.shu),
                           ),
+                        TextSpan(text: status),
                       ],
                     ),
-                    style: textTheme.titleMedium,
+                    style: textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  Text(status, style: textTheme.bodySmall),
                 ],
               ),
             ),
