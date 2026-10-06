@@ -36,16 +36,23 @@ void main() {
     expect(regionOf('福島県'), Region.tohoku);
     expect(regionOf('茨城県'), Region.kanto);
     expect(regionOf('神奈川県'), Region.kanto);
-    expect(regionOf('新潟県'), Region.chubu);
-    expect(regionOf('愛知県'), Region.chubu);
-    expect(regionOf('三重県'), Region.kinki);
+    expect(regionOf('新潟県'), Region.koshinetsu);
+    expect(regionOf('山梨県'), Region.koshinetsu);
+    expect(regionOf('長野県'), Region.koshinetsu);
+    expect(regionOf('富山県'), Region.hokuriku);
+    expect(regionOf('福井県'), Region.hokuriku);
+    expect(regionOf('岐阜県'), Region.tokai);
+    expect(regionOf('静岡県'), Region.tokai);
+    expect(regionOf('三重県'), Region.tokai);
+    expect(regionOf('滋賀県'), Region.kinki);
     expect(regionOf('和歌山県'), Region.kinki);
     expect(regionOf('鳥取県'), Region.chugoku);
     expect(regionOf('山口県'), Region.chugoku);
     expect(regionOf('徳島県'), Region.shikoku);
     expect(regionOf('高知県'), Region.shikoku);
     expect(regionOf('福岡県'), Region.kyushu);
-    expect(regionOf('沖縄県'), Region.kyushu);
+    expect(regionOf('鹿児島県'), Region.kyushu);
+    expect(regionOf('沖縄県'), Region.okinawa);
     expect(regionOf('ソウル'), isNull);
   });
 

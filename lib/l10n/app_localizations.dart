@@ -2410,11 +2410,23 @@ abstract class AppLocalizations {
   /// **'関東'**
   String get prefectureBookRegionKanto;
 
-  /// No description provided for @prefectureBookRegionChubu.
+  /// No description provided for @prefectureBookRegionKoshinetsu.
   ///
   /// In ja, this message translates to:
-  /// **'中部'**
-  String get prefectureBookRegionChubu;
+  /// **'甲信越'**
+  String get prefectureBookRegionKoshinetsu;
+
+  /// No description provided for @prefectureBookRegionHokuriku.
+  ///
+  /// In ja, this message translates to:
+  /// **'北陸'**
+  String get prefectureBookRegionHokuriku;
+
+  /// No description provided for @prefectureBookRegionTokai.
+  ///
+  /// In ja, this message translates to:
+  /// **'東海'**
+  String get prefectureBookRegionTokai;
 
   /// No description provided for @prefectureBookRegionKinki.
   ///
@@ -2437,8 +2449,14 @@ abstract class AppLocalizations {
   /// No description provided for @prefectureBookRegionKyushu.
   ///
   /// In ja, this message translates to:
-  /// **'九州・沖縄'**
+  /// **'九州'**
   String get prefectureBookRegionKyushu;
+
+  /// No description provided for @prefectureBookRegionOkinawa.
+  ///
+  /// In ja, this message translates to:
+  /// **'沖縄'**
+  String get prefectureBookRegionOkinawa;
 
   /// No description provided for @prefectureBookFirst.
   ///

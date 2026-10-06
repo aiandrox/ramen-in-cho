@@ -1343,7 +1343,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get prefectureBookRegionKanto => '関東';
 
   @override
-  String get prefectureBookRegionChubu => '中部';
+  String get prefectureBookRegionKoshinetsu => '甲信越';
+
+  @override
+  String get prefectureBookRegionHokuriku => '北陸';
+
+  @override
+  String get prefectureBookRegionTokai => '東海';
 
   @override
   String get prefectureBookRegionKinki => '近畿';
@@ -1355,7 +1361,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get prefectureBookRegionShikoku => '四国';
 
   @override
-  String get prefectureBookRegionKyushu => '九州・沖縄';
+  String get prefectureBookRegionKyushu => '九州';
+
+  @override
+  String get prefectureBookRegionOkinawa => '沖縄';
 
   @override
   String prefectureBookFirst(String date) {

@@ -31,13 +31,25 @@ double regionFrameRadius(Region region, double angle) {
     // 関東: 角印（角の丸い四角）。
     case Region.kanto:
       return 0.86 * superEllipse(7);
-    // 中部: 上に三つの山を持つ、角の丸い四角。
-    case Region.chubu:
+    // 甲信越: 上に三つの山を持つ、角の丸い四角。
+    case Region.koshinetsu:
       final base = 0.76 * superEllipse(6);
       return base +
           0.17 * peak(math.pi / 2, 0.38) +
           0.08 * peak(math.pi / 2 + 0.62, 0.3) +
           0.08 * peak(math.pi / 2 - 0.62, 0.3);
+    // 北陸: 雪輪（六つの丸い切れ込みのある輪）。
+    case Region.hokuriku:
+      var dip = 0.0;
+      for (var i = 0; i < 6; i++) {
+        var d = (angle - math.pi / 2 - i * math.pi / 3).abs() % (2 * math.pi);
+        if (d > math.pi) d = 2 * math.pi - d;
+        dip = math.max(dip, math.sqrt(math.max(0, 1 - math.pow(d / 0.24, 2))));
+      }
+      return 0.93 - 0.2 * dip;
+    // 東海: 富士の稜線（裾の広い台形の山に、平らな頂）。
+    case Region.tokai:
+      return _convexRadius(_fuji, c, s);
     // 近畿: 瓦（下は角、上は丸い）。
     case Region.kinki:
       return s >= 0 ? 0.86 : 0.86 * superEllipse(7);
@@ -49,10 +61,53 @@ double regionFrameRadius(Region region, double angle) {
       final notch = [for (var i = 0; i < 4; i++) peak(i * math.pi / 2, 0.16)]
           .reduce(math.max);
       return 0.92 - 0.13 * notch;
-    // 九州・沖縄: 南国の花（八枚の花びら）。
+    // 九州: 椿（上に一枚を向けた、五枚の丸い花びら）。
     case Region.kyushu:
+      final petal = (1 + math.cos(5 * (angle - math.pi / 2))) / 2;
+      return 0.7 + 0.24 * math.pow(petal, 0.5);
+    // 沖縄: 南国の花（デイゴ。八枚の花びら）。
+    case Region.okinawa:
       return 0.78 + 0.15 * math.pow((math.cos(4 * angle)).abs(), 0.7);
   }
+}
+
+/// 富士の形の辺（外向きの法線と、中心からの距離）。
+final _fuji = () {
+  (double, double, double) edge(double x1, double y1, double x2, double y2) {
+    final nx = y1 - y2;
+    final ny = x2 - x1;
+    final length = math.sqrt(nx * nx + ny * ny);
+    return (nx / length, ny / length, (nx * x1 + ny * y1) / length);
+  }
+
+  // 時計回りの頂点（右が x、上が y）。
+  const points = [
+    (-0.28, 0.92),
+    (0.28, 0.92),
+    (0.88, 0.12),
+    (0.88, -0.84),
+    (-0.88, -0.84),
+    (-0.88, 0.12),
+  ];
+  return [
+    for (var i = 0; i < points.length; i++)
+      edge(
+        points[i].$1,
+        points[i].$2,
+        points[(i + 1) % points.length].$1,
+        points[(i + 1) % points.length].$2,
+      ),
+  ];
+}();
+
+/// 中心を含む凸多角形の、向き(c, s)の縁までの長さ。
+double _convexRadius(List<(double, double, double)> edges, double c, double s) {
+  var best = double.infinity;
+  for (final (nx, ny, d) in edges) {
+    final dot = nx * c + ny * s;
+    if (dot > 1e-9) best = math.min(best, d / dot);
+  }
+  return best;
 }
 
 const _samples = 240;

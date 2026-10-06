@@ -35,11 +35,14 @@ const _regions = <Region, (String, String, String)>{
   Region.hokkaido: ('北海道', '雪の結晶のような、角を上にした六角', '北海道'),
   Region.tohoku: ('東北', '米粒のような縦長の楕円', '宮城県'),
   Region.kanto: ('関東', '角印（角の丸い四角）', '東京都'),
-  Region.chubu: ('中部', '上に三つの山を持つ四角', '長野県'),
+  Region.koshinetsu: ('甲信越', '上に三つの山を持つ四角', '長野県'),
+  Region.hokuriku: ('北陸', '雪輪（六つの丸い切れ込みのある輪）', '石川県'),
+  Region.tokai: ('東海', '富士の稜線（裾の広い山形に平らな頂）', '静岡県'),
   Region.kinki: ('近畿', '瓦（下は角、上は丸い）', '京都府'),
   Region.chugoku: ('中国', '瀬戸内の波（細かくうねる輪）', '広島県'),
   Region.shikoku: ('四国', '四つ割り（上下左右に切れ込みのある輪）', '香川県'),
-  Region.kyushu: ('九州・沖縄', '南国の花（八枚の花びら）', '沖縄県'),
+  Region.kyushu: ('九州', '椿（五枚の丸い花びら）', '福岡県'),
+  Region.okinawa: ('沖縄', '南国の花（デイゴ。八枚の花びら）', '沖縄県'),
 };
 
 /// 格ごとの見本の修行点（易・厳・難・極の境の内側）。
@@ -185,11 +188,11 @@ Widget _catalog() {
 }
 
 void main() {
-  test('8つの地方に、47都道府県がもれなく入る', () {
-    expect(Region.values, hasLength(8));
-    expect([
-      for (final region in Region.values) ...prefecturesIn(region),
-    ], prefectureNames);
+  test('11の地方に、47都道府県がもれなく1回ずつ入る', () {
+    expect(Region.values, hasLength(11));
+    final all = [for (final region in Region.values) ...prefecturesIn(region)];
+    expect(all, hasLength(47));
+    expect(all, unorderedEquals(prefectureNames));
   });
 
   testWidgets('地方の印の見本帳が、印の描き方と合っている', (tester) async {

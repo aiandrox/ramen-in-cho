@@ -17,11 +17,14 @@ String regionLabel(AppLocalizations l10n, Region region) => switch (region) {
   Region.hokkaido => l10n.prefectureBookRegionHokkaido,
   Region.tohoku => l10n.prefectureBookRegionTohoku,
   Region.kanto => l10n.prefectureBookRegionKanto,
-  Region.chubu => l10n.prefectureBookRegionChubu,
+  Region.koshinetsu => l10n.prefectureBookRegionKoshinetsu,
+  Region.hokuriku => l10n.prefectureBookRegionHokuriku,
+  Region.tokai => l10n.prefectureBookRegionTokai,
   Region.kinki => l10n.prefectureBookRegionKinki,
   Region.chugoku => l10n.prefectureBookRegionChugoku,
   Region.shikoku => l10n.prefectureBookRegionShikoku,
   Region.kyushu => l10n.prefectureBookRegionKyushu,
+  Region.okinawa => l10n.prefectureBookRegionOkinawa,
 };
 
 /// 修行タブの入口。集めた都道府県の数を添える。
