@@ -29,6 +29,8 @@ class RecordState {
     this.memo = '',
     this.shopMemo = '',
     this.shopMemoOriginal = '',
+    this.shopFamous = false,
+    this.shopFamousOriginal = false,
     this.manualWaitMinutes,
     this.arrivedAt,
     this.isSaving = false,
@@ -73,6 +75,12 @@ class RecordState {
   final String shopMemoOriginal;
 
   bool get shopMemoEdited => shopMemo.trim() != shopMemoOriginal.trim();
+
+  /// 名店の印。覚え書きと同じく、店を選ぶたびにその店の印に入れ替わり、変えたときだけ店に保存する。
+  final bool shopFamous;
+  final bool shopFamousOriginal;
+
+  bool get shopFamousEdited => shopFamous != shopFamousOriginal;
 
   /// あとから入れた待ち時間（分）。並んだ店を選んでいるときは使わない。
   final int? manualWaitMinutes;
@@ -125,6 +133,8 @@ class RecordState {
     String? memo,
     String? shopMemo,
     String? shopMemoOriginal,
+    bool? shopFamous,
+    bool? shopFamousOriginal,
     Object? manualWaitMinutes = _unset,
     Object? arrivedAt = _unset,
     bool? isSaving,
@@ -161,6 +171,8 @@ class RecordState {
       memo: memo ?? this.memo,
       shopMemo: shopMemo ?? this.shopMemo,
       shopMemoOriginal: shopMemoOriginal ?? this.shopMemoOriginal,
+      shopFamous: shopFamous ?? this.shopFamous,
+      shopFamousOriginal: shopFamousOriginal ?? this.shopFamousOriginal,
       manualWaitMinutes: manualWaitMinutes == _unset
           ? this.manualWaitMinutes
           : manualWaitMinutes as int?,

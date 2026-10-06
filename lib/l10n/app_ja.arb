@@ -306,6 +306,7 @@
   "shopMemoSection": "店の覚え書き",
   "shopMemoHelper": "次に来るときのために、店のことを書いておく",
   "shopFamousToggle": "名店の印をつける",
+  "shopFamousNeedsShop": "店を決めると付けられます",
   "shopMemoEmpty": "まだありません",
   "shopMemoHint": "券売機は現金のみ／11時前に着けば一巡目",
   "shopMemoNeedsShop": "店を決めると書けます",

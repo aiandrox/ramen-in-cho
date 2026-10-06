@@ -6,7 +6,7 @@ import '../../theme/washi.dart';
 import 'models.dart';
 import 'style_tiles.dart';
 
-/// 系統・限定・待ち時間・「この一杯について」・「店の覚え書き」の入力欄。記録画面と編集画面で共有する。
+/// 系統・限定・待ち時間・「この一杯について」・名店の印・「店の覚え書き」の入力欄。記録画面と編集画面で共有する。
 /// 開け閉めはせず、見出しをつけてそのまま並べる（どれも任意）。
 class VisitDetailsForm extends StatelessWidget {
   const VisitDetailsForm({
@@ -21,12 +21,15 @@ class VisitDetailsForm extends StatelessWidget {
     this.onWaitChanged,
     this.shopMemoController,
     this.onShopMemoChanged,
+    this.shopFamous = false,
+    this.onShopFamousChanged,
   });
 
   static const waitFieldKey = ValueKey('visitWaitField');
   static const memoFieldKey = ValueKey('visitMemoField');
   static const shopMemoFieldKey = ValueKey('visitShopMemoField');
   static const shopMemoDisabledFieldKey = ValueKey('visitShopMemoDisabled');
+  static const shopFamousSwitchKey = ValueKey('visitShopFamousSwitch');
 
   final RamenStyle? style;
   final bool isLimited;
@@ -42,6 +45,10 @@ class VisitDetailsForm extends StatelessWidget {
   /// 店の覚え書き（店ごと）の入力欄。nullなら、どの店のものか決まっていないので押せない欄にする。
   final TextEditingController? shopMemoController;
   final ValueChanged<String>? onShopMemoChanged;
+
+  /// 名店の印（店ごと）。[onShopFamousChanged]がnullなら、店が決まっていないので押せない。
+  final bool shopFamous;
+  final ValueChanged<bool>? onShopFamousChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +96,18 @@ class VisitDetailsForm extends StatelessWidget {
           ),
           onChanged: onMemoChanged,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        SwitchListTile(
+          key: shopFamousSwitchKey,
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.shopFamousToggle),
+          subtitle: onShopFamousChanged == null
+              ? Text(l10n.shopFamousNeedsShop)
+              : null,
+          value: onShopFamousChanged != null && shopFamous,
+          onChanged: onShopFamousChanged,
+        ),
+        const SizedBox(height: 16),
         SectionTitle(l10n.shopMemoSection, ruled: false),
         if (shopMemo != null)
           TextField(

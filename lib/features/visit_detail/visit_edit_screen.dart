@@ -43,6 +43,10 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
 
   /// 店の覚え書きの欄に入れた、もとの覚え書き。書き換えたときだけ店に保存する。
   late String _shopMemoOriginal = widget.entry.shop.strategyMemo;
+
+  /// 名店の印。覚え書きと同じく、変えたときだけ店に保存する。
+  late bool _shopFamous = widget.entry.shop.isFamous;
+  late bool _shopFamousOriginal = widget.entry.shop.isFamous;
   late final _waitController = TextEditingController(
     text: waitMinutes(widget.entry.visit)?.toString() ?? '',
   );
@@ -110,37 +114,41 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
     );
     if (picked == null || !mounted) return;
     final isCurrentShop = picked.shopId == widget.entry.shop.id;
-    // 店を選び直したら、店の覚え書きはその店のものに入れ替える。
-    final memo = isCurrentShop
-        ? widget.entry.shop.strategyMemo
-        : await _shopMemoOf(picked);
+    // 店を選び直したら、店の覚え書きと名店の印はその店のものに入れ替える。
+    final known = isCurrentShop
+        ? widget.entry.shop
+        : await _knownShopOf(picked);
     if (!mounted) return;
+    final memo = picked.strategyMemo.isNotEmpty || known == null
+        ? picked.strategyMemo
+        : known.strategyMemo;
+    final famous = known?.isFamous ?? picked.isFamous;
     setState(() {
       _pickedShop = isCurrentShop ? null : picked;
       _nameController.text = picked.name;
       _shopMemoController.text = memo;
       _shopMemoOriginal = memo;
+      _shopFamous = famous;
+      _shopFamousOriginal = famous;
     });
   }
 
-  /// 店名を打ち直して別の店になりそうなときは、どの店の覚え書きかわからないので欄を押せなくする
+  /// 店名を打ち直して別の店になりそうなときは、どの店の覚え書き・名店の印かわからないので押せなくする
   /// （選び直した店か、もとの店のときだけ書ける）。
   bool get _shopMemoShown =>
       _pickedShop != null ||
       _nameController.text.trim() == widget.entry.shop.name;
 
-  /// 検索の候補は覚え書きを持たないので、記録済みの店なら店から引く。
-  Future<String> _shopMemoOf(ShopCandidate shop) async {
+  /// 検索の候補は覚え書きや名店の印を持たないので、記録済みの店なら店から引く。
+  Future<Shop?> _knownShopOf(ShopCandidate shop) async {
     final shopId = shop.shopId;
-    if (shop.strategyMemo.isNotEmpty || shopId == null) {
-      return shop.strategyMemo;
-    }
+    if (shopId == null) return null;
     try {
       final shops = await ref.read(recordRepositoryProvider).allShops();
-      return shops.where((s) => s.id == shopId).firstOrNull?.strategyMemo ?? '';
+      return shops.where((s) => s.id == shopId).firstOrNull;
     } catch (e) {
-      debugPrint('Shop memo load failed: $e');
-      return '';
+      debugPrint('Shop load failed: $e');
+      return null;
     }
   }
 
@@ -227,6 +235,9 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
                     _shopMemoController.text.trim() == _shopMemoOriginal.trim()
                 ? null
                 : _shopMemoController.text.trim(),
+            shopFamous: _shopMemoShown && _shopFamous != _shopFamousOriginal
+                ? _shopFamous
+                : null,
             changesPhoto: _photo.isChanged,
             photoPath: _photo.current,
             now: ref.read(clockProvider)(),
@@ -307,6 +318,10 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
             onMemoChanged: (_) {},
             waitController: isEaten ? _waitController : null,
             shopMemoController: _shopMemoShown ? _shopMemoController : null,
+            shopFamous: _shopFamous,
+            onShopFamousChanged: _shopMemoShown
+                ? (value) => setState(() => _shopFamous = value)
+                : null,
           ),
         ],
       ),

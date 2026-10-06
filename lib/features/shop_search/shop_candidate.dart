@@ -12,6 +12,7 @@ class ShopCandidate {
     this.location,
     this.distanceMeters,
     this.strategyMemo = '',
+    this.isFamous = false,
     this.dataSource,
     this.wishId,
     this.locationPinned = false,
@@ -29,6 +30,7 @@ class ShopCandidate {
           : null,
       distanceMeters: distanceMeters,
       strategyMemo: shop.strategyMemo,
+      isFamous: shop.isFamous,
       dataSource: shop.dataSource,
     );
   }
@@ -42,6 +44,9 @@ class ShopCandidate {
 
   /// 記録済みの店の覚え書き。
   final String strategyMemo;
+
+  /// 記録済みの店の名店の印。
+  final bool isFamous;
 
   final ShopSource? dataSource;
 
@@ -58,6 +63,7 @@ class ShopCandidate {
     location: location,
     distanceMeters: distanceMeters,
     strategyMemo: strategyMemo,
+    isFamous: isFamous,
     dataSource: dataSource,
     wishId: wish.id,
   );

@@ -25,6 +25,13 @@ import '../../support/builders.dart';
 import '../../support/fakes.dart';
 import '../../support/l10n.dart';
 
+/// 名店の印の切り替えを、下の保存ボタンに隠れない位置まで出す。
+Future<void> showFamous(WidgetTester tester) async {
+  await tester.ensureVisible(find.byKey(VisitDetailsForm.shopFamousSwitchKey));
+  await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   late Directory documents;
   late FakeRecordRepository repository;
@@ -528,6 +535,62 @@ void main() {
     await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
     await tester.pumpAndSettle();
     expect(repository.updates.single.shopMemo, isNull);
+  });
+
+  testWidgets('編集画面で名店の印を付け外しでき、触らなければ店には書かない', (tester) async {
+    await pumpDetail(tester, [
+      VisitWithShop(
+        shop: buildShop(name: '麺屋テスト'),
+        visit: buildVisit(id: 'v', eatenAt: DateTime(2026, 9, 30)),
+      ),
+    ], 'v');
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+
+    final famous = find.byKey(VisitDetailsForm.shopFamousSwitchKey);
+    await showFamous(tester);
+    expect(tester.widget<SwitchListTile>(famous).value, isFalse);
+    await tester.tap(famous);
+    await tester.pump();
+    expect(tester.widget<SwitchListTile>(famous).value, isTrue);
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+    expect(repository.updates.single.shopFamous, isTrue);
+
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+    expect(repository.updates.last.shopFamous, isNull);
+  });
+
+  testWidgets('店名を打ち直して別の店にするときは、名店の印を押せなくし店にも書かない', (tester) async {
+    await pumpDetail(tester, [
+      VisitWithShop(
+        shop: buildShop(name: '麺屋テスト', isFamous: true),
+        visit: buildVisit(id: 'v', eatenAt: DateTime(2026, 9, 30)),
+      ),
+    ], 'v');
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+
+    final famous = find.byKey(VisitDetailsForm.shopFamousSwitchKey);
+    await showFamous(tester);
+    expect(tester.widget<SwitchListTile>(famous).value, isTrue);
+    await tester.tap(famous);
+    await tester.pump();
+    final name = find.widgetWithText(TextField, ja.editShopName);
+    final list = find.byType(ListView).first;
+    await tester.dragUntilVisible(name, list, const Offset(0, 300));
+    await tester.enterText(name, '別の店');
+    await tester.pump();
+    await tester.dragUntilVisible(famous, list, const Offset(0, -300));
+    expect(tester.widget<SwitchListTile>(famous).onChanged, isNull);
+    expect(find.text(ja.shopFamousNeedsShop), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+    expect(repository.updates.single.shopFamous, isNull);
   });
 
   testWidgets('待ち時間をあとから入れると、その分前を並んだ時刻にする', (tester) async {

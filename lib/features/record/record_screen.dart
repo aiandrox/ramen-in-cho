@@ -261,6 +261,10 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
             onWaitChanged: controller.setWaitMinutes,
             shopMemoController: state.hasShop ? _shopMemoController : null,
             onShopMemoChanged: controller.setShopMemo,
+            shopFamous: state.shopFamous,
+            onShopFamousChanged: state.hasShop
+                ? controller.setShopFamous
+                : null,
           ),
         ],
       ),

@@ -278,7 +278,7 @@ class RecordRepository {
 
   /// [endsCheckin]がtrueなら、チェックインを終える
   /// （省略時は[checkedInAt]を渡したとき）。待ち時間を手で入れたときはfalseにする。
-  /// [shopMemo]を渡すと、記録をつけた店の覚え書きをそれに書き換える。
+  /// [shopMemo]を渡すと、記録をつけた店の覚え書きをそれに書き換える。[shopFamous]は名店の印。
   Future<Visit> saveEatenVisit({
     required ShopInput shop,
     required DateTime eatenAt,
@@ -291,11 +291,13 @@ class RecordRepository {
     bool hasTicket = false,
     String memo = '',
     String? shopMemo,
+    bool? shopFamous,
     required DateTime now,
   }) {
     return _db.transaction(() async {
       final shopId = await _resolveShop(shop, now);
       if (shopMemo != null) await setShopMemo(shopId, shopMemo);
+      if (shopFamous != null) await setShopFamous(shopId, shopFamous);
       final visit = Visit(
         id: _uuid.v4(),
         shopId: shopId,
@@ -410,7 +412,7 @@ class RecordRepository {
   /// 渡すと、店名ではなくその店に付け替える。
   /// [changesPhoto]がtrueなら写真を[photoPath]に替え、ほかの記録が使っていない前の写真の
   /// パスを返す（ファイルの削除は呼び出し側で行う）。
-  /// [shopMemo]を渡すと、付け替えたあとの店の覚え書きをそれに書き換える。
+  /// [shopMemo]を渡すと、付け替えたあとの店の覚え書きをそれに書き換える。[shopFamous]は名店の印。
   Future<String?> updateVisit({
     required String visitId,
     required String shopName,
@@ -425,6 +427,7 @@ class RecordRepository {
     bool changesPhoto = false,
     String? photoPath,
     String? shopMemo,
+    bool? shopFamous,
     required DateTime now,
   }) {
     return _db.transaction(() async {
@@ -470,6 +473,7 @@ class RecordRepository {
         ),
       );
       if (shopMemo != null) await setShopMemo(shopId, shopMemo);
+      if (shopFamous != null) await setShopFamous(shopId, shopFamous);
       if (shopId != shop.id) {
         // 前の店で叶えた願は、まだの願に戻す。付け替えた先の店の願なら叶え直す。
         await (_db.update(_db.wishes)
