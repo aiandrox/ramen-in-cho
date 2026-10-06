@@ -1705,7 +1705,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationKindCheckin => '並び中';
 
   @override
-  String get notificationKindCheckinNote => '並んでいる時間を表示します';
+  String get notificationKindCheckinNote => '並んでいる時間をリアルタイムで表示します';
 
   @override
   String get notificationKindStreak => '連続記録';

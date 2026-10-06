@@ -791,7 +791,7 @@
   "notificationNotPermitted": "通知が許可されていません",
   "notificationNotPermittedNote": "タップして、スマホの設定で麺印帳の通知を許可してください",
   "notificationKindCheckin": "並び中",
-  "notificationKindCheckinNote": "並んでいる時間を表示します",
+  "notificationKindCheckinNote": "並んでいる時間をリアルタイムで表示します",
   "notificationKindStreak": "連続記録",
   "notificationKindStreakNote": "連続記録が途切れそうなときにお知らせします",
   "notificationKindRating": "★の付け忘れ",
