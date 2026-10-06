@@ -35,7 +35,6 @@ export function parseOverpassResponse(body: any): FoundShop[] {
       name,
       latitude: position.lat,
       longitude: position.lon,
-      openingHours: nonEmpty(tags?.opening_hours),
     });
   }
   return shops;

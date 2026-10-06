@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/backup/backup_codec.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
@@ -16,17 +17,13 @@ void main() {
     repository = RecordRepository(database);
   });
 
-  Future<Visit> save(
-    ShopInput shop, {
-    DateTime? eatenAt,
-    Set<HoursCondition>? hoursConditions,
-  }) => repository.saveEatenVisit(
-    shop: shop,
-    hoursConditions: hoursConditions,
-    eatenAt: eatenAt ?? DateTime(2026, 9, 30, 12),
-    rating: 4,
-    now: DateTime(2026, 9, 30, 12, 5),
-  );
+  Future<Visit> save(ShopInput shop, {DateTime? eatenAt}) =>
+      repository.saveEatenVisit(
+        shop: shop,
+        eatenAt: eatenAt ?? DateTime(2026, 9, 30, 12),
+        rating: 4,
+        now: DateTime(2026, 9, 30, 12, 5),
+      );
 
   test('記録を保存すると店と一緒に読み出せる', () async {
     await repository.saveEatenVisit(
@@ -36,7 +33,6 @@ void main() {
         latitude: 35.0,
         longitude: 139.0,
       ),
-      hoursConditions: {HoursCondition.lunchOnly},
       eatenAt: DateTime(2026, 9, 30, 12),
       rating: 5,
       photoPath: 'photos/a.jpg',
@@ -52,7 +48,7 @@ void main() {
     expect(entry.shop.name, '麺屋テスト');
     expect(entry.shop.osmId, 'node/1');
     expect(entry.shop.latitude, 35.0);
-    expect(entry.shop.hoursConditions, {HoursCondition.lunchOnly});
+    expect(entry.shop.isFamous, isFalse);
     expect(entry.visit.result, VisitResult.eaten);
     expect(entry.visit.photoPath, 'photos/a.jpg');
     expect(entry.visit.eatenAt, DateTime(2026, 9, 30, 12));
@@ -104,19 +100,6 @@ void main() {
     expect(second.shopId, first.shopId);
     expect(other.shopId, isNot(first.shopId));
     expect(await repository.allShops(), hasLength(2));
-  });
-
-  test('営業の条件を選ばずに保存しても、記録済みの店の値は変えない', () async {
-    await save(
-      const ShopInput(name: '麺屋'),
-      hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-    );
-    await save(const ShopInput(name: '麺屋'));
-
-    expect((await repository.allShops()).single.hoursConditions, {
-      HoursCondition.weekdaysOnly,
-      HoursCondition.fewDays,
-    });
   });
 
   test('同じ名前でも300mより離れた手入力の店は別の店にする', () async {
@@ -418,32 +401,43 @@ void main() {
     expect(second.shopId, isNot(first.shopId));
   });
 
-  test('記録済みの店をIDで指定でき、営業の条件の変更は店に反映する', () async {
+  test('記録済みの店をIDで指定できる', () async {
     final first = await save(const ShopInput(name: '麺屋'));
-    final second = await save(
-      ShopInput(shopId: first.shopId, name: '麺屋'),
-      hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-    );
+    final second = await save(ShopInput(shopId: first.shopId, name: '麺屋'));
 
-    final shops = await repository.allShops();
     expect(second.shopId, first.shopId);
-    expect(shops.single.hoursConditions, {
-      HoursCondition.weekdaysOnly,
-      HoursCondition.fewDays,
-    });
+    expect(await repository.allShops(), hasLength(1));
+  });
+
+  test('名店の印は店につけ外しでき、バックアップから読み込んでも残る', () async {
+    final visit = await save(const ShopInput(name: '麺屋'));
+
+    await repository.setShopFamous(visit.shopId, true);
+    expect((await repository.allShops()).single.isFamous, isTrue);
+
+    final restored = decodeBackup(
+      encodeBackup(
+        await repository.exportAll(),
+        exportedAt: DateTime(2026, 10, 1),
+      ),
+    );
+    final other = RecordRepository(createTestDatabase());
+    await other.importAll(restored);
+    expect((await other.allShops()).single.isFamous, isTrue);
+
+    await repository.setShopFamous(visit.shopId, false);
+    expect((await repository.allShops()).single.isFamous, isFalse);
   });
 
   group('updateVisit', () {
     Future<String?> update(
       Visit visit, {
       required String shopName,
-      Set<HoursCondition>? hoursConditions,
       int? rating = 4,
       String memo = '',
     }) => repository.updateVisit(
       visitId: visit.id,
       shopName: shopName,
-      hoursConditions: hoursConditions,
       eatenAt: visit.eatenAt,
       checkedInAt: visit.checkedInAt,
       rating: rating,
@@ -466,7 +460,6 @@ void main() {
         repository.updateVisit(
           visitId: visit.id,
           shopName: '麺屋',
-          hoursConditions: null,
           eatenAt: visit.eatenAt,
           checkedInAt: visit.checkedInAt,
           rating: visit.rating,
@@ -518,13 +511,12 @@ void main() {
       expect(entry.visit.photoPath, 'photos/old.jpg');
     });
 
-    test('記録の内容と店の営業の条件を書き換える', () async {
+    test('記録の内容を書き換える', () async {
       final visit = await save(const ShopInput(name: '麺屋'));
 
       await repository.updateVisit(
         visitId: visit.id,
         shopName: '麺屋',
-        hoursConditions: {HoursCondition.lunchOnly},
         eatenAt: DateTime(2026, 9, 29, 11),
         checkedInAt: DateTime(2026, 9, 29, 10, 20),
         rating: 2,
@@ -544,7 +536,6 @@ void main() {
       expect(entry.visit.isLimited, isTrue);
       expect(entry.visit.hasTicket, isTrue);
       expect(entry.visit.memo, '書き直した');
-      expect(entry.shop.hoursConditions, {HoursCondition.lunchOnly});
     });
 
     test('ほかに記録の無い手入力の店は、位置を残したまま名前を直す', () async {
@@ -591,42 +582,6 @@ void main() {
       final visits = await repository.watchVisits().first;
       expect(visits.map((v) => v.shop.id).toSet(), {known.shopId});
       expect(await repository.allShops(), hasLength(1));
-    });
-
-    test('営業の条件を変えずに別の店へ付け替えても、その店の値を変えない', () async {
-      await save(
-        const ShopInput(name: '週2日の店'),
-        hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-      );
-      await save(const ShopInput(name: '週2日の店'));
-      final typo = await save(const ShopInput(name: '週2日のみせ'));
-
-      await update(typo, shopName: '週2日の店');
-
-      final shop = (await repository.allShops()).single;
-      expect(shop.hoursConditions, {
-        HoursCondition.weekdaysOnly,
-        HoursCondition.fewDays,
-      });
-    });
-
-    test('新しい店に付け替えるときは、元の店の営業の条件を引き継ぐ', () async {
-      await save(
-        const ShopInput(name: '麺屋'),
-        hoursConditions: {HoursCondition.lunchOnly},
-      );
-      final second = await save(const ShopInput(name: '麺屋'));
-
-      await update(second, shopName: '別の店');
-
-      final shops = await repository.allShops();
-      expect(
-        {for (final shop in shops) shop.name: shop.hoursConditions},
-        {
-          '麺屋': {HoursCondition.lunchOnly},
-          '別の店': {HoursCondition.lunchOnly},
-        },
-      );
     });
 
     test('同じ名前の支店が複数あるときは、元の店に近い方へ付け替える', () async {
@@ -814,24 +769,20 @@ void main() {
   });
 
   group('updateVisit で店を選び直す', () {
-    Future<void> repick(
-      Visit visit,
-      ShopInput picked, {
-      Set<HoursCondition>? hoursConditions,
-    }) => repository.updateVisit(
-      visitId: visit.id,
-      shopName: picked.name,
-      hoursConditions: hoursConditions,
-      eatenAt: visit.eatenAt,
-      checkedInAt: visit.checkedInAt,
-      rating: visit.rating,
-      style: visit.style,
-      isLimited: visit.isLimited,
-      hasTicket: visit.hasTicket,
-      memo: visit.memo,
-      pickedShop: picked,
-      now: DateTime(2026, 10, 5),
-    );
+    Future<void> repick(Visit visit, ShopInput picked) =>
+        repository.updateVisit(
+          visitId: visit.id,
+          shopName: picked.name,
+          eatenAt: visit.eatenAt,
+          checkedInAt: visit.checkedInAt,
+          rating: visit.rating,
+          style: visit.style,
+          isLimited: visit.isLimited,
+          hasTicket: visit.hasTicket,
+          memo: visit.memo,
+          pickedShop: picked,
+          now: DateTime(2026, 10, 5),
+        );
 
     Future<Visit> visitById(String id) async =>
         (await repository.watchVisits().first)
@@ -877,7 +828,6 @@ void main() {
           longitude: 139.5,
           dataSource: ShopSource(licenses: ['ODbL-1.0']),
         ),
-        hoursConditions: {HoursCondition.nightOnly},
       );
 
       final entry = (await repository.watchVisits().first).single;
@@ -888,7 +838,6 @@ void main() {
       expect(entry.shop.latitude, 35.5);
       expect(entry.shop.longitude, 139.5);
       expect(entry.shop.dataSource?.licenses, ['ODbL-1.0']);
-      expect(entry.shop.hoursConditions, {HoursCondition.nightOnly});
       expect(await repository.allShops(), hasLength(1));
     });
 
@@ -1006,66 +955,5 @@ void main() {
 
     final entry = (await repository.watchVisits().first).single;
     expect(entry.shop.strategyMemo, '券売機は現金のみ');
-  });
-
-  group('下書きの条件（手で持つ店・地図の営業時間から）', () {
-    const sengawa = ShopInput(
-      name: 'ラーメン二郎 仙川店',
-      latitude: 35.661385,
-      longitude: 139.583847,
-    );
-    final at = DateTime(2026, 10, 5, 19);
-
-    Future<Shop> saveWithDraft(ShopInput shop) async {
-      final visit = await repository.saveEatenVisit(
-        shop: shop,
-        draftConditions: {HoursCondition.nightOnly},
-        eatenAt: at,
-        now: at,
-      );
-      return (await repository.allShops()).firstWhere(
-        (s) => s.id == visit.shopId,
-      );
-    }
-
-    test('初めての店には下書きの条件が入る', () async {
-      expect((await saveWithDraft(sengawa)).hoursConditions, {
-        HoursCondition.nightOnly,
-      });
-    });
-
-    test('記録済みの店の条件は、下書きで変えない', () async {
-      await repository.saveEatenVisit(
-        shop: sengawa,
-        hoursConditions: {HoursCondition.irregular},
-        eatenAt: at,
-        now: at,
-      );
-      expect((await saveWithDraft(sengawa)).hoursConditions, {
-        HoursCondition.irregular,
-      });
-    });
-
-    test('願で入れた条件があれば、下書きより優先する', () async {
-      await WishRepository(database).addWish(
-        shop: const ShopInput(
-          osmId: 'node/sengawa',
-          name: 'ラーメン二郎 仙川店',
-          latitude: 35.661385,
-          longitude: 139.583847,
-        ),
-        hoursConditions: {HoursCondition.irregular},
-        now: at,
-      );
-      final shop = await saveWithDraft(
-        const ShopInput(
-          osmId: 'node/sengawa',
-          name: 'ラーメン二郎 仙川店',
-          latitude: 35.661385,
-          longitude: 139.583847,
-        ),
-      );
-      expect(shop.hoursConditions, {HoursCondition.irregular});
-    });
   });
 }

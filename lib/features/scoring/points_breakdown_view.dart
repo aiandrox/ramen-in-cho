@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/motion.dart';
-import '../records/labels.dart';
 import '../records/models.dart';
 import '../records/wait_time.dart';
 import 'points.dart';
@@ -28,29 +27,32 @@ class PointsBreakdownView extends StatelessWidget {
       };
     }
     final points = scored.points;
+    final expeditionKm = expeditionTiers
+        .where((tier) => tier.bonus == points.expeditionBonus)
+        .firstOrNull
+        ?.kilometers;
     final rows = [
       (l10n.pointsBase, points.base),
       (l10n.pointsWait(waitMinutes(scored.visit) ?? 0), points.waitBonus),
       (l10n.isLimited, points.limitedBonus),
       (l10n.pointsFirstVisit, points.firstVisitBonus),
       (l10n.pointsRetry, points.retryBonus),
-      (l10n.pointsExpedition, points.expeditionBonus),
+      (l10n.pointsExpedition(expeditionKm ?? 0), points.expeditionBonus),
       (l10n.pointsEarly, points.earlyBonus),
       (l10n.pointsLateNight, points.lateNightBonus),
+      (
+        l10n.pointsNewPrefecture(scored.prefecture ?? ''),
+        points.newPrefectureBonus,
+      ),
+      (l10n.pointsNewArea(scored.shop.area ?? ''), points.newAreaBonus),
+      (l10n.pointsRegular(scored.countAtShop), points.regularBonus),
+      (l10n.pointsStreak(scored.streakWeeksBefore + 1), points.streakBonus),
+      (l10n.pointsFamous, points.famousBonus),
     ];
 
     return _reveal([
       for (final (label, value) in rows)
         if (value > 0) _Row(label: label, value: l10n.pointsGained(value)),
-      if (points.hoursConditions.isNotEmpty)
-        _Row(
-          label: l10n.pointsHours(
-            hoursConditionsLabel(l10n, points.hoursConditions),
-          ),
-          value: l10n.pointsMultiplier(
-            _format(hoursMultiplier(points.hoursConditions)),
-          ),
-        ),
     ]);
   }
 
@@ -58,10 +60,6 @@ class PointsBreakdownView extends StatelessWidget {
     final at? => StaggeredReveal(delay: at, children: children),
     null => Column(children: children),
   };
-
-  String _format(double multiplier) => multiplier == multiplier.roundToDouble()
-      ? multiplier.toStringAsFixed(0)
-      : multiplier.toString();
 }
 
 class _Row extends StatelessWidget {

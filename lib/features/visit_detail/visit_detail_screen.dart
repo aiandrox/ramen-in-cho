@@ -7,7 +7,6 @@ import '../../l10n/app_localizations.dart';
 import '../home/rating_prompt.dart';
 import '../record/star_rating.dart';
 import '../records/date_format.dart';
-import '../records/labels.dart';
 import '../records/models.dart';
 import '../records/photo_storage.dart';
 import '../records/record_repository.dart';
@@ -17,7 +16,6 @@ import '../inkan/inkan_stamp.dart';
 import '../scoring/points.dart';
 import '../scoring/points_breakdown_view.dart';
 import '../../theme/washi.dart';
-import '../shop/hours_condition_chips.dart';
 import '../shop/maps_link.dart';
 import '../shop/shop_memo_dialog.dart';
 import '../scoring/scoring_providers.dart';
@@ -155,19 +153,13 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
     if (!opened) messenger.showSnackBar(SnackBar(content: Text(failed)));
   }
 
-  Future<void> _editShopConditions(Shop shop) async {
+  Future<void> _setFamous(Shop shop, bool isFamous) async {
     final messenger = ScaffoldMessenger.of(context);
     final failed = AppLocalizations.of(context).editSaveFailed;
-    final repository = ref.read(recordRepositoryProvider);
-    final conditions = await showShopConditionsDialog(
-      context,
-      shop.hoursConditions,
-    );
-    if (conditions == null) return;
     try {
-      await repository.setShopConditions(shop.id, conditions);
+      await ref.read(recordRepositoryProvider).setShopFamous(shop.id, isFamous);
     } catch (e) {
-      debugPrint('Shop conditions save failed: $e');
+      debugPrint('Shop famous save failed: $e');
       messenger.showSnackBar(SnackBar(content: Text(failed)));
     }
   }
@@ -386,26 +378,12 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                   ),
                 ],
                 const Divider(height: 32),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.shopConditionsSection,
-                        style: textTheme.titleMedium,
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: l10n.shopConditionsEdit,
-                      icon: const Icon(Icons.tune),
-                      onPressed: () => _editShopConditions(entry.shop),
-                    ),
-                  ],
-                ),
-                Text(
-                  entry.shop.hoursConditions.isEmpty
-                      ? l10n.shopConditionsEmpty
-                      : hoursConditionsLabel(l10n, entry.shop.hoursConditions),
-                  style: textTheme.bodyMedium,
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.shopFamousToggle),
+                  subtitle: Text(l10n.shopFamousHint),
+                  value: entry.shop.isFamous,
+                  onChanged: (value) => _setFamous(entry.shop, value),
                 ),
                 const SizedBox(height: 16),
                 Row(

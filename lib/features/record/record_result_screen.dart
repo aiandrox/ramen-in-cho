@@ -9,6 +9,7 @@ import '../home_base/home_base_repository.dart';
 import '../notifications/notification_service.dart';
 import '../quests/quest_seal.dart';
 import '../quests/quests.dart';
+import '../prefecture/prefectures.dart';
 import '../records/record_repository.dart';
 import '../scoring/points_breakdown_view.dart';
 import '../records/models.dart';
@@ -68,6 +69,7 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
             widget.visitId,
             wishes: wishes,
             homeBases: homeBases,
+            prefectureOf: ref.watch(prefectureIndexProvider).prefectureOf,
           );
     final outcome = _outcome;
 

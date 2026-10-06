@@ -9,3 +9,7 @@
 運用の手順:
 
 - [ストアへのリリース](release/README.md) — `scripts/release.sh` の使い方、ビルド番号とタグ、リリースノート、鍵の置き場所
+
+同梱しているデータ:
+
+- 都道府県の境界（`assets/prefectures.json`）— 出典: 国土数値情報（行政区域データ N03-2024）（国土交通省、CC BY 4.0、https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html）を加工して作成。島の小さなものを除き、点を1%に減らし、座標を1/1000度に丸めた。作り直すときは `tool/prefectures/build.sh <作業用のフォルダ>`（開発時だけ通信する。アプリからは通信しない）

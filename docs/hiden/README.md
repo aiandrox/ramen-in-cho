@@ -14,7 +14,7 @@
 | <img src="double_bowl.png" width="72"> | 一日二杯 | 同じ日に二杯食べる | 双 | 菱形 | いつでも | `double_bowl` |
 | <img src="third_time.png" width="72"> | 三度目の正直 | 同じ店で二度撤退したあと、その店で食べる | 三 | 六角形 | いつでも | `third_time` |
 | <img src="styles.png" width="72"> | 系統の探究 | 「その他」を除く八系統をすべて食べる | 全 | 8つの丸の輪 | いつでも | `styles` |
-| <img src="rare_shop.png" width="72"> | 幻の店 | 営業の条件（アクセスの悪さは除く）が二つ以上ある店で食べる | 幻 | 花 | いつでも | `rare_shop` |
+| <img src="famous_shop.png" width="72"> | 名店の暖簾 | 名店の印をつけた店で食べる | 名 | 花 | いつでも | `famous_shop` |
 | <img src="home_base.png" width="72"> | 拠点を構える | 自分の拠点（駅や街）を決める | 城 | 城壁 | いつでも | `home_base` |
 | <img src="long_wish.png" width="72"> | 百日越しの願 | 願を掛けてから百日以上たって、その店で食べる | 願 | 点の輪 | いつでも | `long_wish` |
 | <img src="dawn.png" width="72"> | 朝ラーの心得 | 朝五時〜十時に食べる | 朝 | 光の筋 | いつでも | `dawn` |

@@ -122,7 +122,6 @@ void main() {
     final shop = Shop(
       id: 'shop',
       name: '麺屋テスト',
-      hoursConditions: const {},
       createdAt: DateTime(2026, 9, 30),
     );
     await pumpApp(tester, [
@@ -154,7 +153,6 @@ void main() {
     final shop = Shop(
       id: 'shop',
       name: '麺屋テスト',
-      hoursConditions: const {},
       createdAt: DateTime(2026, 9, 30),
     );
     Visit visit(String id, DateTime eatenAt) => Visit(

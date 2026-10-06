@@ -10,11 +10,7 @@ import '../../support/builders.dart';
 void main() {
   final shopA = buildShop(id: 'a', name: 'A店');
   final shopB = buildShop(id: 'b', name: 'B店');
-  final shopC = buildShop(
-    id: 'c',
-    name: 'C店',
-    hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-  );
+  final shopC = buildShop(id: 'c', name: 'C店', isFamous: true);
 
   group('杯数', () {
     final scored = scoreVisits([
@@ -127,14 +123,19 @@ void main() {
           buildEntry(shop: shopA, eatenAt: day(2)),
           // B店: 10 + 10 + 20 = 40（A）
           buildEntry(shop: shopB, eatenAt: day(3), isLimited: true),
-          // C店: (10 + 10 + 20) × 2 = 80（S）
-          buildEntry(shop: shopC, eatenAt: day(4), isLimited: true),
+          // C店: 10 + 初訪問 10 + 限定 20 + 待ち 5 + 名店 15 = 60（S）
+          buildEntry(
+            shop: shopC,
+            eatenAt: day(4),
+            isLimited: true,
+            waitMinutes: 10,
+          ),
         ]),
       );
 
       expect(shops.map((s) => s.shop.name), ['C店', 'B店', 'A店']);
       expect(shops.map((s) => s.rank), [ShopRank.s, ShopRank.a, ShopRank.c]);
-      expect(shops.map((s) => s.bestPoints), [80, 40, 20]);
+      expect(shops.map((s) => s.bestPoints), [60, 40, 20]);
       expect(shops.map((s) => s.count), [1, 1, 2]);
     });
 
@@ -161,8 +162,13 @@ void main() {
         scoreVisits([
           buildEntry(shop: shopA, eatenAt: day(1), waitMinutes: 45),
           buildEntry(shop: shopB, eatenAt: day(2), waitMinutes: 70),
-          // (10 + 10 + 20) × 2 = 80
-          buildEntry(shop: shopC, eatenAt: day(3), isLimited: true),
+          // 10 + 初訪問 10 + 限定 20 + 待ち 5 + 名店 15 = 60
+          buildEntry(
+            shop: shopC,
+            eatenAt: day(3),
+            isLimited: true,
+            waitMinutes: 10,
+          ),
           buildEntry(
             shop: shopA,
             eatenAt: day(4),
@@ -183,7 +189,7 @@ void main() {
 
       expect(bests.longestWait!.value, 70);
       expect(bests.longestWait!.entry.shop.name, 'B店');
-      expect(bests.highestPoints!.value, 80);
+      expect(bests.highestPoints!.value, 60);
       expect(bests.highestPoints!.entry.shop.name, 'C店');
       expect(bests.mostRetreats!.value, 2);
       expect(bests.mostRetreats!.entry.shop.name, 'B店');

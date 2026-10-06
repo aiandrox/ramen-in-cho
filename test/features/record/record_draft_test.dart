@@ -7,7 +7,6 @@ import 'package:path/path.dart' as p;
 import 'package:ramen_in_cho/features/record/record_draft.dart';
 import 'package:ramen_in_cho/features/record/record_state.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
-import 'package:ramen_in_cho/features/shop_search/found_shop.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_candidate.dart';
 
@@ -24,15 +23,12 @@ void main() {
       osmId: 'node/1',
       name: '麺屋テスト',
       location: GeoPoint(35.001, 139.0),
-      hoursConditions: {HoursCondition.nightOnly},
       dataSource: ShopSource(licenses: ['CC-BY'], attributions: ['Overture']),
       wishId: 'wish-1',
-      conditionsDraftSource: ConditionsDraftSource.openingHours,
     ),
     rating: 5,
     style: RamenStyle.jiro,
     isLimited: true,
-    chosenHoursConditions: const {HoursCondition.badAccess},
     memo: 'ニンニク',
     manualWaitMinutes: 40,
   );
@@ -52,34 +48,28 @@ void main() {
     expect(shop.osmId, 'node/1');
     expect(shop.name, '麺屋テスト');
     expect(shop.location?.longitude, 139.0);
-    expect(shop.hoursConditions, {HoursCondition.nightOnly});
     expect(shop.dataSource?.licenses, ['CC-BY']);
     expect(shop.dataSource?.attributions, ['Overture']);
     expect(shop.wishId, 'wish-1');
-    expect(shop.conditionsDraftSource, ConditionsDraftSource.openingHours);
     expect(decoded.rating, 5);
     expect(decoded.style, RamenStyle.jiro);
     expect(decoded.isLimited, isTrue);
-    expect(decoded.chosenHoursConditions, {HoursCondition.badAccess});
     expect(decoded.memo, 'ニンニク');
     expect(decoded.manualWaitMinutes, 40);
     expect(jsonEncode(decoded.toJson()), jsonEncode(draft.toJson()));
   });
 
-  test('条件の下書きの出どころを読み戻す。前の版の「地図から」の印も読める', () {
-    ShopCandidate shopOf(Map<String, Object?> shop) => RecordDraft.fromJson({
-      'selectedShop': {'name': '麺屋テスト', ...shop},
-    })!.selectedShop!;
-
-    expect(
-      shopOf({'conditionsDraftSource': 'curatedShops'}).conditionsDraftSource,
-      ConditionsDraftSource.curatedShops,
-    );
-    expect(
-      shopOf({'conditionsFromMap': true}).conditionsDraftSource,
-      ConditionsDraftSource.openingHours,
-    );
-    expect(shopOf({}).conditionsDraftSource, isNull);
+  test('前の版の下書きにある店の条件は読み飛ばす', () {
+    final decoded = RecordDraft.fromJson({
+      'chosenHoursConditions': ['lunchOnly'],
+      'selectedShop': {
+        'name': '麺屋テスト',
+        'hoursConditions': ['nightOnly'],
+        'conditionsDraftSource': 'curatedShops',
+      },
+    })!;
+    expect(decoded.selectedShop?.name, '麺屋テスト');
+    expect(decoded.toJson().containsKey('chosenHoursConditions'), isFalse);
   });
 
   test('読めない項目は空にし、形が違えばnull', () {
@@ -87,14 +77,12 @@ void main() {
       'style': 'unknown',
       'rating': 9,
       'manualWaitMinutes': -1,
-      'chosenHoursConditions': ['lunchOnly', 'unknown'],
       'selectedShop': {'name': ''},
       'memo': 3,
     })!;
     expect(decoded.style, isNull);
     expect(decoded.rating, isNull);
     expect(decoded.manualWaitMinutes, isNull);
-    expect(decoded.chosenHoursConditions, {HoursCondition.lunchOnly});
     expect(decoded.selectedShop, isNull);
     expect(decoded.memo, isEmpty);
 

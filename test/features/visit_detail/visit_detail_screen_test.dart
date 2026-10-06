@@ -10,7 +10,6 @@ import 'package:ramen_in_cho/features/record/star_rating.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
-import 'package:ramen_in_cho/features/shop_search/found_shop.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_candidate.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_search_service.dart';
@@ -171,6 +170,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.shopMemos, {'shop': '開店30分前で1巡目'});
+  });
+
+  testWidgets('店のページで名店の印をつけ外しできる', (tester) async {
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30)),
+    ], 'v');
+
+    final toggle = find.widgetWithText(SwitchListTile, ja.shopFamousToggle);
+    await tester.ensureVisible(toggle);
+    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+
+    expect(repository.famousShops, {'shop': true});
   });
 
   testWidgets('攻略メモが無い店は「まだありません」と出す', (tester) async {
@@ -338,8 +351,6 @@ void main() {
           name: '麺屋ただしい',
           location: GeoPoint(35.0, 139.0),
           distanceMeters: 40,
-          hoursConditions: {HoursCondition.nightOnly},
-          conditionsDraftSource: ConditionsDraftSource.openingHours,
         ),
       ],
     );
@@ -369,7 +380,6 @@ void main() {
     expect(update.pickedShop?.osmId, 'node/7');
     expect(update.pickedShop?.name, '麺屋ただしい');
     expect(update.pickedShop?.latitude, 35.0);
-    expect(update.hoursConditions, {HoursCondition.nightOnly});
   });
 
   testWidgets('選び直したあとで店名を書き換えたら、店名のほうで保存する', (tester) async {
@@ -444,16 +454,6 @@ void main() {
       find.widgetWithText(TextField, ja.memoLabel),
       ' 書き直した ',
     );
-    final fewDays = find.widgetWithText(FilterChip, ja.hoursFewDays);
-    await tester.ensureVisible(fewDays);
-    await tester.pumpAndSettle();
-    await tester.tap(fewDays);
-    await tester.pump();
-    final lunchOnly = find.widgetWithText(FilterChip, ja.hoursLunchOnly);
-    await tester.ensureVisible(lunchOnly);
-    await tester.pumpAndSettle();
-    await tester.tap(lunchOnly);
-    await tester.pump();
     await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
     await tester.pumpAndSettle();
 
@@ -463,10 +463,6 @@ void main() {
     expect(update.shopName, '麺屋テスト');
     expect(update.rating, 2);
     expect(update.memo, '書き直した');
-    expect(update.hoursConditions, {
-      HoursCondition.lunchOnly,
-      HoursCondition.fewDays,
-    });
     expect(update.eatenAt, DateTime(2026, 9, 30, 12));
     expect(update.style, RamenStyle.shoyu);
     expect(update.isLimited, isTrue);
@@ -529,19 +525,6 @@ void main() {
     final update = repository.updates.single;
     expect(update.eatenAt, DateTime(2026, 9, 29, 12));
     expect(update.checkedInAt, DateTime(2026, 9, 29, 12));
-  });
-
-  testWidgets('営業の条件を変えずに保存したときは、変更なしとして渡す', (tester) async {
-    await pumpDetail(tester, [
-      entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),
-    ], 'v');
-    await openMenu(tester, ja.edit);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
-    await tester.pumpAndSettle();
-
-    expect(repository.updates.single.hoursConditions, isNull);
   });
 
   testWidgets('店名を空にすると保存できない', (tester) async {

@@ -102,7 +102,6 @@ class FakePhotoPicker implements PhotoPicker {
 typedef VisitUpdate = ({
   String visitId,
   String shopName,
-  Set<HoursCondition>? hoursConditions,
   DateTime eatenAt,
   DateTime? checkedInAt,
   int? rating,
@@ -127,7 +126,6 @@ class FakeRecordRepository implements RecordRepository {
   Future<String?> updateVisit({
     required String visitId,
     required String shopName,
-    required Set<HoursCondition>? hoursConditions,
     required DateTime eatenAt,
     required DateTime? checkedInAt,
     required int? rating,
@@ -145,7 +143,6 @@ class FakeRecordRepository implements RecordRepository {
     updates.add((
       visitId: visitId,
       shopName: shopName,
-      hoursConditions: hoursConditions,
       eatenAt: eatenAt,
       checkedInAt: checkedInAt,
       rating: rating,
@@ -194,6 +191,13 @@ class FakeRecordRepository implements RecordRepository {
   @override
   Future<void> setShopMemo(String shopId, String memo) async {
     shopMemos[shopId] = memo;
+  }
+
+  final famousShops = <String, bool>{};
+
+  @override
+  Future<void> setShopFamous(String shopId, bool isFamous) async {
+    famousShops[shopId] = isFamous;
   }
 
   final ratings = <String, int>{};
@@ -319,7 +323,6 @@ class FakeWishRepository implements WishRepository {
     required ShopInput shop,
     String trigger = '',
     String note = '',
-    Set<HoursCondition> hoursConditions = const {},
     required DateTime now,
   }) async {
     added.add(shop);
@@ -331,7 +334,6 @@ class FakeWishRepository implements WishRepository {
     String id, {
     required String trigger,
     required String note,
-    required Set<HoursCondition> hoursConditions,
   }) async {}
 
   final deleted = <String>[];

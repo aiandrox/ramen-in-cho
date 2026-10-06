@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/style_tiles.dart';
-import 'package:ramen_in_cho/features/shop/hours_condition_chips.dart';
 import 'package:ramen_in_cho/theme/app_theme.dart';
 
 import '../../support/l10n.dart';
@@ -91,27 +90,28 @@ void main() {
   });
 
   testWidgets('選ぶ札はチェックを出さず、選んでも幅が変わらない', (tester) async {
-    var selected = <HoursCondition>{};
+    var selected = false;
     await tester.pumpWidget(
       localizedApp(
         theme: buildAppTheme(),
         home: Scaffold(
           body: StatefulBuilder(
-            builder: (context, setState) => HoursConditionChips(
+            builder: (context, setState) => FilterChip(
+              label: const Text('札'),
               selected: selected,
-              onChanged: (value) => setState(() => selected = value),
+              onSelected: (value) => setState(() => selected = value),
             ),
           ),
         ),
       ),
     );
-    final chip = find.widgetWithText(FilterChip, ja.hoursLunchOnly);
+    final chip = find.widgetWithText(FilterChip, '札');
     final before = tester.getSize(chip);
 
     await tester.tap(chip);
     await tester.pumpAndSettle();
 
-    expect(selected, {HoursCondition.lunchOnly});
+    expect(selected, isTrue);
     expect(tester.getSize(chip), before);
     final theme = Theme.of(tester.element(chip)).chipTheme;
     expect(theme.showCheckmark, isFalse);

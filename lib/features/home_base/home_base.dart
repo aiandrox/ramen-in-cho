@@ -43,14 +43,17 @@ HomeBaseSetting? firstHomeBase(List<HomeBaseSetting> settings) {
   return found;
 }
 
-/// [base]から[expeditionKilometers]以上離れた店か。拠点か店の位置が分からなければfalse。
-bool isFarFromHomeBase(HomeBaseSetting? base, Shop shop) {
+/// [base]から店までの距離（m）。拠点か店の位置が分からなければnull。
+double? homeBaseDistanceMeters(HomeBaseSetting? base, Shop shop) {
   final latitude = shop.latitude;
   final longitude = shop.longitude;
-  if (base == null || latitude == null || longitude == null) return false;
+  if (base == null || latitude == null || longitude == null) return null;
   return distanceMeters(
-        GeoPoint(base.latitude, base.longitude),
-        GeoPoint(latitude, longitude),
-      ) >=
-      expeditionKilometers * 1000;
+    GeoPoint(base.latitude, base.longitude),
+    GeoPoint(latitude, longitude),
+  );
 }
+
+/// [base]から[expeditionKilometers]以上離れた店か。拠点か店の位置が分からなければfalse。
+bool isFarFromHomeBase(HomeBaseSetting? base, Shop shop) =>
+    (homeBaseDistanceMeters(base, shop) ?? 0) >= expeditionKilometers * 1000;

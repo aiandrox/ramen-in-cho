@@ -10,11 +10,8 @@ import '../checkin/checkin_rules.dart';
 import '../map/location_picker_screen.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
-import '../records/labels.dart';
 import '../records/models.dart';
 import '../records/visit_details_form.dart';
-import '../shop/hours_condition_chips.dart';
-import '../shop_search/found_shop.dart';
 import '../shop_search/shop_candidate.dart';
 import '../shop_search/shop_search_service.dart';
 import '../shop_search/shop_name_search_sheet.dart';
@@ -262,33 +259,6 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
               ),
             ],
           ),
-          // 店の条件は行く前（願掛け・店のページ）に入れる。ここでは閉じておき、入っている条件だけ見せる。
-          _FoldSection(
-            title: l10n.shopConditionsSection,
-            subtitle: Text(
-              state.hoursConditions.isEmpty
-                  ? l10n.shopConditionsEmpty
-                  : switch (state.chosenHoursConditions == null
-                        ? state.selectedShop?.conditionsDraftSource
-                        : null) {
-                      ConditionsDraftSource.openingHours =>
-                        l10n.shopConditionsFromMap,
-                      ConditionsDraftSource.curatedShops =>
-                        l10n.shopConditionsFromCurated,
-                      null => (String label) => label,
-                    }(hoursConditionsLabel(l10n, state.hoursConditions)),
-            ),
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: HoursConditionChips(
-                  selected: state.hoursConditions,
-                  onChanged: controller.setHoursConditions,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
         ],
       ),
       bottomNavigationBar: Padding(
@@ -350,13 +320,11 @@ class _DraftNotice extends StatelessWidget {
 class _FoldSection extends StatelessWidget {
   const _FoldSection({
     required this.title,
-    this.subtitle,
     this.initiallyExpanded = false,
     required this.children,
   });
 
   final String title;
-  final Widget? subtitle;
   final bool initiallyExpanded;
   final List<Widget> children;
 
@@ -378,7 +346,6 @@ class _FoldSection extends StatelessWidget {
           color: Washi.ink,
         ),
       ),
-      subtitle: subtitle,
       children: children,
     );
   }
@@ -646,8 +613,6 @@ class _ShopSection extends ConsumerWidget {
                     name: found.name,
                     location: found.location,
                     dataSource: found.dataSource,
-                    hoursConditions: found.suggestedConditions,
-                    conditionsDraftSource: found.suggestedConditionsSource,
                   ),
                 );
               },

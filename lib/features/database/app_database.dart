@@ -8,24 +8,6 @@ import '../records/models.dart';
 
 part 'app_database.g.dart';
 
-/// 営業時間の条件を、定義順の名前をカンマでつないだ文字列で保存する。
-class HoursConditionsConverter
-    extends TypeConverter<Set<HoursCondition>, String> {
-  const HoursConditionsConverter();
-
-  @override
-  Set<HoursCondition> fromSql(String fromDb) {
-    final byName = HoursCondition.values.asNameMap();
-    return {for (final name in fromDb.split(',')) ?byName[name]};
-  }
-
-  @override
-  String toSql(Set<HoursCondition> value) => [
-    for (final condition in HoursCondition.values)
-      if (value.contains(condition)) condition.name,
-  ].join(',');
-}
-
 class ShopSourceConverter extends TypeConverter<ShopSource, String> {
   const ShopSourceConverter();
 
@@ -52,9 +34,9 @@ class Shops extends Table {
   RealColumn get latitude => real().nullable()();
   RealColumn get longitude => real().nullable()();
   TextColumn get osmId => text().nullable()();
-  TextColumn get hoursConditions => text()
-      .map(const HoursConditionsConverter())
-      .withDefault(const Constant(''))();
+  // 店の条件（攻略しにくさ）。2026-10-06 に使うのをやめた。保存済みの値は消さずに残す。
+  TextColumn get hoursConditions => text().withDefault(const Constant(''))();
+  BoolColumn get isFamous => boolean().withDefault(const Constant(false))();
   TextColumn get strategyMemo => text().withDefault(const Constant(''))();
   TextColumn get dataSource =>
       text().map(const ShopSourceConverter()).nullable()();
@@ -98,9 +80,8 @@ class Wishes extends Table {
   TextColumn get note => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
   TextColumn get fulfilledVisitId => text().nullable()();
-  TextColumn get hoursConditions => text()
-      .map(const HoursConditionsConverter())
-      .withDefault(const Constant(''))();
+  // 店の条件。2026-10-06 に使うのをやめた。保存済みの値は消さずに残す。
+  TextColumn get hoursConditions => text().withDefault(const Constant(''))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -144,7 +125,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'ramen_in_cho'));
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -164,12 +145,13 @@ class AppDatabase extends _$AppDatabase {
                 "WHEN 'fewDays' THEN 'fewDays' ELSE '' END",
               ),
             },
-            // 作り直した表には、バージョン4・5・7で足した列もすでに入る。
+            // 作り直した表には、バージョン4・5・7・10で足した列もすでに入る。
             newColumns: [
               shops.hoursConditions,
               shops.strategyMemo,
               shops.dataSource,
               shops.area,
+              shops.isFamous,
             ],
           ),
         );
@@ -184,6 +166,9 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(wishes, wishes.hoursConditions);
       }
       if (from < 9) await migrator.createTable(homeBaseSettings);
+      if (from >= 3 && from < 10) {
+        await migrator.addColumn(shops, shops.isFamous);
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

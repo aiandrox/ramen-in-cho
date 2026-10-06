@@ -358,54 +358,6 @@ abstract class AppLocalizations {
   /// **'限定メニュー'**
   String get isLimited;
 
-  /// No description provided for @hoursSection.
-  ///
-  /// In ja, this message translates to:
-  /// **'攻略しにくさ（当てはまるものすべて）'**
-  String get hoursSection;
-
-  /// No description provided for @hoursLunchOnly.
-  ///
-  /// In ja, this message translates to:
-  /// **'昼のみ'**
-  String get hoursLunchOnly;
-
-  /// No description provided for @hoursNightOnly.
-  ///
-  /// In ja, this message translates to:
-  /// **'夜のみ'**
-  String get hoursNightOnly;
-
-  /// No description provided for @hoursWeekdaysOnly.
-  ///
-  /// In ja, this message translates to:
-  /// **'平日のみ'**
-  String get hoursWeekdaysOnly;
-
-  /// No description provided for @hoursWeekendsOnly.
-  ///
-  /// In ja, this message translates to:
-  /// **'土日のみ'**
-  String get hoursWeekendsOnly;
-
-  /// No description provided for @hoursFewDays.
-  ///
-  /// In ja, this message translates to:
-  /// **'週3日以下'**
-  String get hoursFewDays;
-
-  /// No description provided for @hoursIrregular.
-  ///
-  /// In ja, this message translates to:
-  /// **'不定休'**
-  String get hoursIrregular;
-
-  /// No description provided for @hoursBadAccess.
-  ///
-  /// In ja, this message translates to:
-  /// **'アクセスが悪い'**
-  String get hoursBadAccess;
-
   /// No description provided for @memoLabel.
   ///
   /// In ja, this message translates to:
@@ -877,8 +829,38 @@ abstract class AppLocalizations {
   /// No description provided for @pointsExpedition.
   ///
   /// In ja, this message translates to:
-  /// **'遠征'**
-  String get pointsExpedition;
+  /// **'遠征（{km}km以上）'**
+  String pointsExpedition(int km);
+
+  /// No description provided for @pointsNewPrefecture.
+  ///
+  /// In ja, this message translates to:
+  /// **'初めての都道府県（{name}）'**
+  String pointsNewPrefecture(String name);
+
+  /// No description provided for @pointsNewArea.
+  ///
+  /// In ja, this message translates to:
+  /// **'初めての市区町村（{name}）'**
+  String pointsNewArea(String name);
+
+  /// No description provided for @pointsRegular.
+  ///
+  /// In ja, this message translates to:
+  /// **'常連（この店で{count}杯目）'**
+  String pointsRegular(int count);
+
+  /// No description provided for @pointsStreak.
+  ///
+  /// In ja, this message translates to:
+  /// **'連続記録（{weeks}週目）'**
+  String pointsStreak(int weeks);
+
+  /// No description provided for @pointsFamous.
+  ///
+  /// In ja, this message translates to:
+  /// **'名店'**
+  String get pointsFamous;
 
   /// No description provided for @pointsEarly.
   ///
@@ -891,18 +873,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'深夜'**
   String get pointsLateNight;
-
-  /// No description provided for @pointsHours.
-  ///
-  /// In ja, this message translates to:
-  /// **'攻略しにくさ（{label}）'**
-  String pointsHours(String label);
-
-  /// No description provided for @pointsMultiplier.
-  ///
-  /// In ja, this message translates to:
-  /// **'×{multiplier}'**
-  String pointsMultiplier(String multiplier);
 
   /// No description provided for @pointsRetreat.
   ///
@@ -1126,47 +1096,17 @@ abstract class AppLocalizations {
   /// **'この店の攻略メモ'**
   String get shopMemoSection;
 
-  /// No description provided for @shopConditionsSection.
+  /// No description provided for @shopFamousToggle.
   ///
   /// In ja, this message translates to:
-  /// **'店の条件'**
-  String get shopConditionsSection;
+  /// **'名店の印をつける'**
+  String get shopFamousToggle;
 
-  /// No description provided for @shopConditionsEmpty.
+  /// No description provided for @shopFamousHint.
   ///
   /// In ja, this message translates to:
-  /// **'まだ入れていません'**
-  String get shopConditionsEmpty;
-
-  /// No description provided for @shopConditionsEdit.
-  ///
-  /// In ja, this message translates to:
-  /// **'店の条件を選ぶ'**
-  String get shopConditionsEdit;
-
-  /// No description provided for @shopConditionsFromMap.
-  ///
-  /// In ja, this message translates to:
-  /// **'{label}（地図の営業時間から）'**
-  String shopConditionsFromMap(String label);
-
-  /// No description provided for @mapOpeningHoursConditions.
-  ///
-  /// In ja, this message translates to:
-  /// **'地図の営業時間では {label}'**
-  String mapOpeningHoursConditions(String label);
-
-  /// No description provided for @shopConditionsFromCurated.
-  ///
-  /// In ja, this message translates to:
-  /// **'{label}（麺印帳の店の情報から）'**
-  String shopConditionsFromCurated(String label);
-
-  /// No description provided for @mapCuratedConditions.
-  ///
-  /// In ja, this message translates to:
-  /// **'麺印帳の店の情報では {label}'**
-  String mapCuratedConditions(String label);
+  /// **'自分が名店と思う店に。この店で食べるたびに修行点 +15'**
+  String get shopFamousHint;
 
   /// No description provided for @shopMemoEmpty.
   ///
@@ -1275,12 +1215,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'きっかけ（任意）'**
   String get wishTrigger;
-
-  /// No description provided for @wishConditions.
-  ///
-  /// In ja, this message translates to:
-  /// **'店の条件（わかれば）'**
-  String get wishConditions;
 
   /// No description provided for @wishTriggerHint.
   ///
@@ -1929,6 +1863,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'ラーメン二郎の店の位置: 住所から国土地理院の住所検索で求めたもの'**
   String get creditsGsi;
+
+  /// No description provided for @creditsPrefectures.
+  ///
+  /// In ja, this message translates to:
+  /// **'都道府県の境界: 出典 国土数値情報（行政区域データ）（国土交通省）（https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html）を加工して作成（CC BY 4.0）'**
+  String get creditsPrefectures;
 
   /// No description provided for @creditsOpenPoi.
   ///

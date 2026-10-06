@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -93,7 +92,7 @@ class RecordRepository {
                 latitude: Value(shop.latitude),
                 longitude: Value(shop.longitude),
                 osmId: Value(shop.osmId),
-                hoursConditions: Value(shop.hoursConditions),
+                isFamous: Value(shop.isFamous),
                 strategyMemo: Value(shop.strategyMemo),
                 dataSource: Value(shop.dataSource),
                 area: Value(shop.area),
@@ -121,7 +120,6 @@ class RecordRepository {
                 note: Value(wish.note),
                 createdAt: wish.createdAt,
                 fulfilledVisitId: Value(wish.fulfilledVisitId),
-                hoursConditions: Value(wish.hoursConditions),
               ),
             );
       }
@@ -198,7 +196,7 @@ class RecordRepository {
     required DateTime now,
   }) {
     return _db.transaction(() async {
-      final shopId = await _resolveShop(_shopInputOf(checkin), null, now);
+      final shopId = await _resolveShop(_shopInputOf(checkin), now);
       final visit = Visit(
         id: _uuid.v4(),
         shopId: shopId,
@@ -278,14 +276,10 @@ class RecordRepository {
         ),
       );
 
-  /// [hoursConditions]は利用者が選んだときだけ渡す。nullなら記録済みの店の値を変えず、
-  /// 初めての店は願で入れた条件、それも無ければ[draftConditions]（手で持つ店の条件・地図の営業時間からの下書き）にする。
-  /// [draftConditions]は記録済みの店の値を変えない。[endsCheckin]がtrueなら、チェックインを終える
+  /// [endsCheckin]がtrueなら、チェックインを終える
   /// （省略時は[checkedInAt]を渡したとき）。待ち時間を手で入れたときはfalseにする。
   Future<Visit> saveEatenVisit({
     required ShopInput shop,
-    Set<HoursCondition>? hoursConditions,
-    Set<HoursCondition>? draftConditions,
     required DateTime eatenAt,
     int? rating,
     String? photoPath,
@@ -298,12 +292,7 @@ class RecordRepository {
     required DateTime now,
   }) {
     return _db.transaction(() async {
-      final shopId = await _resolveShop(
-        shop,
-        hoursConditions,
-        now,
-        draftConditions: draftConditions,
-      );
+      final shopId = await _resolveShop(shop, now);
       final visit = Visit(
         id: _uuid.v4(),
         shopId: shopId,
@@ -403,12 +392,10 @@ class RecordRepository {
         ShopsCompanion(strategyMemo: Value(memo.trim())),
       );
 
-  Future<void> setShopConditions(
-    String shopId,
-    Set<HoursCondition> conditions,
-  ) => (_db.update(_db.shops)..where((s) => s.id.equals(shopId))).write(
-    ShopsCompanion(hoursConditions: Value(conditions)),
-  );
+  Future<void> setShopFamous(String shopId, bool isFamous) =>
+      (_db.update(_db.shops)..where((s) => s.id.equals(shopId))).write(
+        ShopsCompanion(isFamous: Value(isFamous)),
+      );
 
   Future<void> setRating(String visitId, int rating) =>
       (_db.update(_db.visits)..where((v) => v.id.equals(visitId))).write(
@@ -417,13 +404,12 @@ class RecordRepository {
 
   /// 店名を変えたときは、この記録だけを別の店に付け替える。ただし手入力の店でほかに記録が
   /// 無ければ、位置を失わないよう店の名前を直す。[pickedShop]（候補や店名検索で選び直した店）を
-  /// 渡すと、店名ではなくその店に付け替える。[hoursConditions]は利用者が変えたときだけ渡す。
+  /// 渡すと、店名ではなくその店に付け替える。
   /// [changesPhoto]がtrueなら写真を[photoPath]に替え、ほかの記録が使っていない前の写真の
   /// パスを返す（ファイルの削除は呼び出し側で行う）。
   Future<String?> updateVisit({
     required String visitId,
     required String shopName,
-    required Set<HoursCondition>? hoursConditions,
     required DateTime eatenAt,
     required DateTime? checkedInAt,
     required int? rating,
@@ -446,7 +432,7 @@ class RecordRepository {
       final name = shopName.trim();
       var shopId = shop.id;
       if (pickedShop != null) {
-        shopId = await _resolveShop(pickedShop, hoursConditions, now);
+        shopId = await _resolveShop(pickedShop, now);
       } else if (name.isNotEmpty && name != shop.name) {
         final sameName = await _findShop(
           ShopInput(
@@ -459,20 +445,11 @@ class RecordRepository {
         if (sameName != null) {
           shopId = sameName.id;
         } else if (hasOtherVisits || shop.osmId != null) {
-          shopId = await _resolveShop(
-            ShopInput(name: name),
-            hoursConditions ?? shop.hoursConditions,
-            now,
-          );
+          shopId = await _resolveShop(ShopInput(name: name), now);
         } else {
           await (_db.update(_db.shops)..where((s) => s.id.equals(shop.id)))
               .write(ShopsCompanion(name: Value(name)));
         }
-      }
-      if (hoursConditions != null) {
-        await (_db.update(_db.shops)..where((s) => s.id.equals(shopId))).write(
-          ShopsCompanion(hoursConditions: Value(hoursConditions)),
-        );
       }
       await (_db.update(_db.visits)..where((v) => v.id.equals(visitId))).write(
         VisitsCompanion(
@@ -555,19 +532,11 @@ class RecordRepository {
         .write(const ActiveCheckinsCompanion(shopId: Value(null)));
   }
 
-  Future<String> _resolveShop(
-    ShopInput input,
-    Set<HoursCondition>? hoursConditions,
-    DateTime now, {
-    Set<HoursCondition>? draftConditions,
-  }) async {
+  Future<String> _resolveShop(ShopInput input, DateTime now) async {
     final existing = await _findShop(input);
     if (existing != null) {
       // 手入力で記録した店をあとから検索結果で選んだときは、同じ店として位置とIDを補う。
       final adoptsOsm = existing.osmId == null && input.osmId != null;
-      final changesHours =
-          hoursConditions != null &&
-          !setEquals(existing.hoursConditions, hoursConditions);
       final adoptsSource =
           existing.dataSource == null && input.dataSource != null;
       // 位置のわからない店に、店名で探した店などの位置が来たら、地図に載るよう位置を補う。
@@ -584,7 +553,7 @@ class RecordRepository {
           (existing.latitude != input.latitude ||
               existing.longitude != input.longitude);
       final setsLocation = adoptsOsm || adoptsLocation || movesToPin;
-      if (setsLocation || changesHours || adoptsSource) {
+      if (setsLocation || adoptsSource) {
         await (_db.update(
           _db.shops,
         )..where((s) => s.id.equals(existing.id))).write(
@@ -597,9 +566,6 @@ class RecordRepository {
                 ? Value(input.longitude)
                 : const Value.absent(),
             area: movesToPin ? const Value(null) : const Value.absent(),
-            hoursConditions: changesHours
-                ? Value(hoursConditions)
-                : const Value.absent(),
             dataSource: adoptsSource
                 ? Value(input.dataSource)
                 : const Value.absent(),
@@ -618,38 +584,11 @@ class RecordRepository {
             latitude: Value(input.latitude),
             longitude: Value(input.longitude),
             osmId: Value(input.osmId),
-            hoursConditions: Value(
-              hoursConditions ??
-                  switch (await _wishedConditions(input)) {
-                    final wished when wished.isNotEmpty => wished,
-                    _ => draftConditions ?? const {},
-                  },
-            ),
             dataSource: Value(input.dataSource),
             createdAt: now,
           ),
         );
     return id;
-  }
-
-  /// 初めて記録する店に、願を掛けたときに入れておいた条件を引き継ぐ。
-  Future<Set<HoursCondition>> _wishedConditions(ShopInput input) async {
-    final osmId = input.osmId;
-    final wishId = input.wishId;
-    if (wishId == null && osmId == null) return const {};
-    final wish =
-        await (_db.select(_db.wishes)
-              ..where(
-                (w) =>
-                    w.fulfilledVisitId.isNull() &
-                    (wishId != null
-                        ? w.id.equals(wishId)
-                        : w.osmId.equals(osmId!)),
-              )
-              ..orderBy([(w) => OrderingTerm.asc(w.createdAt)])
-              ..limit(1))
-            .getSingleOrNull();
-    return wish?.hoursConditions ?? const {};
   }
 
   Future<Shop?> _findShop(ShopInput input) async {

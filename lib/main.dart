@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'features/home/app_shell.dart';
+import 'features/prefecture/prefectures.dart';
 import 'features/records/photo_storage.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
@@ -16,10 +17,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LicenseRegistry.addLicense(_fontLicenses);
   final documents = await getApplicationDocumentsDirectory();
+  final prefectures = PrefectureIndex.fromJson(
+    await rootBundle.loadString(prefecturesAsset),
+  );
   await _activateAppCheck();
   runApp(
     ProviderScope(
-      overrides: [documentsDirectoryProvider.overrideWithValue(documents)],
+      overrides: [
+        documentsDirectoryProvider.overrideWithValue(documents),
+        prefectureIndexProvider.overrideWithValue(prefectures),
+      ],
       child: const RamenInChoApp(),
     ),
   );

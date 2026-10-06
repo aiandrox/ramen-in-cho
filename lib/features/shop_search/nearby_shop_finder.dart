@@ -73,7 +73,7 @@ class NearbyShopFinder {
           radiusMeters: radiusMeters,
           timeout: timeout,
         );
-        return withCuratedConditions(mergeFoundShops(shops, builtin), curated);
+        return mergeFoundShops(shops, builtin);
       } catch (e) {
         debugPrint('Ramen-In-Cho API search failed: $e');
       }
@@ -113,9 +113,10 @@ class NearbyShopFinder {
       throw StateError('店の検索がすべて失敗しました');
     }
     // OpenStreetMap の店を優先し（IDがあるため）、次にアプリに持たせている店、Yahoo!、最後に OpenPOI。
-    return withCuratedConditions(
-      mergeFoundShops(osm ?? const [], [...builtin, ...?yahooShops, ...?poi]),
-      curated,
-    );
+    return mergeFoundShops(osm ?? const [], [
+      ...builtin,
+      ...?yahooShops,
+      ...?poi,
+    ]);
   }
 }

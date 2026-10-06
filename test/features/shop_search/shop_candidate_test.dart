@@ -15,18 +15,12 @@ FoundShop _found(String name, double northDegrees, {String? osmId}) =>
       location: GeoPoint(35.0 + northDegrees, 139.0),
     );
 
-Shop _known(
-  String name, {
-  double? northDegrees,
-  String? osmId,
-  Set<HoursCondition> hoursConditions = const {},
-}) => Shop(
+Shop _known(String name, {double? northDegrees, String? osmId}) => Shop(
   id: 'shop-$name',
   name: name,
   latitude: northDegrees == null ? null : 35.0 + northDegrees,
   longitude: northDegrees == null ? null : 139.0,
   osmId: osmId,
-  hoursConditions: hoursConditions,
   createdAt: DateTime(2026),
 );
 
@@ -71,14 +65,7 @@ void main() {
         here: _here,
         found: const [],
         knownShops: [
-          _known(
-            '手入力の店',
-            northDegrees: 0.001,
-            hoursConditions: {
-              HoursCondition.weekdaysOnly,
-              HoursCondition.fewDays,
-            },
-          ),
+          _known('手入力の店', northDegrees: 0.001),
           _known('位置のない店'),
           _known('遠くの店', northDegrees: 0.01),
         ],
@@ -86,10 +73,6 @@ void main() {
 
       expect(candidates.map((c) => c.name), ['手入力の店']);
       expect(candidates.single.shopId, 'shop-手入力の店');
-      expect(candidates.single.hoursConditions, {
-        HoursCondition.weekdaysOnly,
-        HoursCondition.fewDays,
-      });
     });
 
     test('OpenPOIで選んだ店と表記の少し違うOSMの店は、記録済みの方だけを出す', () {
@@ -106,57 +89,6 @@ void main() {
       );
 
       expect(candidates.map((c) => c.shopId), ['shop-壱角家', 'shop-らぁ麺　はやし田']);
-    });
-
-    test('地図の営業時間から推し量った条件を、初めての店の下書きにする。願の条件があれば願を優先する', () {
-      final candidates = rankShopCandidates(
-        here: _here,
-        found: [
-          const FoundShop(
-            osmId: 'node/lunch',
-            name: '昼の店',
-            location: GeoPoint(35.0001, 139.0),
-            openingHours: 'Mo-Fr 11:00-15:00',
-          ),
-          const FoundShop(
-            osmId: 'node/wish',
-            name: '願の店',
-            location: GeoPoint(35.0002, 139.0),
-            openingHours: 'Mo-Fr 11:00-15:00',
-          ),
-          const FoundShop(
-            osmId: 'node/normal',
-            name: 'ふつうの店',
-            location: GeoPoint(35.0003, 139.0),
-            openingHours: 'Mo-Su 11:00-22:00',
-          ),
-        ],
-        knownShops: const [],
-        wishes: [
-          Wish(
-            id: 'w',
-            osmId: 'node/wish',
-            name: '願の店',
-            createdAt: DateTime(2026),
-            hoursConditions: const {HoursCondition.irregular},
-          ),
-        ],
-      );
-      ShopCandidate named(String name) =>
-          candidates.firstWhere((c) => c.name == name);
-
-      expect(named('昼の店').hoursConditions, {
-        HoursCondition.lunchOnly,
-        HoursCondition.weekdaysOnly,
-      });
-      expect(
-        named('昼の店').conditionsDraftSource,
-        ConditionsDraftSource.openingHours,
-      );
-      expect(named('願の店').hoursConditions, {HoursCondition.irregular});
-      expect(named('願の店').conditionsDraftSource, isNull);
-      expect(named('ふつうの店').hoursConditions, isNull);
-      expect(named('ふつうの店').conditionsDraftSource, isNull);
     });
 
     test('まだの願の店は「願」を付けて先頭に出し、候補に無ければ願の店を足す', () {

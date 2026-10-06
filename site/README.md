@@ -7,7 +7,7 @@ Cloudflare Pages の1つのプロジェクトに、紹介ページ（`public/`�
 
 | 道 | 中身 |
 |---|---|
-| `GET /api/v1/curated-shops` | アプリに持たせる店の一覧（閉店も含む）。店ごとに `hoursConditions`（店の条件。初めて記録するときの下書き）。`ETag` 付きで、`If-None-Match` が同じなら 304 |
+| `GET /api/v1/curated-shops` | アプリに持たせる店の一覧（閉店も含む）。`ETag` 付きで、`If-None-Match` が同じなら 304 |
 | `GET /api/v1/shops/nearby?lat=&lon=&radius=` | 近くの店（半径 1000m まで）。手で持つ店・Overpass・OpenPOI・Yahoo! をまとめて返す |
 | `GET /api/v1/shops/search?q=&lat=&lon=` | 店名で全国から探す。空白があれば詰めた言葉でも探してまとめる |
 
@@ -17,7 +17,6 @@ Cloudflare Pages の1つのプロジェクトに、紹介ページ（`public/`�
 ## 店のデータを直す
 
 1. `../data/curated_shops.json` を直して PR を出す（閉店は消さずに `"status": "closed"`）
-   - 店の条件（`hoursConditions`）は、店の公式 X・告知などで確かめて入れ、`conditionsSource` に調べた URL と日付を書く。営業時間そのものは書かない。確かめられなければ `"conditionsVerified": false` にして条件を空にする
 2. マージすると GitHub Actions（Site Deploy）が D1 を正本どおりに入れ替えてデプロイする
 
 アプリに同梱している一覧（`lib/features/shop_search/builtin_shops.dart`）も同じ中身にする（テストで確かめる）。

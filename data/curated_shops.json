@@ -1,5 +1,5 @@
 {
-  "note": "アプリに持たせる店（地図の検索で見つからないことのある店）。位置は住所から国土地理院の住所検索で求めた。開店・閉店・移転はここを直して PR を出す。閉店は消さずに status を closed にする。 hoursConditions は店の条件（攻略しにくさ）で、初めて記録するときの下書きにする。営業時間そのものは持たず、調べた出どころと日付を conditionsSource に書く。確かめられなかった店は conditionsVerified を false にして条件を空にする。",
+  "note": "アプリに持たせる店（地図の検索で見つからないことのある店）。位置は住所から国土地理院の住所検索で求めた。開店・閉店・移転はここを直して PR を出す。閉店は消さずに status を closed にする。",
   "shops": [
     {
       "id": "jiro-mita",
@@ -8,14 +8,7 @@
       "latitude": 35.648045,
       "longitude": 139.741516,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_mitahontenjiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-meguro",
@@ -24,14 +17,7 @@
       "latitude": 35.634285,
       "longitude": 139.707077,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/infoall/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-sengawa",
@@ -40,16 +26,7 @@
       "latitude": 35.661385,
       "longitude": 139.583847,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "nightOnly"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/senjiro26",
-        "checkedAt": "2026-10-05",
-        "confidence": "high"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-shinjuku-kabukicho",
@@ -58,14 +35,7 @@
       "latitude": 35.696198,
       "longitude": 139.701874,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://ramen-jiro.com/kabujiro.html",
-        "checkedAt": "2026-10-05",
-        "confidence": "high"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-shinagawa",
@@ -74,14 +44,7 @@
       "latitude": 35.623974,
       "longitude": 139.742966,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_shinagawajiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-shinjuku-otakibashi",
@@ -90,14 +53,7 @@
       "latitude": 35.696323,
       "longitude": 139.698318,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_shinjukuotakibashijiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-kan7-shinshindaita",
@@ -106,16 +62,7 @@
       "latitude": 35.661949,
       "longitude": 139.660385,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "lunchOnly"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_kannanashinshindaitajiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-hachioji-yaen",
@@ -124,14 +71,7 @@
       "latitude": 35.62962,
       "longitude": 139.40126,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_yaenjiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-ikebukuro-higashiguchi",
@@ -140,16 +80,7 @@
       "latitude": 35.728195,
       "longitude": 139.713913,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "nightOnly"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramen-jiro.com/information.html",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-kameido",
@@ -158,16 +89,7 @@
       "latitude": 35.701885,
       "longitude": 139.826706,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "irregular"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_kameidojiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-fuchu",
@@ -176,17 +98,7 @@
       "latitude": 35.672115,
       "longitude": 139.477158,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "nightOnly",
-        "weekdaysOnly"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/infoall/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-mejirodai",
@@ -195,16 +107,7 @@
       "latitude": 35.638947,
       "longitude": 139.312744,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "irregular"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/mejirodai_jiro/status/1906503881032675835",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-ogikubo",
@@ -213,14 +116,7 @@
       "latitude": 35.703602,
       "longitude": 139.626282,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/ogkb_jiro/status/2062298367561290043",
-        "checkedAt": "2026-10-05",
-        "confidence": "high"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-kaminoge",
@@ -229,14 +125,7 @@
       "latitude": 35.612442,
       "longitude": 139.639023,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://ramendb.supleks.jp/s/3281.html",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-kan7-ichinoe",
@@ -245,14 +134,7 @@
       "latitude": 35.684071,
       "longitude": 139.881927,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/ichinoejiro/status/2052120120512901384",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-kanda-jimbocho",
@@ -261,14 +143,7 @@
       "latitude": 35.69529,
       "longitude": 139.761002,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_jinbochojiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-koiwa",
@@ -277,17 +152,7 @@
       "latitude": 35.734898,
       "longitude": 139.880005,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "lunchOnly",
-        "weekdaysOnly"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_koiwajiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-hibarigaoka",
@@ -296,14 +161,7 @@
       "latitude": 35.749908,
       "longitude": 139.543793,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_hibarigaokajiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-tachikawa",
@@ -312,16 +170,7 @@
       "latitude": 35.696507,
       "longitude": 139.409515,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "irregular"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/jirotachikawa/status/2009060298129625171",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-senjuohashi",
@@ -330,17 +179,7 @@
       "latitude": 35.742706,
       "longitude": 139.796906,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "lunchOnly",
-        "weekdaysOnly"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/senjujirou26/status/2053604116568625620/photo/1",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-nishidai",
@@ -349,14 +188,7 @@
       "latitude": 35.7869,
       "longitude": 139.674423,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/jiro_nishidai",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-hitotsubashi-gakuen",
@@ -365,14 +197,7 @@
       "latitude": 35.722313,
       "longitude": 139.479294,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_hitotsubashigakuenjiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-keikyu-kawasaki",
@@ -381,14 +206,7 @@
       "latitude": 35.534908,
       "longitude": 139.705704,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_keikyukawasakijiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-sagami-ono",
@@ -397,16 +215,7 @@
       "latitude": 35.529911,
       "longitude": 139.432846,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "irregular"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/sumo_jiro/status/1985121541601071397",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-yokohama-kannai",
@@ -415,14 +224,7 @@
       "latitude": 35.442196,
       "longitude": 139.63089,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/kannaijiro",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-shonan-fujisawa",
@@ -431,14 +233,7 @@
       "latitude": 35.342964,
       "longitude": 139.482269,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/fujirow26",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-nakayama",
@@ -447,14 +242,7 @@
       "latitude": 35.51297,
       "longitude": 139.538147,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/NKYMJIRO",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-ikuta",
@@ -463,16 +251,7 @@
       "latitude": 35.615597,
       "longitude": 139.546448,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "irregular"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/ikuta_jiro/status/1962299578587533484",
-        "checkedAt": "2026-10-05",
-        "confidence": "high"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-matsudo",
@@ -481,16 +260,7 @@
       "latitude": 35.785427,
       "longitude": 139.899033,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "nightOnly"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/matsudojiro3",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-keisei-okubo",
@@ -499,14 +269,7 @@
       "latitude": 35.691578,
       "longitude": 140.049591,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": false,
-      "conditionsSource": {
-        "url": "https://x.com/OKB26",
-        "checkedAt": "2026-10-05",
-        "confidence": "low"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-chiba",
@@ -515,14 +278,7 @@
       "latitude": 35.610481,
       "longitude": 140.123581,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://ramendb.supleks.jp/s/124574.html",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-kashiwa",
@@ -531,17 +287,7 @@
       "latitude": 35.881977,
       "longitude": 139.957626,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "lunchOnly",
-        "badAccess"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/genkimoriya/status/2004516618416849000",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-tochigi-kaido",
@@ -550,14 +296,7 @@
       "latitude": 36.422985,
       "longitude": 139.7948,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/Tochigikaidoten",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-sendai",
@@ -566,14 +305,7 @@
       "latitude": 38.259483,
       "longitude": 140.872208,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/jiro_sendai1023",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-sapporo",
@@ -582,14 +314,7 @@
       "latitude": 43.067162,
       "longitude": 141.343063,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_sapporojiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-aizuwakamatsu",
@@ -598,14 +323,7 @@
       "latitude": 37.506386,
       "longitude": 139.93132,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_aiduwakamatsujiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-niigata",
@@ -614,14 +332,7 @@
       "latitude": 37.917233,
       "longitude": 139.06015,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_niigatajiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-kawagoe",
@@ -630,14 +341,7 @@
       "latitude": 35.902737,
       "longitude": 139.476166,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/infoall/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-koshigaya",
@@ -646,17 +350,7 @@
       "latitude": 35.890182,
       "longitude": 139.787659,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "weekdaysOnly",
-        "irregular"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://x.com/ksgy26/status/2039817812122992694",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-omiya-koen",
@@ -665,14 +359,7 @@
       "latitude": 35.921688,
       "longitude": 139.632248,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_oomiyakouenekimaejiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-kyoto",
@@ -681,16 +368,7 @@
       "latitude": 35.043465,
       "longitude": 135.787445,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "irregular"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_kyotojiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-maebashi-chiyodacho",
@@ -699,14 +377,7 @@
       "latitude": 36.392548,
       "longitude": 139.070999,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_maebashijiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-hitachinaka",
@@ -715,14 +386,7 @@
       "latitude": 36.409088,
       "longitude": 140.514603,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_hitachinakajiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-asakura-kaido",
@@ -731,16 +395,7 @@
       "latitude": 33.48444,
       "longitude": 130.533493,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [
-        "weekdaysOnly"
-      ],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_asakuragaidoujiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-nagoya-ozone",
@@ -749,14 +404,7 @@
       "latitude": 35.193916,
       "longitude": 136.941925,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/info_nagoyaoosonejiro/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     },
     {
       "id": "jiro-okinawa",
@@ -765,14 +413,7 @@
       "latitude": 26.21266,
       "longitude": 127.689667,
       "chain": "jiro",
-      "status": "open",
-      "hoursConditions": [],
-      "conditionsVerified": true,
-      "conditionsSource": {
-        "url": "https://www.ramenjiro-pleasure.com/infoall/",
-        "checkedAt": "2026-10-05",
-        "confidence": "medium"
-      }
+      "status": "open"
     }
   ]
 }

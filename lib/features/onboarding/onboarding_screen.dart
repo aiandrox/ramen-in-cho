@@ -125,7 +125,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         shop: ShopInput(name: text.name),
         trigger: text.trigger,
         note: text.note,
-        hoursConditions: text.hoursConditions,
         now: _clock(),
       );
     } catch (e) {

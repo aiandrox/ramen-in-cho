@@ -2,21 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../shop/hours_condition_chips.dart';
 import 'models.dart';
 import 'style_tiles.dart';
 
-/// 系統・限定・攻略しにくさ・メモの入力欄。記録画面と編集画面で共有する。
+/// 系統・限定・メモの入力欄。記録画面と編集画面で共有する。
 class VisitDetailsForm extends StatelessWidget {
   const VisitDetailsForm({
     super.key,
     required this.style,
     required this.isLimited,
-    this.hoursConditions,
     required this.memoController,
     required this.onStyleChanged,
     required this.onLimitedChanged,
-    this.onHoursConditionsChanged,
     required this.onMemoChanged,
     this.waitController,
     this.onWaitChanged,
@@ -24,13 +21,9 @@ class VisitDetailsForm extends StatelessWidget {
 
   final RamenStyle? style;
   final bool isLimited;
-
-  /// 店の攻略しにくさ。nullなら出さない（記録画面では別の欄に出す）。
-  final Set<HoursCondition>? hoursConditions;
   final TextEditingController memoController;
   final ValueChanged<RamenStyle?> onStyleChanged;
   final ValueChanged<bool> onLimitedChanged;
-  final ValueChanged<Set<HoursCondition>>? onHoursConditionsChanged;
   final ValueChanged<String> onMemoChanged;
 
   /// 待ち時間（分）の入力欄。nullなら出さない（並んだ時刻から自動で計算するときなど）。
@@ -71,15 +64,6 @@ class VisitDetailsForm extends StatelessWidget {
             onChanged: (text) => onWaitChanged?.call(parseWaitMinutes(text)),
           ),
           const SizedBox(height: 8),
-        ],
-        if (hoursConditions case final conditions?) ...[
-          const SizedBox(height: 8),
-          Text(l10n.hoursSection, style: textTheme.labelLarge),
-          const SizedBox(height: 4),
-          HoursConditionChips(
-            selected: conditions,
-            onChanged: (value) => onHoursConditionsChanged?.call(value),
-          ),
         ],
         const SizedBox(height: 16),
         TextField(

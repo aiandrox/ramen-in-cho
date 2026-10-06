@@ -52,19 +52,22 @@ RecordOutcome? computeRecordOutcome(
   String visitId, {
   List<Wish> wishes = const [],
   List<HomeBaseSetting> homeBases = const [],
+  String? Function(Shop shop) prefectureOf = noPrefecture,
 }) {
-  final scoredAll = scoreVisits(all, wishes: wishes, homeBases: homeBases);
+  List<ScoredVisit> score(List<VisitWithShop> entries) => scoreVisits(
+    entries,
+    wishes: wishes,
+    homeBases: homeBases,
+    prefectureOf: prefectureOf,
+  );
+  final scoredAll = score(all);
   final scored = scoredAll.where((e) => e.visit.id == visitId).firstOrNull;
   if (scored == null) return null;
   final others = [
     for (final entry in all)
       if (entry.visit.id != visitId) entry,
   ];
-  final scoredOthers = scoreVisits(
-    others,
-    wishes: wishes,
-    homeBases: homeBases,
-  );
+  final scoredOthers = score(others);
   return RecordOutcome(
     scored: scored,
     totalBefore: totalPoints(scoredOthers),

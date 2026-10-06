@@ -149,30 +149,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get isLimited => '限定メニュー';
 
   @override
-  String get hoursSection => '攻略しにくさ（当てはまるものすべて）';
-
-  @override
-  String get hoursLunchOnly => '昼のみ';
-
-  @override
-  String get hoursNightOnly => '夜のみ';
-
-  @override
-  String get hoursWeekdaysOnly => '平日のみ';
-
-  @override
-  String get hoursWeekendsOnly => '土日のみ';
-
-  @override
-  String get hoursFewDays => '週3日以下';
-
-  @override
-  String get hoursIrregular => '不定休';
-
-  @override
-  String get hoursBadAccess => 'アクセスが悪い';
-
-  @override
   String get memoLabel => 'メモ';
 
   @override
@@ -432,23 +408,38 @@ class AppLocalizationsJa extends AppLocalizations {
   String get pointsRetry => '再挑戦成功';
 
   @override
-  String get pointsExpedition => '遠征';
+  String pointsExpedition(int km) {
+    return '遠征（${km}km以上）';
+  }
+
+  @override
+  String pointsNewPrefecture(String name) {
+    return '初めての都道府県（$name）';
+  }
+
+  @override
+  String pointsNewArea(String name) {
+    return '初めての市区町村（$name）';
+  }
+
+  @override
+  String pointsRegular(int count) {
+    return '常連（この店で$count杯目）';
+  }
+
+  @override
+  String pointsStreak(int weeks) {
+    return '連続記録（$weeks週目）';
+  }
+
+  @override
+  String get pointsFamous => '名店';
 
   @override
   String get pointsEarly => '朝ラー';
 
   @override
   String get pointsLateNight => '深夜';
-
-  @override
-  String pointsHours(String label) {
-    return '攻略しにくさ（$label）';
-  }
-
-  @override
-  String pointsMultiplier(String multiplier) {
-    return '×$multiplier';
-  }
 
   @override
   String get pointsRetreat => '撤退の記録に修行点はつきません';
@@ -588,33 +579,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopMemoSection => 'この店の攻略メモ';
 
   @override
-  String get shopConditionsSection => '店の条件';
+  String get shopFamousToggle => '名店の印をつける';
 
   @override
-  String get shopConditionsEmpty => 'まだ入れていません';
-
-  @override
-  String get shopConditionsEdit => '店の条件を選ぶ';
-
-  @override
-  String shopConditionsFromMap(String label) {
-    return '$label（地図の営業時間から）';
-  }
-
-  @override
-  String mapOpeningHoursConditions(String label) {
-    return '地図の営業時間では $label';
-  }
-
-  @override
-  String shopConditionsFromCurated(String label) {
-    return '$label（麺印帳の店の情報から）';
-  }
-
-  @override
-  String mapCuratedConditions(String label) {
-    return '麺印帳の店の情報では $label';
-  }
+  String get shopFamousHint => '自分が名店と思う店に。この店で食べるたびに修行点 +15';
 
   @override
   String get shopMemoEmpty => 'まだありません';
@@ -676,9 +644,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get wishTrigger => 'きっかけ（任意）';
-
-  @override
-  String get wishConditions => '店の条件（わかれば）';
 
   @override
   String get wishTriggerHint => '同僚に聞いた・テレビで見た など';
@@ -1060,6 +1025,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get creditsGsi => 'ラーメン二郎の店の位置: 住所から国土地理院の住所検索で求めたもの';
+
+  @override
+  String get creditsPrefectures =>
+      '都道府県の境界: 出典 国土数値情報（行政区域データ）（国土交通省）（https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html）を加工して作成（CC BY 4.0）';
 
   @override
   String get creditsOpenPoi =>

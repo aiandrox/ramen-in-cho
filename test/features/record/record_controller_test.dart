@@ -361,10 +361,6 @@ void main() {
         .read(recordRepositoryProvider)
         .saveEatenVisit(
           shop: const ShopInput(name: '行きつけの麺屋'),
-          hoursConditions: {
-            HoursCondition.weekdaysOnly,
-            HoursCondition.fewDays,
-          },
           eatenAt: DateTime(2026, 9, 1),
           rating: 5,
           now: DateTime(2026, 9, 1),
@@ -383,159 +379,12 @@ void main() {
     controller().setRating(4);
 
     expect(state().manualName, '');
-    expect(state().hoursConditions, {
-      HoursCondition.weekdaysOnly,
-      HoursCondition.fewDays,
-    });
     expect(await controller().save(), isNotNull);
     expect(
       await container.read(recordRepositoryProvider).allShops(),
       hasLength(1),
     );
     expect(await visits(), hasLength(2));
-  });
-
-  test('地図の営業時間からの下書きは、選び直さなければそのまま初めての店に入る', () async {
-    overpass.shops = const [
-      FoundShop(
-        osmId: 'node/lunch',
-        name: '昼の店',
-        location: GeoPoint(35.001, 139.0),
-        openingHours: 'Mo-Fr 11:00-15:00',
-      ),
-    ];
-    await controller().start();
-    await controller().takePhoto();
-    await pumpEventQueue();
-    controller().selectShop(state().candidates.single);
-
-    expect(state().hoursConditions, {
-      HoursCondition.lunchOnly,
-      HoursCondition.weekdaysOnly,
-    });
-    expect(
-      state().selectedShop!.conditionsDraftSource,
-      ConditionsDraftSource.openingHours,
-    );
-    await controller().save();
-
-    expect(
-      (await container.read(recordRepositoryProvider).allShops())
-          .single
-          .hoursConditions,
-      {HoursCondition.lunchOnly, HoursCondition.weekdaysOnly},
-    );
-  });
-
-  test('手で持つ店の条件は、地図の営業時間より優先して初めての店に入る', () async {
-    overpass.shops = const [
-      FoundShop(
-        osmId: 'node/curated',
-        name: '手で持つ店',
-        location: GeoPoint(35.001, 139.0),
-        openingHours: 'Mo-Fr 11:00-15:00',
-        curatedConditions: {HoursCondition.nightOnly, HoursCondition.irregular},
-      ),
-    ];
-    await controller().start();
-    await controller().takePhoto();
-    await pumpEventQueue();
-    controller().selectShop(state().candidates.single);
-
-    expect(state().hoursConditions, {
-      HoursCondition.nightOnly,
-      HoursCondition.irregular,
-    });
-    expect(
-      state().selectedShop!.conditionsDraftSource,
-      ConditionsDraftSource.curatedShops,
-    );
-    await controller().save();
-
-    expect(
-      (await container.read(recordRepositoryProvider).allShops())
-          .single
-          .hoursConditions,
-      {HoursCondition.nightOnly, HoursCondition.irregular},
-    );
-  });
-
-  test('記録済みの店を選んだあと別の店にしても、営業の条件を引き継がない', () async {
-    await container
-        .read(recordRepositoryProvider)
-        .saveEatenVisit(
-          shop: const ShopInput(name: '週2日の店'),
-          hoursConditions: {
-            HoursCondition.weekdaysOnly,
-            HoursCondition.fewDays,
-          },
-          eatenAt: DateTime(2026, 9, 1),
-          rating: 5,
-          now: DateTime(2026, 9, 1),
-        );
-    await controller().start();
-    await controller().takePhoto();
-    await pumpEventQueue();
-
-    controller().setManualName('週2日');
-    controller().selectShop(state().nameMatches.single);
-    expect(state().hoursConditions, {
-      HoursCondition.weekdaysOnly,
-      HoursCondition.fewDays,
-    });
-
-    controller().selectShop(state().candidates.single);
-    expect(state().hoursConditions, isEmpty);
-    controller().setRating(3);
-    await controller().save();
-
-    final shops = await container.read(recordRepositoryProvider).allShops();
-    expect(
-      {for (final shop in shops) shop.name: shop.hoursConditions},
-      {
-        '週2日の店': {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-        '麺屋テスト': <HoursCondition>{},
-      },
-    );
-  });
-
-  test('記録済みの店の名前を最後まで手入力しても、営業の条件を変えない', () async {
-    final repository = container.read(recordRepositoryProvider);
-    await repository.saveEatenVisit(
-      shop: const ShopInput(name: '週2日の店'),
-      hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-      eatenAt: DateTime(2026, 9, 1),
-      rating: 5,
-      now: DateTime(2026, 9, 1),
-    );
-    await controller().start();
-    await controller().takePhoto();
-    await pumpEventQueue();
-
-    controller().setManualName('週2日の店');
-    controller().setRating(3);
-    await controller().save();
-
-    final shops = await repository.allShops();
-    expect(shops.single.hoursConditions, {
-      HoursCondition.weekdaysOnly,
-      HoursCondition.fewDays,
-    });
-  });
-
-  test('営業の条件を選んでから店名を入力しても、選んだ値で保存する', () async {
-    await controller().start();
-    await controller().takePhoto();
-    await pumpEventQueue();
-
-    controller().setHoursConditions({HoursCondition.lunchOnly});
-    controller().setManualName('昼だけの店');
-    controller().setRating(3);
-    await controller().save();
-
-    expect((await visits()).single.shop.hoursConditions, {
-      HoursCondition.lunchOnly,
-    });
   });
 
   test('アプリが終了させられて取り戻した写真では、現在地を店の位置にしない', () async {
@@ -747,11 +596,10 @@ void main() {
       expect(waitMinutes(entry.visit), 35);
     });
 
-    test('記録済みの店に並んでいるときは、その店の攻略メモと営業の条件も引き継ぐ', () async {
+    test('記録済みの店に並んでいるときは、その店の攻略メモも引き継ぐ', () async {
       final repository = container.read(recordRepositoryProvider);
       final first = await repository.saveEatenVisit(
         shop: const ShopInput(name: '行きつけの店'),
-        hoursConditions: {HoursCondition.weekdaysOnly},
         eatenAt: DateTime(2026, 9, 1),
         now: DateTime(2026, 9, 1),
       );
@@ -767,7 +615,6 @@ void main() {
 
       expect(state().isCheckinShopSelected, isTrue);
       expect(state().selectedShop!.strategyMemo, '開店30分前で1巡目');
-      expect(state().hoursConditions, {HoursCondition.weekdaysOnly});
     });
 
     test('3時間を超えたチェックインは使わない', () async {
@@ -980,8 +827,7 @@ void main() {
         ..setStyle(RamenStyle.iekei)
         ..setLimited(true)
         ..setMemo('かため')
-        ..setWaitMinutes(25)
-        ..setHoursConditions({HoursCondition.lunchOnly});
+        ..setWaitMinutes(25);
       // 写真は一時ファイルではなく documents に写してある。
       expect(p.isWithin(draftPhotos().path, state().photoPath!), isTrue);
       await flushed(container);
@@ -1003,7 +849,6 @@ void main() {
       expect(resumed.isLimited, isTrue);
       expect(resumed.memo, 'かため');
       expect(resumed.manualWaitMinutes, 25);
-      expect(resumed.chosenHoursConditions, {HoursCondition.lunchOnly});
 
       expect(
         await next.read(recordControllerProvider.notifier).save(),

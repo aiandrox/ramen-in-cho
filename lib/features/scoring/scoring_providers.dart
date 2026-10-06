@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../home_base/home_base_repository.dart';
+import '../prefecture/prefectures.dart';
 import '../quests/quests.dart';
 import '../records/record_repository.dart';
 import '../wishes/wish_repository.dart';
@@ -14,6 +15,7 @@ final scoredVisitsProvider = Provider<List<ScoredVisit>>(
     ref.watch(visitsProvider).value ?? const [],
     wishes: ref.watch(wishesProvider).value ?? const [],
     homeBases: ref.watch(homeBaseSettingsProvider).value ?? const [],
+    prefectureOf: ref.watch(prefectureIndexProvider).prefectureOf,
   ),
 );
 

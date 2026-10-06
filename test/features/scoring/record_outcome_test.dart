@@ -30,11 +30,8 @@ void main() {
   });
 
   test('1杯で上がるのは1つだけ。必要点に届かなければ上がらない', () {
-    final rare = buildShop(
-      id: 'rare',
-      hoursConditions: {HoursCondition.weekdaysOnly, HoursCondition.fewDays},
-    );
-    // (10 + 10 + 20 + 50) × 2 = 180。一級まで届くが、上がるのは五級だけ。
+    final rare = buildShop(id: 'rare', isFamous: true);
+    // 10 + 初訪問 10 + 限定 20 + 待ち 50 + 名店 15 = 105。三級の手前まで届くが、上がるのは五級だけ。
     final big = buildEntry(
       shop: rare,
       eatenAt: day(1),
@@ -49,7 +46,7 @@ void main() {
     // 次の1杯で、四級に1つだけ上がる。
     final next = buildEntry(shop: shop, eatenAt: day(2));
     final up = computeRecordOutcome([big, next], next.visit.id)!;
-    expect(up.totalAfter, 200);
+    expect(up.totalAfter, 125);
     expect(up.rankBefore, AdventurerRank.kyu5);
     expect(up.rankAfter, AdventurerRank.kyu4);
     expect(up.isRankUp, isTrue);
@@ -63,7 +60,8 @@ void main() {
   });
 
   test('過去の日時の記録を足したときは、ほかの記録のボーナスの変化も含めた差になる', () {
-    final later = buildEntry(shop: shop, eatenAt: day(10));
+    // 連続記録がつかないよう、週を2つ以上あける。
+    final later = buildEntry(shop: shop, eatenAt: day(20));
     final earlier = buildEntry(shop: shop, eatenAt: day(1));
 
     final outcome = computeRecordOutcome([later, earlier], earlier.visit.id)!;

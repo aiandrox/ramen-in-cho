@@ -20,18 +20,6 @@ void main() {
       expect(kaijin.location.latitude, closeTo(35.6898044, 1e-7));
     });
 
-    test('営業時間（opening_hours）があれば持ち、攻略しにくさを推し量る', () {
-      final shops = parseOverpassResponse(sample);
-
-      final kamo = shops.firstWhere((s) => s.osmId == 'relation/17691793');
-      expect(kamo.openingHours, '08:00-23:00');
-      expect(kamo.suggestedConditions, isNull);
-      expect(
-        shops.firstWhere((s) => s.osmId == 'node/1504865588').openingHours,
-        isNull,
-      );
-    });
-
     test('建物として登録された店は中心の位置を使う', () {
       final shops = parseOverpassResponse(sample);
 
