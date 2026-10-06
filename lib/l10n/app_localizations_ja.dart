@@ -1681,7 +1681,59 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationSettings => '通知';
 
   @override
-  String get notificationSettingsNote => 'スマホの設定で、麺印帳の通知を切り替えます';
+  String get notificationSettingsNote => '種類ごとに、知らせるかを選べます';
+
+  @override
+  String get notificationNotPermitted => '通知が許可されていません';
+
+  @override
+  String get notificationNotPermittedNote => 'タップして、スマホの設定で麺印帳の通知を許可してください';
+
+  @override
+  String get notificationKindCheckin => '並び中';
+
+  @override
+  String get notificationKindCheckinNote => '並んでいる間、経過時間を出しておきます';
+
+  @override
+  String get notificationKindStreak => '連続記録';
+
+  @override
+  String get notificationKindStreakNote => 'その週にまだ食べていないとき、途切れる前に知らせます';
+
+  @override
+  String get notificationStreakTime => '連続記録を知らせる曜日と時刻';
+
+  @override
+  String notificationStreakTimeValue(String weekday, String time) {
+    return '$weekday曜日 $time';
+  }
+
+  @override
+  String weekdayShort(String weekday) {
+    String _temp0 = intl.Intl.selectLogic(weekday, {
+      '1': '月',
+      '2': '火',
+      '3': '水',
+      '4': '木',
+      '5': '金',
+      '6': '土',
+      'other': '日',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationQuietNight => '夜（22時〜8時）は知らせない';
+
+  @override
+  String get notificationQuietNightNote => '夜にかかる知らせは、その日の21時か朝8時に動かします';
+
+  @override
+  String get notificationOsSettings => 'スマホの通知の設定';
+
+  @override
+  String get notificationOsSettingsNote => 'スマホの設定で、麺印帳の通知を切り替えます';
 
   @override
   String get nameSearchPickOnMap => '見つからないときは、地図で場所を指す';

@@ -783,6 +783,30 @@
   "locationServiceOffBody": "スマホの位置情報がオフになっています。設定で位置情報をオンにしてください。",
   "locationOpenSettings": "設定を開く",
   "notificationSettings": "通知",
-  "notificationSettingsNote": "スマホの設定で、麺印帳の通知を切り替えます",
+  "notificationSettingsNote": "種類ごとに、知らせるかを選べます",
+  "notificationNotPermitted": "通知が許可されていません",
+  "notificationNotPermittedNote": "タップして、スマホの設定で麺印帳の通知を許可してください",
+  "notificationKindCheckin": "並び中",
+  "notificationKindCheckinNote": "並んでいる間、経過時間を出しておきます",
+  "notificationKindStreak": "連続記録",
+  "notificationKindStreakNote": "その週にまだ食べていないとき、途切れる前に知らせます",
+  "notificationStreakTime": "連続記録を知らせる曜日と時刻",
+  "notificationStreakTimeValue": "{weekday}曜日 {time}",
+  "@notificationStreakTimeValue": {
+    "placeholders": {
+      "weekday": {"type": "String"},
+      "time": {"type": "String"}
+    }
+  },
+  "weekdayShort": "{weekday, select, 1{月} 2{火} 3{水} 4{木} 5{金} 6{土} other{日}}",
+  "@weekdayShort": {
+    "placeholders": {
+      "weekday": {"type": "String"}
+    }
+  },
+  "notificationQuietNight": "夜（22時〜8時）は知らせない",
+  "notificationQuietNightNote": "夜にかかる知らせは、その日の21時か朝8時に動かします",
+  "notificationOsSettings": "スマホの通知の設定",
+  "notificationOsSettingsNote": "スマホの設定で、麺印帳の通知を切り替えます",
   "nameSearchPickOnMap": "見つからないときは、地図で場所を指す"
 }

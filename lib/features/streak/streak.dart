@@ -40,18 +40,25 @@ class Streak {
 DateTime weekStartOf(DateTime time) =>
     DateTime(time.year, time.month, time.day - (time.weekday - 1));
 
-/// 連続記録が途切れそうなときに知らせる時刻。今週まだなら今週の日曜18時、
-/// 今週すでに食べていれば来週の日曜18時（来週アプリを開かなくても届くよう先に予約する）。
-/// 連続記録が無ければnull。
-DateTime? streakReminderTime(Streak streak, DateTime now) {
+/// 連続記録が途切れそうなときに知らせる時刻。今週まだなら今週の[weekday]の[hour]時、
+/// 今週すでに食べていれば来週の同じ時刻（来週アプリを開かなくても届くよう先に予約する）。
+/// 連続記録が無ければnull。初期値は日曜18時。
+DateTime? streakReminderTime(
+  Streak streak,
+  DateTime now, {
+  int weekday = DateTime.sunday,
+  int hour = 18,
+  int minute = 0,
+}) {
   if (streak.weeks == 0) return null;
   final monday = weekStartOf(now);
   final weeksAhead = streak.thisWeekDone ? 1 : 0;
   return DateTime(
     monday.year,
     monday.month,
-    monday.day + 6 + 7 * weeksAhead,
-    18,
+    monday.day + (weekday - 1) + 7 * weeksAhead,
+    hour,
+    minute,
   );
 }
 

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ramen_in_cho/features/backup/backup_codec.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
+import 'package:ramen_in_cho/features/notifications/notification_settings.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
 import 'package:ramen_in_cho/features/record/record_draft.dart';
@@ -284,8 +285,16 @@ class FakeNotificationService implements NotificationService {
   }
 
   int permissionRequests = 0;
-  final streakReminders = <DateTime>[];
-  int streakCancelCount = 0;
+  bool? permitted = true;
+
+  /// いま予約されている通知（最後に置き換えたもの）。
+  List<ScheduledNotification> scheduled = const [];
+  int replaceCount = 0;
+
+  List<DateTime> get streakReminders => [
+    for (final n in scheduled)
+      if (n.kind == NotificationKind.streak) n.at,
+  ];
 
   @override
   Future<void> requestPermission() async {
@@ -293,17 +302,14 @@ class FakeNotificationService implements NotificationService {
   }
 
   @override
-  Future<void> scheduleStreakReminder({
-    required DateTime at,
-    required String title,
-    required String body,
-  }) async {
-    streakReminders.add(at);
-  }
+  Future<bool?> isPermitted() async => permitted;
 
   @override
-  Future<void> cancelStreakReminder() async {
-    streakCancelCount++;
+  Future<void> replaceScheduled(
+    List<ScheduledNotification> notifications,
+  ) async {
+    replaceCount++;
+    scheduled = notifications;
   }
 }
 

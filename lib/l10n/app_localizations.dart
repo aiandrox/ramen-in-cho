@@ -2995,8 +2995,86 @@ abstract class AppLocalizations {
   /// No description provided for @notificationSettingsNote.
   ///
   /// In ja, this message translates to:
-  /// **'スマホの設定で、麺印帳の通知を切り替えます'**
+  /// **'種類ごとに、知らせるかを選べます'**
   String get notificationSettingsNote;
+
+  /// No description provided for @notificationNotPermitted.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知が許可されていません'**
+  String get notificationNotPermitted;
+
+  /// No description provided for @notificationNotPermittedNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'タップして、スマホの設定で麺印帳の通知を許可してください'**
+  String get notificationNotPermittedNote;
+
+  /// No description provided for @notificationKindCheckin.
+  ///
+  /// In ja, this message translates to:
+  /// **'並び中'**
+  String get notificationKindCheckin;
+
+  /// No description provided for @notificationKindCheckinNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'並んでいる間、経過時間を出しておきます'**
+  String get notificationKindCheckinNote;
+
+  /// No description provided for @notificationKindStreak.
+  ///
+  /// In ja, this message translates to:
+  /// **'連続記録'**
+  String get notificationKindStreak;
+
+  /// No description provided for @notificationKindStreakNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'その週にまだ食べていないとき、途切れる前に知らせます'**
+  String get notificationKindStreakNote;
+
+  /// No description provided for @notificationStreakTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'連続記録を知らせる曜日と時刻'**
+  String get notificationStreakTime;
+
+  /// No description provided for @notificationStreakTimeValue.
+  ///
+  /// In ja, this message translates to:
+  /// **'{weekday}曜日 {time}'**
+  String notificationStreakTimeValue(String weekday, String time);
+
+  /// No description provided for @weekdayShort.
+  ///
+  /// In ja, this message translates to:
+  /// **'{weekday, select, 1{月} 2{火} 3{水} 4{木} 5{金} 6{土} other{日}}'**
+  String weekdayShort(String weekday);
+
+  /// No description provided for @notificationQuietNight.
+  ///
+  /// In ja, this message translates to:
+  /// **'夜（22時〜8時）は知らせない'**
+  String get notificationQuietNight;
+
+  /// No description provided for @notificationQuietNightNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'夜にかかる知らせは、その日の21時か朝8時に動かします'**
+  String get notificationQuietNightNote;
+
+  /// No description provided for @notificationOsSettings.
+  ///
+  /// In ja, this message translates to:
+  /// **'スマホの通知の設定'**
+  String get notificationOsSettings;
+
+  /// No description provided for @notificationOsSettingsNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'スマホの設定で、麺印帳の通知を切り替えます'**
+  String get notificationOsSettingsNote;
 
   /// No description provided for @nameSearchPickOnMap.
   ///

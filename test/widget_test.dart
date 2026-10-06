@@ -453,7 +453,37 @@ void main() {
 
       expect(find.textContaining('週連続'), findsNothing);
       expect(notifications.streakReminders, isEmpty);
-      expect(notifications.streakCancelCount, greaterThan(0));
+      expect(notifications.replaceCount, greaterThan(0));
+    });
+
+    testWidgets('通知の設定で連続記録をオフにすると予約を取り消し、オンに戻すと予約し直す', (tester) async {
+      notifications.permitted = false;
+      await pumpApp(tester, [
+        eatenAt(DateTime(2026, 9, 22, 12)),
+        eatenAt(DateTime(2026, 9, 15, 12)),
+      ], now: thursday);
+      expect(notifications.streakReminders, [DateTime(2026, 10, 4, 18)]);
+
+      await tester.tap(find.text(ja.navShugyo));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip(ja.settingsSection));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.notificationSettings));
+      await tester.pumpAndSettle();
+
+      expect(find.text(ja.notificationNotPermitted), findsOneWidget);
+      expect(find.text(ja.notificationStreakTime), findsOneWidget);
+
+      await tester.tap(find.text(ja.notificationKindStreak));
+      await tester.pumpAndSettle();
+      expect(notifications.streakReminders, isEmpty);
+      expect(find.text(ja.notificationStreakTime), findsNothing);
+
+      await tester.tap(find.text(ja.notificationKindStreak));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.weekdayShort('6')));
+      await tester.pumpAndSettle();
+      expect(notifications.streakReminders, [DateTime(2026, 10, 3, 18)]);
     });
   });
 
