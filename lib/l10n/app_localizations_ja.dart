@@ -105,10 +105,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get shopSearchAttribution =>
-      '© OpenStreetMap contributors ／ 出典: OpenPOI API（https://openpoiapi.com/attribution.html）';
-
-  @override
   String get ratingSection => '評価';
 
   @override
@@ -1069,10 +1065,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopRelocate => '店の場所を直す';
 
   @override
-  String get yahooAttribution =>
-      'Web Services by Yahoo! JAPAN（https://developer.yahoo.co.jp/sitemap/）';
-
-  @override
   String get creditsYahoo =>
       '店の情報: Web Services by Yahoo! JAPAN（https://developer.yahoo.co.jp/sitemap/）';
 
@@ -1187,11 +1179,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get navMap => '地図';
 
   @override
-  String get mapAttribution => '© OpenStreetMap contributors';
+  String get sourceCreditOsm => '© OpenStreetMap contributors';
 
   @override
-  String get openPoiAttribution =>
-      '出典: OpenPOI API（https://openpoiapi.com/attribution.html）';
+  String get sourceCreditYahoo => 'Web Services by Yahoo! JAPAN';
+
+  @override
+  String get sourceCreditMore => '出典';
 
   @override
   String get mapTitle => 'ラーメン地図';

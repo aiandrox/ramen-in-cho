@@ -42,23 +42,6 @@ class WashiTileLayer extends StatelessWidget {
   );
 }
 
-/// 地図の左下に出す出典（部品名は出さない）。
-class MapAttribution extends StatelessWidget {
-  const MapAttribution({super.key});
-
-  @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Washi.paper.withValues(alpha: 0.85),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      child: Text(
-        AppLocalizations.of(context).mapAttribution,
-        style: Theme.of(context).textTheme.labelSmall,
-      ),
-    ),
-  );
-}
-
 class MapHereDot extends StatelessWidget {
   const MapHereDot({super.key});
 

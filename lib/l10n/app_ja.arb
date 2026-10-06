@@ -36,7 +36,6 @@
       "meters": {"type": "int"}
     }
   },
-  "shopSearchAttribution": "© OpenStreetMap contributors ／ 出典: OpenPOI API（https://openpoiapi.com/attribution.html）",
   "ratingSection": "評価",
   "ratingUnrated": "未評価",
   "ratingPrompt": "{shop} はどうでしたか？",
@@ -479,7 +478,6 @@
   "locationPickRedo": "指し直す",
   "locationPickClear": "外す",
   "shopRelocate": "店の場所を直す",
-  "yahooAttribution": "Web Services by Yahoo! JAPAN（https://developer.yahoo.co.jp/sitemap/）",
   "creditsYahoo": "店の情報: Web Services by Yahoo! JAPAN（https://developer.yahoo.co.jp/sitemap/）",
   "backupTitle": "バックアップ",
   "creditsTitle": "出典・ライセンス",
@@ -540,8 +538,9 @@
   },
   "statsShopRanks": "店ランク",
   "navMap": "地図",
-  "mapAttribution": "© OpenStreetMap contributors",
-  "openPoiAttribution": "出典: OpenPOI API（https://openpoiapi.com/attribution.html）",
+  "sourceCreditOsm": "© OpenStreetMap contributors",
+  "sourceCreditYahoo": "Web Services by Yahoo! JAPAN",
+  "sourceCreditMore": "出典",
   "mapTitle": "ラーメン地図",
   "mapSearching": "このあたりのラーメン店を探しています…",
   "mapLocating": "現在地を確かめています…",

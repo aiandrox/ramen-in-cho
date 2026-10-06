@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../credits/source_credit.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi.dart';
 import '../../theme/washi_buttons.dart';
@@ -181,7 +182,15 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
                     ),
                   ),
                 ),
-                const Positioned(left: 0, bottom: 0, child: MapAttribution()),
+                const Positioned(
+                  left: 0,
+                  right: 72,
+                  bottom: 0,
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: SourceCredit(yahoo: false, onMap: true),
+                  ),
+                ),
                 Positioned(
                   right: 16,
                   bottom: 24,

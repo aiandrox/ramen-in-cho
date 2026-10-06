@@ -99,6 +99,8 @@ void main() {
       longitude: 139.0,
     );
     await pumpMap(tester, [buildEntry(shop: visited)]);
+    expect(find.text(ja.sourceCreditOsm), findsOneWidget);
+    expect(find.text(ja.sourceCreditYahoo), findsNothing);
 
     await tester.tap(find.byTooltip(ja.mapSearchHere));
     await tester.pumpAndSettle();
@@ -106,10 +108,7 @@ void main() {
     expect(overpass.radii, [nearbySearchRadiusMeters]);
     expect(find.text(ja.mapNearbyFound(1)), findsOneWidget);
     expect(find.bySemanticsLabel('まだ行っていない店'), findsOneWidget);
-    expect(
-      find.text('${ja.openPoiAttribution}\n${ja.yahooAttribution}'),
-      findsOneWidget,
-    );
+    expect(find.text(ja.sourceCreditYahoo), findsOneWidget);
   });
 
   testWidgets('位置のわからない手入力の店や、撤退しただけの店は「まだ行っていない店」に出さない', (tester) async {
