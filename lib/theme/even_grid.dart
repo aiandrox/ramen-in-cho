@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 class EvenGrid extends StatelessWidget {
   const EvenGrid({
     super.key,
-    required this.minItemWidth,
+    this.minItemWidth = 0,
+    this.columns,
     this.spacing = 8,
     this.runSpacing = 8,
     required this.itemCount,
@@ -13,6 +14,9 @@ class EvenGrid extends StatelessWidget {
   });
 
   final double minItemWidth;
+
+  /// 列の数を決めて並べるとき。指定がなければ[minItemWidth]から決める。
+  final int? columns;
   final double spacing;
   final double runSpacing;
   final int itemCount;
@@ -37,11 +41,10 @@ class EvenGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final (_, itemWidth) = layout(
-          constraints.maxWidth,
-          minItemWidth,
-          spacing,
-        );
+        final fixed = columns;
+        final itemWidth = fixed == null
+            ? layout(constraints.maxWidth, minItemWidth, spacing).$2
+            : (constraints.maxWidth - spacing * (fixed - 1)) / fixed - 0.01;
         return Wrap(
           spacing: spacing,
           runSpacing: runSpacing,
