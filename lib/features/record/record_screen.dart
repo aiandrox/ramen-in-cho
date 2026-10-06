@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../credits/source_credit.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/safe_bottom.dart';
 import '../../theme/washi.dart';
@@ -576,13 +577,7 @@ class _ShopSection extends ConsumerWidget {
           ),
         if (state.searchStatus == ShopSearchStatus.done &&
             state.searchFailure != ShopSearchFailure.noLocation)
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              [l10n.shopSearchAttribution, l10n.yahooAttribution].join('\n'),
-              style: textTheme.labelSmall,
-            ),
-          ),
+          Align(alignment: Alignment.centerRight, child: const SourceCredit()),
         const SizedBox(height: 8),
         TextField(
           key: nameFieldKey,

@@ -280,12 +280,6 @@ abstract class AppLocalizations {
   /// **'{meters}m'**
   String distanceMeters(int meters);
 
-  /// No description provided for @shopSearchAttribution.
-  ///
-  /// In ja, this message translates to:
-  /// **'© OpenStreetMap contributors ／ 出典: OpenPOI API（https://openpoiapi.com/attribution.html）'**
-  String get shopSearchAttribution;
-
   /// No description provided for @ratingSection.
   ///
   /// In ja, this message translates to:
@@ -1948,12 +1942,6 @@ abstract class AppLocalizations {
   /// **'店の場所を直す'**
   String get shopRelocate;
 
-  /// No description provided for @yahooAttribution.
-  ///
-  /// In ja, this message translates to:
-  /// **'Web Services by Yahoo! JAPAN（https://developer.yahoo.co.jp/sitemap/）'**
-  String get yahooAttribution;
-
   /// No description provided for @creditsYahoo.
   ///
   /// In ja, this message translates to:
@@ -2152,17 +2140,23 @@ abstract class AppLocalizations {
   /// **'地図'**
   String get navMap;
 
-  /// No description provided for @mapAttribution.
+  /// No description provided for @sourceCreditOsm.
   ///
   /// In ja, this message translates to:
   /// **'© OpenStreetMap contributors'**
-  String get mapAttribution;
+  String get sourceCreditOsm;
 
-  /// No description provided for @openPoiAttribution.
+  /// No description provided for @sourceCreditYahoo.
   ///
   /// In ja, this message translates to:
-  /// **'出典: OpenPOI API（https://openpoiapi.com/attribution.html）'**
-  String get openPoiAttribution;
+  /// **'Web Services by Yahoo! JAPAN'**
+  String get sourceCreditYahoo;
+
+  /// No description provided for @sourceCreditMore.
+  ///
+  /// In ja, this message translates to:
+  /// **'出典'**
+  String get sourceCreditMore;
 
   /// No description provided for @mapTitle.
   ///

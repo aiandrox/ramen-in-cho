@@ -233,7 +233,7 @@ HomeBaseSetting（拠点。本人が地図で決める。変えるたびに1件�
 - OpenPOI は「ラーメン」「麺屋」「中華そば」などの語を1語ずつ同時に探してまとめる（`lib/features/shop_search/openpoi.dart`。複数の語を1回で渡すと取りこぼすため）。位置が町丁目までしかわからない施設は除く
 - 結果は名前と 100m 以内の近さで重なりを除き、OpenStreetMap → Yahoo! → OpenPOI の順に優先する（手で持つ店は、近くの店では OpenStreetMap の次、店名の検索では先頭）。店名の検索は、空白があれば「空白を半角にそろえた言葉」と「空白を詰めた言葉」の両方で問い合わせる
 - 手で持つ店（ラーメン二郎の直系店など）の正本は `data/curated_shops.json`。main にマージすると GitHub Actions が D1 を正本どおりにしてデプロイする。アプリは起動のたびに1日1回まで取り直して documents に保存し、取れなければ同梱分（`builtin_shops.dart`。正本と同じことをテストで確かめる）を使う
-- 検索結果を出す画面・地図・「出典・ライセンス」に、`© OpenStreetMap contributors`・`出典: OpenPOI API（https://openpoiapi.com/attribution.html）`・`Web Services by Yahoo! JAPAN` を出す。OpenPOI の店は出所を店に保存する
+- 出典は小さな1行（`SourceCredit`）にまとめる。地図の左下と、店の検索結果の下に「© OpenStreetMap contributors ・ Web Services by Yahoo! JAPAN ・ 出典」を出す（Yahoo! は検索結果を出しているときだけ。Yahoo! の部分は API の案内ページへ、「出典」は「出典・ライセンス」へつなぐ）。OpenPOI・国土数値情報などの細かな出典は「出典・ライセンス」に全文を出す。OpenPOI の店は出所を店に保存する
 
 ## 権限
 

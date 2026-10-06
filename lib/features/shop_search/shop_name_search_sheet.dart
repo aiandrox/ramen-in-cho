@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../credits/source_credit.dart';
 import '../../l10n/app_localizations.dart';
 import 'builtin_shops.dart';
 import 'curated_shops_store.dart';
@@ -230,15 +231,11 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
                       ),
                     ),
                   if (results != null && results.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Text(
-                        [
-                          l10n.openPoiAttribution,
-                          l10n.yahooAttribution,
-                        ].join('\n'),
-                        style: textTheme.labelSmall,
-                        textAlign: TextAlign.right,
+                    const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: SourceCredit(),
                       ),
                     ),
                 ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../credits/source_credit.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi_buttons.dart';
 import '../map/location_picker_screen.dart';
@@ -159,13 +160,7 @@ class _ShopRepickSheetState extends ConsumerState<_ShopRepickSheet> {
                 result.failure != ShopSearchFailure.noLocation)
               Align(
                 alignment: Alignment.centerRight,
-                child: Text(
-                  [
-                    l10n.shopSearchAttribution,
-                    l10n.yahooAttribution,
-                  ].join('\n'),
-                  style: textTheme.labelSmall,
-                ),
+                child: const SourceCredit(),
               ),
             Align(
               alignment: Alignment.centerLeft,

@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../credits/source_credit.dart';
 import '../../l10n/app_localizations.dart';
 import '../home_base/home_base_repository.dart';
 import '../records/date_format.dart';
@@ -42,6 +43,9 @@ const _fallbackCenter = LatLng(35.6812, 139.7671);
 
 /// 右上の「旅路」の丸印（48）と、その左右の余白の分。上に重ねる札はここまでで止める。
 const _topControlsInset = 64.0;
+
+/// 右下に縦に並ぶ丸いボタンの幅（余白込み）。
+const _bottomControlsInset = 80.0;
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -490,29 +494,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 ),
             ],
           ),
-          // 出典は必要なものだけを小さく出す（部品名は出さない）。
-          // 下のタブの真ん中の判子に隠れないよう、判子がはみ出す分だけ上げる。
-          const Positioned(
+          // 下のタブの真ん中の判子に隠れないよう、判子がはみ出す分だけ上げる。右下のボタンは避ける。
+          Positioned(
             left: 0,
+            right: _bottomControlsInset,
             bottom: RecordSealButton.overhang + 4,
-            child: MapAttribution(),
-          ),
-          if (_nearby.isNotEmpty)
-            Positioned(
-              left: 8,
-              top: 8,
-              right: _topControlsInset,
-              child: ColoredBox(
-                color: const Color(0xCCFFFFFF),
-                child: Padding(
-                  padding: const EdgeInsets.all(3),
-                  child: Text(
-                    [l10n.openPoiAttribution, l10n.yahooAttribution].join('\n'),
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                ),
-              ),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: SourceCredit(yahoo: _nearby.isNotEmpty, onMap: true),
             ),
+          ),
           if (_showJourney)
             Positioned(
               left: 8,
