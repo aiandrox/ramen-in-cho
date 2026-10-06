@@ -304,6 +304,22 @@ class FakeNotificationService implements NotificationService {
   @override
   Future<bool?> isPermitted() async => permitted;
 
+  final tapController = StreamController<String>.broadcast();
+  String? launchPayload;
+
+  @override
+  Stream<String> get taps => tapController.stream;
+
+  @override
+  Future<String?> takeLaunchPayload() async {
+    final payload = launchPayload;
+    launchPayload = null;
+    return payload;
+  }
+
+  @override
+  Future<void> showSoon(ScheduledNotification notification) async {}
+
   @override
   Future<bool> replaceScheduled(
     List<ScheduledNotification> notifications,
