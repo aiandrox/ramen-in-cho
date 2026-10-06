@@ -1,8 +1,6 @@
 import '../records/models.dart';
 
 const backupFormat = 'ramen-in-cho-backup';
-// 旧名（着丼クエスト）のアプリで書き出したバックアップも読めるようにする。
-const legacyBackupFormat = 'chakudon-quest-backup';
 const backupVersion = 1;
 
 /// 書き出す・読み込む記録ひとそろい。写真のファイルは別に扱う。
@@ -99,7 +97,7 @@ Map<String, Object?> encodeBackup(
 /// このアプリのバックアップでない・壊れているときは[FormatException]にする。
 BackupData decodeBackup(Object? json) {
   final root = _map(json, 'バックアップ');
-  if (root['format'] != backupFormat && root['format'] != legacyBackupFormat) {
+  if (root['format'] != backupFormat) {
     throw const FormatException('麺印帳のバックアップではありません');
   }
   final version = root['version'];

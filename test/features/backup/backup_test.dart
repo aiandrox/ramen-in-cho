@@ -148,15 +148,55 @@ void main() {
       );
     });
 
-    test('旧名（着丼クエスト）のバックアップも読める', () {
+    test('旧名（着丼クエスト）のバックアップは読まない', () {
+      expect(
+        () => decodeBackup({
+          'format': 'chakudon-quest-backup',
+          'version': backupVersion,
+          'shops': <Object?>[],
+          'visits': <Object?>[],
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test('知らない項目は読み飛ばし、無い項目は初期値にする', () {
       final restored = decodeBackup({
-        'format': legacyBackupFormat,
+        'format': backupFormat,
         'version': backupVersion,
-        'shops': <Object?>[],
-        'visits': <Object?>[],
+        'somethingNew': {'a': 1},
+        'shops': [
+          {
+            'id': 's',
+            'name': '麺屋',
+            'futureField': 'x',
+            'createdAt': '2026-09-01T12:00:00.000Z',
+          },
+        ],
+        'visits': [
+          {
+            'id': 'v',
+            'shopId': 's',
+            'result': 'eaten',
+            'eatenAt': '2026-09-01T12:00:00.000Z',
+            'createdAt': '2026-09-01T12:00:00.000Z',
+            'futureField': 3,
+          },
+        ],
       });
-      expect(restored.visits, isEmpty);
-      // 拠点を自分で決めるようになる前のバックアップには拠点が無い。
+
+      final shop = restored.shops.single;
+      expect(shop.latitude, isNull);
+      expect(shop.isFamous, isFalse);
+      expect(shop.strategyMemo, '');
+      expect(shop.area, isNull);
+      expect(shop.dataSource, isNull);
+      final visit = restored.visits.single;
+      expect(visit.photoPath, isNull);
+      expect(visit.checkedInAt, isNull);
+      expect(visit.memo, '');
+      expect(visit.isLimited, isFalse);
+      expect(restored.wishes, isEmpty);
       expect(restored.homeBases, isEmpty);
     });
 
@@ -430,5 +470,192 @@ void main() {
         isFalse,
       );
     });
+  });
+
+  group('これまでの版で書き出したバックアップ', () {
+    Future<BackupData> importFixture(String name, AppDatabase database) async {
+      final json = jsonDecode(
+        File('test/fixtures/backup/$name.json').readAsStringSync(),
+      );
+      await RecordRepository(database).importAll(decodeBackup(json));
+      return RecordRepository(database).exportAll();
+    }
+
+    test('2026-10-03 の版（店と願に店の条件、拠点なし）を読み込める', () async {
+      final data = await importFixture('2026-10-03', createTestDatabase());
+
+      final shops = {for (final shop in data.shops) shop.id: shop};
+      expect(shops.keys, unorderedEquals(['shop', 'manual']));
+      final shop = shops['shop']!;
+      expect(shop.name, '麺屋');
+      expect(shop.latitude, 35.0);
+      expect(shop.osmId, 'node/1');
+      expect(shop.strategyMemo, '券売機は現金のみ');
+      expect(shop.area, '新宿区');
+      expect(shop.dataSource!.licenses, ['CC BY 4.0']);
+      expect(shop.isFamous, isFalse);
+      expect(shop.createdAt, DateTime.utc(2026, 9, 30, 3).toLocal());
+      expect(shops['manual']!.latitude, isNull);
+
+      final visits = {for (final visit in data.visits) visit.id: visit};
+      final visit = visits['visit']!;
+      expect(visit.photoPath, 'photos/a.jpg');
+      expect(visit.checkedInAt, DateTime.utc(2026, 9, 30, 2, 20).toLocal());
+      expect(visit.eatenAt, DateTime.utc(2026, 9, 30, 3).toLocal());
+      expect(visit.style, RamenStyle.shoyu);
+      expect(visit.rating, 4);
+      expect(visit.isLimited, isTrue);
+      expect(visit.hasTicket, isTrue);
+      expect(visit.memo, '醤油が澄んでいた');
+      expect(visits['retreat']!.result, VisitResult.retreated);
+      expect(visits['retreat']!.memo, '売り切れ');
+
+      final wish = data.wishes.single;
+      expect(wish.name, 'はやし田');
+      expect(wish.osmId, 'node/2');
+      expect(wish.trigger, '同僚に聞いた');
+      expect(wish.note, '煮干し');
+      expect(wish.link, isNull);
+      expect(data.homeBases, isEmpty);
+    });
+
+    test('2026-10-05 の版（拠点あり）を読み込める', () async {
+      final data = await importFixture('2026-10-05', createTestDatabase());
+
+      expect(data.shops.single.isFamous, isFalse);
+      expect(data.visits.single.style, RamenStyle.iekei);
+      expect(data.visits.single.rating, isNull);
+      final wish = data.wishes.single;
+      expect(wish.shopId, 'shop');
+      expect(wish.fulfilledVisitId, 'visit');
+      final base = data.homeBases.single;
+      expect(base.name, '横浜駅');
+      expect(base.latitude, 35.466);
+      expect(base.longitude, 139.622);
+      expect(base.setAt, DateTime.utc(2026, 8, 1).toLocal());
+    });
+
+    test('2026-10-06 の版（名店の印あり、願のリンクなし）を読み込める', () async {
+      final data = await importFixture('2026-10-06', createTestDatabase());
+
+      expect(data.shops.single.isFamous, isTrue);
+      expect(data.visits.single.style, RamenStyle.shirunashi);
+      expect(data.visits.single.rating, 5);
+      expect(data.wishes.single.trigger, 'テレビ');
+      expect(data.wishes.single.link, isNull);
+      expect(data.homeBases, isEmpty);
+    });
+  });
+
+  test('すべての表に記録がある端末を書き出して空の端末に読み込むと、同じ内容になる', () async {
+    final sourceDatabase = createTestDatabase();
+    final source = RecordRepository(sourceDatabase);
+    const dataSource = ShopSource(
+      licenses: ['CC BY 4.0'],
+      attributions: ['東京都新宿区食品等営業許可・届出一覧'],
+    );
+    await source.importAll(
+      BackupData(
+        shops: [
+          Shop(
+            id: 'shop',
+            name: '麺屋',
+            latitude: 35.0,
+            longitude: 139.0,
+            osmId: 'node/1',
+            isFamous: true,
+            strategyMemo: '券売機は現金のみ',
+            dataSource: dataSource,
+            area: '新宿区',
+            createdAt: DateTime(2026, 9, 1, 12),
+          ),
+          Shop(id: 'manual', name: '手入力の店', createdAt: DateTime(2026, 9, 2)),
+        ],
+        visits: [
+          Visit(
+            id: 'visit',
+            shopId: 'shop',
+            result: VisitResult.eaten,
+            photoPath: 'photos/a.jpg',
+            checkedInAt: DateTime(2026, 9, 1, 11, 20),
+            eatenAt: DateTime(2026, 9, 1, 12),
+            style: RamenStyle.iekei,
+            rating: 4,
+            isLimited: true,
+            hasTicket: true,
+            memo: 'うまい',
+            createdAt: DateTime(2026, 9, 1, 12, 5),
+          ),
+          Visit(
+            id: 'retreat',
+            shopId: 'manual',
+            result: VisitResult.retreated,
+            eatenAt: DateTime(2026, 9, 2, 12),
+            isLimited: false,
+            hasTicket: false,
+            memo: '売り切れ',
+            createdAt: DateTime(2026, 9, 2, 12),
+          ),
+        ],
+        wishes: [
+          Wish(
+            id: 'wish',
+            osmId: 'node/2',
+            name: 'はやし田',
+            latitude: 35.1,
+            longitude: 139.1,
+            dataSource: dataSource,
+            trigger: '同僚に聞いた',
+            note: '煮干し',
+            link: 'https://maps.app.goo.gl/example',
+            createdAt: DateTime(2026, 8, 1),
+          ),
+          Wish(
+            id: 'done',
+            shopId: 'shop',
+            name: '麺屋',
+            createdAt: DateTime(2026, 8, 2),
+            fulfilledVisitId: 'visit',
+          ),
+        ],
+        homeBases: [
+          HomeBaseSetting(
+            id: 'base',
+            name: '横浜駅',
+            latitude: 35.466,
+            longitude: 139.622,
+            setAt: DateTime(2026, 8, 1, 9),
+          ),
+        ],
+      ),
+    );
+    final sourcePhotos = PhotoStorage(createTempDirectory());
+    sourcePhotos.fileFor('photos/a.jpg')
+      ..parent.createSync(recursive: true)
+      ..writeAsBytesSync([1, 2, 3]);
+    final temporary = createTempDirectory();
+    final backup = await BackupService(
+      repository: source,
+      photos: sourcePhotos,
+      temporaryDirectory: () async => temporary,
+    ).writeBackup(_now);
+
+    final target = RecordRepository(createTestDatabase());
+    final targetPhotos = PhotoStorage(createTempDirectory());
+    final summary = await BackupService(
+      repository: target,
+      photos: targetPhotos,
+      temporaryDirectory: () async => temporary,
+    ).restoreBackup(backup.path);
+
+    expect(summary.addedVisits, 2);
+    Map<String, Object?> dump(BackupData data) =>
+        encodeBackup(data, exportedAt: _now);
+    final restored = dump(await target.exportAll());
+    expect(restored, dump(await source.exportAll()));
+    for (final key in ['shops', 'visits', 'wishes', 'homeBases']) {
+      expect(restored[key], hasLength(key == 'homeBases' ? 1 : 2));
+    }
+    expect(targetPhotos.fileFor('photos/a.jpg').readAsBytesSync(), [1, 2, 3]);
   });
 }

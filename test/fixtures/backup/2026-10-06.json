@@ -1,0 +1,49 @@
+{
+  "format": "ramen-in-cho-backup",
+  "version": 1,
+  "exportedAt": "2026-10-06T03:00:00.000Z",
+  "shops": [
+    {
+      "id": "shop",
+      "name": "麺屋",
+      "latitude": 35.0,
+      "longitude": 139.0,
+      "osmId": "node/1",
+      "isFamous": true,
+      "strategyMemo": "",
+      "area": null,
+      "createdAt": "2026-09-30T03:00:00.000Z"
+    }
+  ],
+  "wishes": [
+    {
+      "id": "wish",
+      "shopId": null,
+      "osmId": null,
+      "name": "中華そば",
+      "latitude": null,
+      "longitude": null,
+      "trigger": "テレビ",
+      "note": "",
+      "createdAt": "2026-10-05T03:00:00.000Z",
+      "fulfilledVisitId": null
+    }
+  ],
+  "homeBases": [],
+  "visits": [
+    {
+      "id": "visit",
+      "shopId": "shop",
+      "result": "eaten",
+      "photoPath": null,
+      "checkedInAt": null,
+      "eatenAt": "2026-10-05T23:30:00.000Z",
+      "style": "shirunashi",
+      "rating": 5,
+      "isLimited": false,
+      "hasTicket": false,
+      "memo": "",
+      "createdAt": "2026-10-05T23:35:00.000Z"
+    }
+  ]
+}

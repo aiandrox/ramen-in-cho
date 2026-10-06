@@ -1,0 +1,78 @@
+{
+  "format": "ramen-in-cho-backup",
+  "version": 1,
+  "exportedAt": "2026-10-03T12:00:00.000Z",
+  "shops": [
+    {
+      "id": "shop",
+      "name": "麺屋",
+      "latitude": 35.0,
+      "longitude": 139.0,
+      "osmId": "node/1",
+      "hoursConditions": ["lunchOnly", "irregular"],
+      "strategyMemo": "券売機は現金のみ",
+      "area": "新宿区",
+      "dataSource": {
+        "licenses": ["CC BY 4.0"],
+        "attributions": ["東京都新宿区食品等営業許可・届出一覧"]
+      },
+      "createdAt": "2026-09-30T03:00:00.000Z"
+    },
+    {
+      "id": "manual",
+      "name": "手入力の店",
+      "latitude": null,
+      "longitude": null,
+      "osmId": null,
+      "hoursConditions": [],
+      "strategyMemo": "",
+      "area": null,
+      "createdAt": "2026-10-01T03:00:00.000Z"
+    }
+  ],
+  "wishes": [
+    {
+      "id": "wish",
+      "shopId": null,
+      "osmId": "node/2",
+      "name": "はやし田",
+      "latitude": 35.1,
+      "longitude": 139.1,
+      "trigger": "同僚に聞いた",
+      "note": "煮干し",
+      "createdAt": "2026-10-02T03:00:00.000Z",
+      "fulfilledVisitId": null,
+      "hoursConditions": ["nightOnly"]
+    }
+  ],
+  "visits": [
+    {
+      "id": "visit",
+      "shopId": "shop",
+      "result": "eaten",
+      "photoPath": "photos/a.jpg",
+      "checkedInAt": "2026-09-30T02:20:00.000Z",
+      "eatenAt": "2026-09-30T03:00:00.000Z",
+      "style": "shoyu",
+      "rating": 4,
+      "isLimited": true,
+      "hasTicket": true,
+      "memo": "醤油が澄んでいた",
+      "createdAt": "2026-09-30T03:05:00.000Z"
+    },
+    {
+      "id": "retreat",
+      "shopId": "manual",
+      "result": "retreated",
+      "photoPath": null,
+      "checkedInAt": null,
+      "eatenAt": "2026-10-01T03:00:00.000Z",
+      "style": null,
+      "rating": null,
+      "isLimited": false,
+      "hasTicket": false,
+      "memo": "売り切れ",
+      "createdAt": "2026-10-01T03:00:00.000Z"
+    }
+  ]
+}
