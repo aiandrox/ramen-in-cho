@@ -127,7 +127,7 @@ void main() {
     );
     final banner = Scaffold(body: CheckinBanner(checkin: checkin));
 
-    testWidgets('並んでいる店の攻略メモがあれば一緒に出す', (tester) async {
+    testWidgets('並んでいる店の覚え書きがあれば一緒に出す', (tester) async {
       final shop = Shop(
         id: 'shop',
         name: '麺屋テスト',

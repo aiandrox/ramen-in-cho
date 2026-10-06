@@ -37,6 +37,12 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   late final _memoController = TextEditingController(
     text: widget.entry.visit.memo,
   );
+  late final _shopMemoController = TextEditingController(
+    text: widget.entry.shop.strategyMemo,
+  );
+
+  /// 店の覚え書きの欄に入れた、もとの覚え書き。書き換えたときだけ店に保存する。
+  late String _shopMemoOriginal = widget.entry.shop.strategyMemo;
   late final _waitController = TextEditingController(
     text: waitMinutes(widget.entry.visit)?.toString() ?? '',
   );
@@ -59,6 +65,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
     unawaited(_discardPhoto());
     _nameController.dispose();
     _memoController.dispose();
+    _shopMemoController.dispose();
     _waitController.dispose();
     super.dispose();
   }
@@ -103,10 +110,32 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
     );
     if (picked == null || !mounted) return;
     final isCurrentShop = picked.shopId == widget.entry.shop.id;
+    // 店を選び直したら、店の覚え書きはその店のものに入れ替える。
+    final memo = isCurrentShop
+        ? widget.entry.shop.strategyMemo
+        : await _shopMemoOf(picked);
+    if (!mounted) return;
     setState(() {
       _pickedShop = isCurrentShop ? null : picked;
       _nameController.text = picked.name;
+      _shopMemoController.text = memo;
+      _shopMemoOriginal = memo;
     });
+  }
+
+  /// 検索の候補は覚え書きを持たないので、記録済みの店なら店から引く。
+  Future<String> _shopMemoOf(ShopCandidate shop) async {
+    final shopId = shop.shopId;
+    if (shop.strategyMemo.isNotEmpty || shopId == null) {
+      return shop.strategyMemo;
+    }
+    try {
+      final shops = await ref.read(recordRepositoryProvider).allShops();
+      return shops.where((s) => s.id == shopId).firstOrNull?.strategyMemo ?? '';
+    } catch (e) {
+      debugPrint('Shop memo load failed: $e');
+      return '';
+    }
   }
 
   void _onNameChanged(String name) {
@@ -187,6 +216,10 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
             isLimited: _isLimited,
             hasTicket: widget.entry.visit.hasTicket,
             memo: _memoController.text.trim(),
+            shopMemo:
+                _shopMemoController.text.trim() == _shopMemoOriginal.trim()
+                ? null
+                : _shopMemoController.text.trim(),
             changesPhoto: _photo.isChanged,
             photoPath: _photo.current,
             now: ref.read(clockProvider)(),
@@ -265,6 +298,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
             onLimitedChanged: (value) => setState(() => _isLimited = value),
             onMemoChanged: (_) {},
             waitController: isEaten ? _waitController : null,
+            shopMemoController: _shopMemoController,
           ),
         ],
       ),

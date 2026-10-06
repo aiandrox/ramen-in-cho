@@ -366,6 +366,7 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                 ],
                 if (visit.memo.isNotEmpty) ...[
                   const SizedBox(height: 12),
+                  Text(l10n.memoLabel, style: textTheme.labelMedium),
                   Text(visit.memo, style: textTheme.bodyLarge),
                 ],
                 if (scored != null) ...[

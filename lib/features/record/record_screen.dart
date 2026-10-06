@@ -53,6 +53,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   /// （作り直されると、日本語入力の変換中の文字が1文字目で確定してしまうため）。
   final _nameFieldKey = GlobalKey();
   final _memoController = TextEditingController();
+  final _shopMemoController = TextEditingController();
   final _waitController = TextEditingController();
 
   @override
@@ -114,6 +115,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   void dispose() {
     _nameController.dispose();
     _memoController.dispose();
+    _shopMemoController.dispose();
     _waitController.dispose();
     super.dispose();
   }
@@ -138,6 +140,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     if (!await _askStartOver() || !mounted) return;
     _nameController.clear();
     _memoController.clear();
+    _shopMemoController.clear();
     _waitController.clear();
     FocusScope.of(context).unfocus();
     await ref.read(recordControllerProvider.notifier).discardDraft();
@@ -161,6 +164,10 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     ref.listen(recordControllerProvider, (previous, next) {
       if (next.resumedFromDraft && !(previous?.resumedFromDraft ?? false)) {
         _fillFromDraft(next);
+      }
+      // 店を選び替えると、店の覚え書きがその店のものに入れ替わる。
+      if (next.shopMemo != _shopMemoController.text) {
+        _shopMemoController.text = next.shopMemo;
       }
     });
     final state = ref.watch(recordControllerProvider);
@@ -256,6 +263,8 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
                     ? null
                     : _waitController,
                 onWaitChanged: controller.setWaitMinutes,
+                shopMemoController: state.hasShop ? _shopMemoController : null,
+                onShopMemoChanged: controller.setShopMemo,
               ),
             ],
           ),

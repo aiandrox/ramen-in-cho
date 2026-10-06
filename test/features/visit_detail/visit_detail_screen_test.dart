@@ -152,7 +152,7 @@ void main() {
     expect(find.text(ja.editSaveFailed), findsOneWidget);
   });
 
-  testWidgets('店の攻略メモを表示し、書き直せる', (tester) async {
+  testWidgets('店の覚え書きを表示し、書き直せる', (tester) async {
     await pumpDetail(tester, [
       VisitWithShop(
         shop: buildShop(name: '麺屋テスト', strategyMemo: '券売機は現金のみ'),
@@ -186,7 +186,7 @@ void main() {
     expect(repository.famousShops, {'shop': true});
   });
 
-  testWidgets('攻略メモが無い店は「まだありません」と出す', (tester) async {
+  testWidgets('店の覚え書きが無い店は「まだありません」と出す', (tester) async {
     await pumpDetail(tester, [
       entry(id: 'v', eatenAt: DateTime(2026, 9, 30)),
     ], 'v');
@@ -466,6 +466,38 @@ void main() {
     expect(update.eatenAt, DateTime(2026, 9, 30, 12));
     expect(update.style, RamenStyle.shoyu);
     expect(update.isLimited, isTrue);
+    // 店の覚え書きに触らなければ、店には書かない。
+    expect(update.shopMemo, isNull);
+  });
+
+  testWidgets('編集画面で「この一杯について」と「店の覚え書き」を両方書き直せる', (tester) async {
+    await pumpDetail(tester, [
+      VisitWithShop(
+        shop: buildShop(name: '麺屋テスト', strategyMemo: '券売機は現金のみ'),
+        visit: buildVisit(
+          id: 'v',
+          eatenAt: DateTime(2026, 9, 30),
+          memo: '麺かため',
+        ),
+      ),
+    ], 'v');
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+
+    final memo = find.widgetWithText(TextField, ja.memoLabel);
+    final shopMemo = find.widgetWithText(TextField, ja.shopMemoSection);
+    await tester.ensureVisible(shopMemo);
+    expect(tester.widget<TextField>(memo).controller!.text, '麺かため');
+    expect(tester.widget<TextField>(shopMemo).controller!.text, '券売機は現金のみ');
+
+    await tester.enterText(memo, '前よりスープが濃い');
+    await tester.enterText(shopMemo, ' 11時前に着けば一巡目 ');
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+
+    final update = repository.updates.single;
+    expect(update.memo, '前よりスープが濃い');
+    expect(update.shopMemo, '11時前に着けば一巡目');
   });
 
   testWidgets('待ち時間をあとから入れると、その分前を並んだ時刻にする', (tester) async {

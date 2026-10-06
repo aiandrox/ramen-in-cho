@@ -32,6 +32,8 @@ class RecordDraft {
     this.style,
     this.isLimited = false,
     this.memo = '',
+    this.shopMemo = '',
+    this.shopMemoOriginal = '',
     this.manualWaitMinutes,
     this.arrivedAt,
     this.arrivedCheckin,
@@ -56,6 +58,8 @@ class RecordDraft {
       style: state.style,
       isLimited: state.isLimited,
       memo: state.memo,
+      shopMemo: state.shopMemo,
+      shopMemoOriginal: state.shopMemoOriginal,
       manualWaitMinutes: state.manualWaitMinutes,
       arrivedAt: arrivedAt,
       arrivedCheckin: arrivedAt == null ? null : state.checkin,
@@ -75,6 +79,10 @@ class RecordDraft {
   final RamenStyle? style;
   final bool isLimited;
   final String memo;
+
+  /// 店の覚え書きの入力と、そのときの店のもとの覚え書き（record_state.dart）。
+  final String shopMemo;
+  final String shopMemoOriginal;
   final int? manualWaitMinutes;
 
   /// 「着」を押した時刻と、そのときの並び。
@@ -89,6 +97,7 @@ class RecordDraft {
       style == null &&
       !isLimited &&
       memo.trim().isEmpty &&
+      shopMemo.trim() == shopMemoOriginal.trim() &&
       manualWaitMinutes == null &&
       arrivedAt == null;
 
@@ -105,6 +114,8 @@ class RecordDraft {
     style: style,
     isLimited: isLimited,
     memo: memo,
+    shopMemo: shopMemo,
+    shopMemoOriginal: shopMemoOriginal,
     manualWaitMinutes: manualWaitMinutes,
   );
 
@@ -121,6 +132,8 @@ class RecordDraft {
     style: style,
     isLimited: isLimited,
     memo: memo,
+    shopMemo: shopMemo,
+    shopMemoOriginal: shopMemoOriginal,
     manualWaitMinutes: manualWaitMinutes,
     arrivedAt: arrivedAt,
     arrivedCheckin: arrivedCheckin,
@@ -140,6 +153,8 @@ class RecordDraft {
     'style': style?.name,
     'isLimited': isLimited,
     'memo': memo,
+    'shopMemo': shopMemo,
+    'shopMemoOriginal': shopMemoOriginal,
     'manualWaitMinutes': manualWaitMinutes,
     'arrivedAt': arrivedAt?.toUtc().toIso8601String(),
     'arrivedCheckin': _checkinToJson(arrivedCheckin),
@@ -154,6 +169,10 @@ class RecordDraft {
     final arrivedAt = _dateTime(json['arrivedAt']);
     final arrivedCheckin = _checkinFromJson(json['arrivedCheckin']);
     final arrived = arrivedAt != null && arrivedCheckin != null;
+    final selectedShop = _shopFromJson(json['selectedShop']);
+    // 店の覚え書きの欄ができる前の下書きは、選んだ店の覚え書きのままにする。
+    final shopMemoOriginal =
+        _string(json['shopMemoOriginal']) ?? selectedShop?.strategyMemo ?? '';
     return RecordDraft(
       photoPath: photoPath,
       photoTakenAt: photoPath == null
@@ -163,12 +182,14 @@ class RecordDraft {
       photoDateFromPhoto: json['photoDateFromPhoto'] == true,
       photoLocation: _geoFromJson(json['photoLocation']),
       pinnedLocation: _geoFromJson(json['pinnedLocation']),
-      selectedShop: _shopFromJson(json['selectedShop']),
+      selectedShop: selectedShop,
       manualName: _string(json['manualName']) ?? '',
       rating: rating != null && rating >= 1 && rating <= 5 ? rating : null,
       style: _enum(RamenStyle.values, json['style']),
       isLimited: json['isLimited'] == true,
       memo: _string(json['memo']) ?? '',
+      shopMemo: _string(json['shopMemo']) ?? shopMemoOriginal,
+      shopMemoOriginal: shopMemoOriginal,
       manualWaitMinutes: wait != null && wait > 0 ? wait : null,
       arrivedAt: arrived ? arrivedAt : null,
       arrivedCheckin: arrived ? arrivedCheckin : null,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi_buttons.dart';
 
-/// 店の攻略メモを書く。保存するなら書いた内容、やめるならnullを返す。
+/// 店の覚え書きを書く。保存するなら書いた内容、やめるならnullを返す。
 Future<String?> showShopMemoDialog(BuildContext context, String initial) =>
     showDialog<String>(
       context: context,
@@ -38,7 +38,11 @@ class _ShopMemoDialogState extends State<_ShopMemoDialog> {
         autofocus: true,
         minLines: 3,
         maxLines: 6,
-        decoration: InputDecoration(hintText: l10n.shopMemoHint),
+        decoration: InputDecoration(
+          hintText: l10n.shopMemoHint,
+          helperText: l10n.shopMemoHelper,
+          helperMaxLines: 2,
+        ),
       ),
       actions: [
         TextButton(

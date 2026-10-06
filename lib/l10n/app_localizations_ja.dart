@@ -149,7 +149,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get isLimited => '限定メニュー';
 
   @override
-  String get memoLabel => 'メモ';
+  String get memoLabel => 'この一杯について';
+
+  @override
+  String get memoHint => '麺かため。前よりスープが濃い';
+
+  @override
+  String get memoHelper => 'この日の一杯の感想';
 
   @override
   String get draftResumed => '下書きから再開しました';
@@ -576,7 +582,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get statsFrequentNone => '2杯以上食べた店が、ここに並びます';
 
   @override
-  String get shopMemoSection => 'この店の攻略メモ';
+  String get shopMemoSection => '店の覚え書き';
+
+  @override
+  String get shopMemoHelper => '次に来るときのために、店のことを書いておく';
 
   @override
   String get shopFamousToggle => '名店の印をつける';
@@ -588,14 +597,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopMemoEmpty => 'まだありません';
 
   @override
-  String get shopMemoHint => '開店の何分前に着けばいいか、券売機、整理券の配り方など';
+  String get shopMemoHint => '券売機は現金のみ／11時前に着けば一巡目';
 
   @override
-  String get shopMemoEdit => '攻略メモを書く';
+  String get shopMemoEdit => '店の覚え書きを書く';
 
   @override
   String shopMemoInline(String memo) {
-    return '攻略メモ: $memo';
+    return '店の覚え書き: $memo';
   }
 
   @override
