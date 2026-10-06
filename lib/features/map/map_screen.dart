@@ -885,10 +885,8 @@ class _LightingPin extends StatelessWidget {
     animation: animation,
     child: child,
     builder: (context, child) {
-      // 1杯目の店は、寄せたときから灯しておく。
-      final lit = order == 0
-          ? 1.0
-          : ((plan.reachAt(animation.value) - order) / 0.35).clamp(0.0, 1.0);
+      // 1杯目の店は寄せたときから灯し、ほかは線が着いて止まっている間に刺す。
+      final lit = plan.pinAt(animation.value, order);
       if (lit == 0) return const SizedBox.shrink();
       final pop = Curves.easeOutBack.transform(lit);
       return Opacity(

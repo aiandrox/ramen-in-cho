@@ -196,6 +196,27 @@ void main() {
       expect(JourneyReplayPlan(stopsOf([home])).reachAt(1), 0);
     });
 
+    test('ピンは線が着いた直後、止まっている間に刺さり、次の区間より前に刺さりきる', () {
+      final plan = JourneyReplayPlan(stopsOf([home, near, far]));
+      final step1 = journeyStepDuration(1112).inMilliseconds;
+      final total = plan.duration.inMilliseconds;
+      const pause = journeyStopPauseMs;
+      double at(int ms) => ms / total;
+
+      expect(plan.pinAt(0, 0), 1);
+      expect(plan.pinAt(at(pause + step1 - 1), 1), 0);
+      expect(
+        plan.pinAt(at(pause + step1 + journeyPinDropMs ~/ 2), 1),
+        closeTo(0.5, 0.01),
+      );
+      // 刺さりきってから、次の区間へ進む。
+      expect(journeyPinDropMs, lessThan(pause));
+      expect(plan.pinAt(at(pause + step1 + pause), 1), 1);
+      expect(plan.reachAt(at(pause + step1 + pause)), 1);
+      expect(plan.pinAt(at(pause + step1 + pause + 2800 - 1), 2), 0);
+      expect(plan.pinAt(1, 2), 1);
+    });
+
     test('近い区間は線の先を追い、遠い区間は半分で次の店へ移る', () {
       final plan = JourneyReplayPlan(stopsOf([home, near, far]));
       final step1 = journeyStepDuration(1112).inMilliseconds;

@@ -83,8 +83,11 @@ List<Expedition> expeditions(List<ScoredVisit> scored, {int? year}) {
   ]..sort((a, b) => b.day.compareTo(a.day));
 }
 
-/// 旅路の再生で、地図を寄せたまま変えない倍率（地図を開いたときの現在地のまわりと同じ）。
-const journeyFollowZoom = neighborhoodZoom;
+/// 旅路の再生で、地図を寄せたまま変えない倍率（地図を開いたときの現在地のまわりより1段広い）。
+const journeyFollowZoom = neighborhoodZoom - 1;
+
+/// 店に着いてからピンが刺さりきるまでの長さ（店で止まっている間に刺す）。
+const journeyPinDropMs = 350;
 
 /// 1区間を進む長さの下限と上限。遠征のような遠い区間も、上限で切り上げる。
 const journeyStepMinMs = 1200;
@@ -137,6 +140,17 @@ class JourneyReplayPlan {
       elapsed -= _stepMs[i] + journeyStopPauseMs;
     }
     return (stops.length - 1).toDouble();
+  }
+
+  /// [order]番目の店のピンが刺さった具合（0〜1）。線が着いた直後、止まっている間に刺す。
+  double pinAt(double t, int order) {
+    if (order == 0) return 1;
+    var arrival = journeyStopPauseMs;
+    for (var i = 0; i < order && i < _stepMs.length; i++) {
+      arrival += _stepMs[i] + (i == 0 ? 0 : journeyStopPauseMs);
+    }
+    final elapsed = t * duration.inMilliseconds - arrival;
+    return (elapsed / journeyPinDropMs).clamp(0.0, 1.0);
   }
 
   /// 地図の真ん中に置く点。近い区間は線の先を追い、遠い区間は半分で次の店へ移る。
