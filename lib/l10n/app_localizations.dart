@@ -3043,7 +3043,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationKindCheckinNote.
   ///
   /// In ja, this message translates to:
-  /// **'並んでいる時間を表示します'**
+  /// **'並んでいる時間をリアルタイムで表示します'**
   String get notificationKindCheckinNote;
 
   /// No description provided for @notificationKindStreak.
