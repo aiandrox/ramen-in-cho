@@ -21,7 +21,10 @@ import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/location_service.dart';
 import 'package:ramen_in_cho/features/shop_search/overpass.dart';
 import 'package:ramen_in_cho/features/shop_search/nearby_shop_finder.dart';
+import 'package:ramen_in_cho/features/shop_search/ramen_in_cho_api.dart';
 import 'package:ramen_in_cho/features/shop_search/shop_search_service.dart';
+import 'package:ramen_in_cho/features/wishes/shared_wish.dart';
+import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
 
 import '../../support/fakes.dart';
 
@@ -36,6 +39,7 @@ void main() {
   late FakePhotoMetadataReader metadata;
   late ProviderContainer container;
   late AppDatabase database;
+  late Future<GeoPoint?> Function(String) geocoder;
 
   /// 記録画面を開き直したとき（前の画面の状態は残らず、documents と記録だけが残る）。
   ProviderContainer newSession() {
@@ -48,6 +52,9 @@ void main() {
         photoPickerProvider.overrideWithValue(picker),
         photoMetadataReaderProvider.overrideWithValue(metadata),
         clockProvider.overrideWithValue(() => _photoTime),
+        addressGeocoderProvider.overrideWithValue(
+          (address) => geocoder(address),
+        ),
       ],
     );
     addTearDown(session.dispose);
@@ -72,6 +79,7 @@ void main() {
     picker = FakePhotoPicker(cameraPath: photo.path, galleryPath: photo.path);
     metadata = FakePhotoMetadataReader();
     database = createTestDatabase();
+    geocoder = (_) async => null;
     // autoDisposeのため、テスト中は購読して破棄されないようにする（newSession の中で購読する）。
     container = newSession();
   });
@@ -354,6 +362,113 @@ void main() {
       await controller().takePhoto();
 
       expect(metadata.paths, isEmpty);
+    });
+  });
+
+  group('地図アプリから共有された店で記録する', () {
+    SharedWish shared(String text) => parseSharedWish(text)!;
+
+    test('リンクの座標の店を選んだ状態で始まり、今の時刻で保存できる', () async {
+      await controller().start(
+        sharedPlace: shared(
+          'https://www.google.com/maps/place/X/@35.4,139.6,17z/data=!3d35.4437!4d139.6380',
+        ),
+      );
+
+      expect(state().selectedShop!.name, 'X');
+      expect(state().selectedShop!.location!.latitude, 35.4437);
+      controller().setRating(4);
+      expect(await controller().save(), isNotNull);
+      final saved = (await visits()).single;
+      expect(saved.shop.latitude, 35.4437);
+      expect(saved.visit.eatenAt, _photoTime);
+    });
+
+    test('住所しかなければサーバーで位置にする', () async {
+      final asked = <String>[];
+      geocoder = (address) async {
+        asked.add(address);
+        return const GeoPoint(43.0621, 141.3544);
+      };
+
+      await controller().start(
+        sharedPlace: shared(
+          '札幌味噌 ゆきだるま\n北海道札幌市中央区南2条西3丁目4-5\nhttps://maps.app.goo.gl/Snow1',
+        ),
+      );
+
+      expect(asked, ['北海道札幌市中央区南2条西3丁目4-5']);
+      expect(state().selectedShop!.name, '札幌味噌 ゆきだるま');
+      expect(state().selectedShop!.location!.longitude, 141.3544);
+    });
+
+    test('位置がわからなければ店名だけを入れる', () async {
+      await controller().start(
+        sharedPlace: shared('中華そば つばめ https://maps.app.goo.gl/Xyz987'),
+      );
+
+      expect(state().selectedShop, isNull);
+      expect(state().manualName, '中華そば つばめ');
+    });
+
+    test('記録済みの同じ店があれば、その店を選ぶ', () async {
+      final visit = await container
+          .read(recordRepositoryProvider)
+          .saveEatenVisit(
+            shop: const ShopInput(
+              name: '横浜家系 はま',
+              latitude: 35.4660,
+              longitude: 139.6223,
+            ),
+            eatenAt: DateTime(2026, 9, 1),
+            now: DateTime(2026, 9, 1),
+          );
+
+      await controller().start(
+        sharedPlace: shared(
+          '横浜家系 はま\nhttps://maps.google.com/?q=35.4661,139.6224',
+        ),
+      );
+
+      expect(state().selectedShop!.shopId, visit.shopId);
+    });
+
+    test('願を掛けた店なら、その願を選んで保存すると叶う', () async {
+      final wish = await container
+          .read(wishRepositoryProvider)
+          .addWish(
+            shop: const ShopInput(name: '新宿の煮干し屋'),
+            now: DateTime(2026, 9, 1),
+          );
+
+      await controller().start(
+        sharedPlace: shared(
+          '新宿の煮干し屋\nhttps://maps.google.com/?q=35.6900,139.7000',
+        ),
+      );
+
+      expect(state().selectedShop!.wishId, wish.id);
+      expect(await controller().save(), isNotNull);
+      final saved =
+          (await container.read(wishRepositoryProvider).watchWishes().first)
+              .single;
+      expect(saved.fulfilledVisitId, isNotNull);
+    });
+
+    test('下書きの店はそのまま残す', () async {
+      await controller().start();
+      controller().setManualName('下書きの店');
+      await pumpEventQueue();
+      container = newSession();
+
+      await controller().start(
+        sharedPlace: shared(
+          '共有した店\nhttps://maps.google.com/?q=35.6900,139.7000',
+        ),
+      );
+
+      expect(state().manualName, '下書きの店');
+      expect(state().selectedShop, isNull);
     });
   });
 
