@@ -23,6 +23,7 @@ import '../records/record_repository.dart';
 import '../wishes/wish_dialog.dart';
 import '../wishes/wish_providers.dart';
 import '../wishes/wishes.dart';
+import '../settings/settings_action.dart';
 import 'home_base_line.dart';
 import 'journey.dart';
 import 'map_camera.dart';
@@ -37,6 +38,9 @@ const nearbySearchRadiusMeters = 1000;
 
 /// 行った店が無く、現在地もわからないときに最初に見せる場所（東京駅）。
 const _fallbackCenter = LatLng(35.6812, 139.7671);
+
+/// 右上の「旅路」の丸印（48）と、その左右の余白の分。上に重ねる札はここまでで止める。
+const _topControlsInset = 64.0;
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -299,15 +303,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.mapTitle),
-        actions: [
-          IconButton(
-            tooltip: l10n.journeyToggle,
-            isSelected: _showJourney,
-            icon: const Icon(Icons.route_outlined),
-            selectedIcon: const Icon(Icons.route),
-            onPressed: () => _toggleJourney(stops),
-          ),
-        ],
+        actions: const [SettingsAction()],
       ),
       body: Stack(
         children: [
@@ -441,7 +437,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
             Positioned(
               left: 8,
               top: 8,
-              right: 8,
+              right: _topControlsInset,
               child: ColoredBox(
                 color: const Color(0xCCFFFFFF),
                 child: Padding(
@@ -459,7 +455,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
           if (_showJourney)
             Positioned(
               left: 8,
-              right: 8,
+              right: _topControlsInset,
               top: 8,
               child: _JourneyPanel(
                 years: years,
@@ -482,6 +478,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     _showExpeditions(expeditions(scored, year: _journeyYear)),
               ),
             ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Semantics(
+              selected: _showJourney,
+              child: SealFab(
+                sumi: !_showJourney,
+                small: true,
+                tooltip: l10n.journeyToggle,
+                onPressed: () => _toggleJourney(stops),
+                child: Icon(_showJourney ? Icons.route : Icons.route_outlined),
+              ),
+            ),
+          ),
           if (_isSearching || _locating > 0) ...[
             const Positioned(
               left: 0,
@@ -501,7 +511,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               pendingWishes.isEmpty)
             Positioned(
               left: 16,
-              right: 16,
+              right: _topControlsInset,
               top: 16,
               child: Card(
                 child: Padding(
@@ -800,7 +810,7 @@ class _JourneyPanel extends StatelessWidget {
                     ),
               style: textTheme.bodyMedium,
             ),
-            Row(
+            Wrap(
               children: [
                 FudeLink(
                   onPressed: stops.isEmpty ? null : onReplay,

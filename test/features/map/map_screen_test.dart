@@ -150,7 +150,29 @@ void main() {
       buildEntry(shop: a, eatenAt: DateTime(2026, 1, 2, 12)),
     ]);
 
-    await tester.tap(find.byTooltip(ja.journeyToggle));
+    // 旅路の切り替えは見出しではなく、地図の右上に浮かべる。見出しには歯車だけ。
+    final toggle = find.byTooltip(ja.journeyToggle);
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: toggle),
+      findsNothing,
+    );
+    expect(
+      tester.getTopRight(toggle).dx,
+      greaterThan(tester.getTopRight(find.byType(FlutterMap)).dx - 16),
+    );
+    expect(
+      tester.getTopLeft(toggle).dy,
+      greaterThanOrEqualTo(tester.getTopLeft(find.byType(FlutterMap)).dy),
+    );
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.byTooltip(ja.settingsSection),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(toggle);
     await tester.pumpAndSettle();
     expect(find.text(ja.journeySummary(2, '2.2')), findsOneWidget);
 

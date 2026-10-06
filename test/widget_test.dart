@@ -158,6 +158,28 @@ void main() {
     expect(find.text(ja.mapEmpty), findsOneWidget);
   });
 
+  testWidgets('どのタブでも右上の歯車から設定を開ける', (tester) async {
+    await pumpApp(tester, const []);
+
+    for (final tab in [null, ja.navWishes, ja.navShugyo, ja.navMap]) {
+      if (tab != null) {
+        await tester.tap(find.text(tab).last);
+        await tester.pumpAndSettle();
+      }
+      final gear = find.byTooltip(ja.settingsSection);
+      expect(gear, findsOneWidget, reason: '$tab');
+      expect(
+        find.descendant(of: find.byType(AppBar), matching: gear),
+        findsOneWidget,
+      );
+      await tester.tap(gear);
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsScreen), findsOneWidget);
+      Navigator.of(tester.element(find.byType(SettingsScreen))).pop();
+      await tester.pumpAndSettle();
+    }
+  });
+
   testWidgets('記録があるときは店名と印、段位と修行点を表示する', (tester) async {
     final shop = Shop(
       id: 'shop',

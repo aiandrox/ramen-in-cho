@@ -23,6 +23,7 @@ import '../shop_search/curated_shops_store.dart';
 import '../memory/memory_card.dart';
 import 'rating_prompt.dart';
 import '../scoring/scoring_providers.dart';
+import '../settings/settings_action.dart';
 import '../visit_detail/visit_detail_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -132,7 +133,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       // 印帳のページ（和紙）が浮いて見えるよう、机の色にする。
       backgroundColor: Washi.desk,
-      appBar: AppBar(backgroundColor: Washi.desk, title: Text(l10n.appName)),
+      appBar: AppBar(
+        backgroundColor: Washi.desk,
+        title: Text(l10n.appName),
+        actions: const [SettingsAction()],
+      ),
       body: Column(
         children: [
           // 並んでいる最中の帯は、どのタブでも見えるよう外枠（app_shell.dart）に出す。
