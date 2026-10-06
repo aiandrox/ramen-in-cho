@@ -11,7 +11,12 @@ import '../records/photo_storage.dart';
 /// 種類を足すときは、ここと文言（`notificationKind…`）とチャンネルの名前を足す。
 enum NotificationKind {
   checkin('checkin'),
-  streak('streak');
+  rating('rating'),
+  yearReview('year_review'),
+  newYearWish('new_year_wish'),
+  streak('streak'),
+  monthly('monthly'),
+  event('event');
 
   const NotificationKind(this.key);
 

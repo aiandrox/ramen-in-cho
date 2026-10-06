@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../l10n/app_localizations.dart';
 import '../checkin/checkin_rules.dart';
+import 'notification_labels.dart';
 import 'notification_settings.dart';
 
 final notificationServiceProvider = Provider<NotificationService>(
@@ -30,6 +33,15 @@ abstract class NotificationService {
   /// 予約済みの通知（並び中の通知を除く）を[notifications]に置き換える。
   /// 置き換えられなかったらfalse。
   Future<bool> replaceScheduled(List<ScheduledNotification> notifications);
+
+  /// アプリを開いている間（裏にあるときも）に通知がタップされたときの行き先（payload）。
+  Stream<String> get taps;
+
+  /// 通知をタップしてアプリが起動したときの行き先。1回だけ返す。
+  Future<String?> takeLaunchPayload();
+
+  /// 開発用: [notification]をすぐに（5秒後に）出す。予約済みの通知はそのまま。
+  Future<void> showSoon(ScheduledNotification notification);
 }
 
 @immutable
@@ -40,6 +52,7 @@ class ScheduledNotification {
     required this.at,
     required this.title,
     required this.body,
+    this.payload,
   });
 
   final int id;
@@ -47,6 +60,7 @@ class ScheduledNotification {
   final DateTime at;
   final String title;
   final String body;
+  final String? payload;
 
   @override
   bool operator ==(Object other) =>
@@ -55,27 +69,20 @@ class ScheduledNotification {
       other.kind == kind &&
       other.at == at &&
       other.title == title &&
-      other.body == body;
+      other.body == body &&
+      other.payload == payload;
 
   @override
-  int get hashCode => Object.hash(id, kind, at, title, body);
+  int get hashCode => Object.hash(id, kind, at, title, body, payload);
 }
 
 const _checkinNotificationId = 1;
+const _testNotificationId = 999;
 
 /// Android の通知チャンネルの名前と説明。スマホの設定の「通知」に、この名前で並ぶ。
 (String, String) _channelOf(NotificationKind kind) {
   final l10n = lookupAppLocalizations(const Locale('ja'));
-  return switch (kind) {
-    NotificationKind.checkin => (
-      l10n.notificationKindCheckin,
-      l10n.notificationKindCheckinNote,
-    ),
-    NotificationKind.streak => (
-      l10n.notificationKindStreak,
-      l10n.notificationKindStreakNote,
-    ),
-  };
+  return (notificationKindLabel(l10n, kind), notificationKindNote(l10n, kind));
 }
 
 int? _remainingUntilTimeout(DateTime checkedInAt) {
@@ -91,9 +98,14 @@ class LocalNotificationService implements NotificationService {
   Future<void>? _initialization;
 
   Future<void>? _permissionRequest;
+  final _taps = StreamController<String>.broadcast();
+  bool _launchTaken = false;
 
   Future<void> _initialize() => _initialization ??= () async {
     await _plugin.initialize(
+      onDidReceiveNotificationResponse: (response) {
+        if (response.payload case final payload?) _taps.add(payload);
+      },
       settings: const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(
@@ -208,34 +220,83 @@ class LocalNotificationService implements NotificationService {
       await _initialize();
       final keep = {for (final n in notifications) n.id};
       for (final pending in await _plugin.pendingNotificationRequests()) {
-        if (pending.id == _checkinNotificationId) continue;
+        if (pending.id == _checkinNotificationId ||
+            pending.id == _testNotificationId) {
+          continue;
+        }
         if (!keep.contains(pending.id)) await _plugin.cancel(id: pending.id);
       }
       for (final notification in notifications) {
-        final (channelName, channelDescription) = _channelOf(notification.kind);
-        await _plugin.zonedSchedule(
-          id: notification.id,
-          // 1回きりの通知は時刻そのもの（瞬間）で決まるので、端末のタイムゾーン名を
-          // 調べなくてもUTCで表せば端末の[at]どおりに届く。
-          scheduledDate: tz.TZDateTime.from(notification.at, tz.UTC),
-          title: notification.title,
-          body: notification.body,
-          notificationDetails: NotificationDetails(
-            android: AndroidNotificationDetails(
-              notification.kind.key,
-              channelName,
-              channelDescription: channelDescription,
-            ),
-            iOS: const DarwinNotificationDetails(),
-          ),
-          // 正確な時刻の予約には追加の許可が要るため、多少ずれてもよい方式にする。
-          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        );
+        await _schedule(notification.id, notification);
       }
       return true;
     } catch (e) {
       debugPrint('Notification schedule failed: $e');
       return false;
+    }
+  }
+
+  Future<void> _schedule(int id, ScheduledNotification notification) async {
+    final (channelName, channelDescription) = _channelOf(notification.kind);
+    await _plugin.zonedSchedule(
+      id: id,
+      // 1回きりの通知は時刻そのもの（瞬間）で決まるので、端末のタイムゾーン名を
+      // 調べなくてもUTCで表せば端末の[at]どおりに届く。
+      scheduledDate: tz.TZDateTime.from(notification.at, tz.UTC),
+      title: notification.title,
+      body: notification.body,
+      payload: notification.payload,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          notification.kind.key,
+          channelName,
+          channelDescription: channelDescription,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+      // 正確な時刻の予約には追加の許可が要るため、多少ずれてもよい方式にする。
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
+  @override
+  Stream<String> get taps {
+    _initialize();
+    return _taps.stream;
+  }
+
+  @override
+  Future<String?> takeLaunchPayload() async {
+    if (_launchTaken) return null;
+    _launchTaken = true;
+    try {
+      await _initialize();
+      final details = await _plugin.getNotificationAppLaunchDetails();
+      if (details?.didNotificationLaunchApp != true) return null;
+      return details?.notificationResponse?.payload;
+    } catch (e) {
+      debugPrint('Notification launch details failed: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<void> showSoon(ScheduledNotification notification) async {
+    try {
+      await _initialize();
+      await _schedule(
+        _testNotificationId,
+        ScheduledNotification(
+          id: _testNotificationId,
+          kind: notification.kind,
+          at: DateTime.now().add(const Duration(seconds: 5)),
+          title: notification.title,
+          body: notification.body,
+          payload: notification.payload,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Test notification failed: $e');
     }
   }
 

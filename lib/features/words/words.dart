@@ -1,4 +1,5 @@
 import '../inkan/inkan.dart';
+import '../notifications/notification_calendar.dart';
 import '../scoring/ranks.dart';
 
 /// [key]から決まった1つを選ぶ。同じ記録・同じ週には、いつも同じ言葉が出る。
@@ -89,3 +90,79 @@ String yearClosingWords(int year) => pickWord('year:$year', const [
   '退いた日も、並んだ日も、すべて修行よ。',
   '来年はどんな暖簾をくぐるのか。楽しみにしておるぞ。',
 ]);
+
+/// ★の付け忘れを知らせる通知の本文。[visitId]で選ぶ。
+String ratingReminderBody(String visitId) => pickWord('rating:$visitId', const [
+  '★をつけておきましょう。',
+  '味の記憶が新しいうちに、★をひとつ。',
+  '★をつけて、今日の一杯を印帳に刻みましょう。',
+  '師匠が、おぬしの舌の判定を待っておる。',
+]);
+
+/// 年の振り返りを勧める通知の本文。[at]の日で選ぶ。
+String yearReviewReminderBody(DateTime at) =>
+    pickWord('review:${at.year}-${at.month}-${at.day}', const [
+      '今年の修行を、ふり返ってみませんか。',
+      '一年分の印を、めくってみましょう。',
+      'この一年、どれだけの暖簾をくぐったか。確かめてみましょう。',
+      '師匠が、今年の総まとめを用意して待っておる。',
+    ]);
+
+/// 年始に願掛けを勧める通知の本文。[at]の日で選ぶ。
+String newYearWishReminderBody(DateTime at) =>
+    pickWord('wish:${at.year}-${at.month}-${at.day}', const [
+      '今年行きたい店を、願掛け帳に書き留めましょう。',
+      '一年の計は願掛けにあり。今年はどの暖簾をくぐりますか。',
+      '新しい年の一杯目は、どこにしますか。願を掛けておきましょう。',
+      '今年こそ行きたいあの店に、願を掛けませんか。',
+    ]);
+
+/// 20日になってもまだ食べていない月に送る通知の本文。[at]の月で選ぶ。
+String monthlyReminderBody(DateTime at) =>
+    pickWord('monthly:${at.year}-${at.month}', const [
+      '今月はまだ着丼していません。そろそろ一杯いかがですか？',
+      '今月の印帳が、まだ白紙です。',
+      '月に一度は、暖簾をくぐりましょう。',
+      '丼が恋しくなる頃ではありませんか。',
+      '今月の一杯は、どの店にしますか。',
+    ]);
+
+/// 行事の日に送る通知の本文。同じ年の同じ行事には、いつも同じ言葉が出る。
+String eventReminderBody(RamenEvent event, int year) =>
+    pickWord('event:${event.name}:$year', switch (event) {
+      RamenEvent.valentine => const [
+        'バレンタインデー、それは至高の一杯をすする日。',
+        '甘いものの前に、熱い一杯を。',
+        '今日の贈り物は、自分への一杯で。',
+      ],
+      RamenEvent.whiteDay => const [
+        'ホワイトデー。お返しは、白いスープの一杯で。',
+        'お返しに迷ったら、まずは一杯すすってから。',
+        '甘いお返しのあとは、しょっぱい一杯を。',
+      ],
+      RamenEvent.tanabata => const [
+        '七夕の夜。短冊に書く願いは、あの店の一杯。',
+        '天の川より長い麺を、すすりに行きませんか。',
+        '織姫と彦星も、年に一度の一杯を楽しみにしているはず。',
+      ],
+      RamenEvent.ramenDay => const [
+        '今日はラーメンの日。迷わず暖簾をくぐりましょう。',
+        'ラーメンの日に、すすらない理由はありません。',
+        '今日という日を、一杯で祝いましょう。',
+      ],
+      RamenEvent.halloween => const [
+        'ハロウィンの夜。仮装より、湯気をまといましょう。',
+        'トリック・オア・ラーメン。今夜はどの暖簾に？',
+        'お菓子もいいけれど、今夜は一杯をくれなきゃ。',
+      ],
+      RamenEvent.christmas => const [
+        'クリスマスに最高の一杯はいかが？',
+        '聖なる夜に、湯気の立つ一杯を。',
+        'ケーキの前に、まずは一杯。',
+      ],
+      RamenEvent.newYearsEve => const [
+        '大晦日。年越しは、そばよりラーメンで。',
+        '今年最後の一杯で、一年を締めくくりましょう。',
+        '年越しの一杯は、どの店ですすりますか。',
+      ],
+    });

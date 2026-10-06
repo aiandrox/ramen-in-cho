@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ramen_in_cho/features/notifications/notification_calendar.dart';
 
 import 'package:ramen_in_cho/features/scoring/ranks.dart';
 import 'package:ramen_in_cho/features/words/words.dart';
@@ -60,6 +61,22 @@ void main() {
     final bodies = {
       for (var w = 0; w < 12; w++)
         streakReminderBody(sunday.add(Duration(days: 7 * w))),
+    };
+    expect(bodies.length, greaterThan(1));
+  });
+
+  test('通知の本文は同じ記録・同じ日・同じ年の行事ならいつも同じ', () {
+    final day = DateTime(2026, 12, 26, 20);
+    expect(ratingReminderBody('v1'), ratingReminderBody('v1'));
+    expect(yearReviewReminderBody(day), yearReviewReminderBody(day));
+    expect(newYearWishReminderBody(day), newYearWishReminderBody(day));
+    expect(monthlyReminderBody(day), monthlyReminderBody(day));
+    for (final event in RamenEvent.values) {
+      expect(eventReminderBody(event, 2026), eventReminderBody(event, 2026));
+    }
+    final bodies = {
+      for (var year = 2026; year < 2040; year++)
+        eventReminderBody(RamenEvent.valentine, year),
     };
     expect(bodies.length, greaterThan(1));
   });

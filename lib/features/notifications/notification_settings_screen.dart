@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../settings/system_settings.dart';
+import 'notification_labels.dart';
+import 'notification_scheduler.dart';
 import 'notification_service.dart';
 import 'notification_settings.dart';
 
@@ -124,23 +127,17 @@ class _NotificationSettingsScreenState
             trailing: const Icon(Icons.open_in_new),
             onTap: openNotificationSettings,
           ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.notificationDailyCapNote,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (kDebugMode) const _PlannedNotificationsDebug(),
         ],
       ),
     );
   }
 }
-
-String notificationKindLabel(AppLocalizations l10n, NotificationKind kind) =>
-    switch (kind) {
-      NotificationKind.checkin => l10n.notificationKindCheckin,
-      NotificationKind.streak => l10n.notificationKindStreak,
-    };
-
-String notificationKindNote(AppLocalizations l10n, NotificationKind kind) =>
-    switch (kind) {
-      NotificationKind.checkin => l10n.notificationKindCheckinNote,
-      NotificationKind.streak => l10n.notificationKindStreakNote,
-    };
 
 class _StreakTimePicker extends StatelessWidget {
   const _StreakTimePicker({
@@ -193,6 +190,38 @@ class _StreakTimePicker extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 開発用（デバッグビルドだけ）: 予約中の通知を並べ、タップで5秒後に出して文言や行き先を確かめる。
+class _PlannedNotificationsDebug extends ConsumerWidget {
+  const _PlannedNotificationsDebug();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final plans = ref.watch(notificationPlanProvider) ?? const [];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(height: 24),
+        Text(l10n.notificationDebugTitle),
+        Text(
+          l10n.notificationDebugNote,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        for (final plan in plans)
+          if (describeNotification(l10n, plan) case final notification)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(notification.title),
+              subtitle: Text('${plan.at}\n${notification.body}'),
+              onTap: () =>
+                  ref.read(notificationServiceProvider).showSoon(notification),
+            ),
+      ],
     );
   }
 }

@@ -1708,6 +1708,81 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationKindStreakNote => 'その週にまだ食べていないとき、途切れる前に知らせます';
 
   @override
+  String get notificationKindRating => '★の付け忘れ';
+
+  @override
+  String get notificationKindRatingNote => '★をつけずに保存した一杯を、1時間半後に知らせます';
+
+  @override
+  String get notificationKindYearReview => '年の振り返り';
+
+  @override
+  String get notificationKindYearReviewNote =>
+      '12月26日と30日の夜に、その年の振り返りを勧めます（開いたら知らせません）';
+
+  @override
+  String get notificationKindNewYearWish => '年始の願掛け';
+
+  @override
+  String get notificationKindNewYearWishNote =>
+      '1月1日と5日に、行きたい店に願を掛けるよう勧めます（年が明けてから願を掛けたら知らせません）';
+
+  @override
+  String get notificationKindMonthly => '今月の一杯';
+
+  @override
+  String get notificationKindMonthlyNote => '20日になってもその月にまだ食べていないとき、夜に知らせます';
+
+  @override
+  String get notificationKindEvent => '行事の日';
+
+  @override
+  String get notificationKindEventNote => 'バレンタインデー・ラーメンの日・クリスマスなどに、ひとこと届けます';
+
+  @override
+  String get notificationDailyCapNote =>
+      '届く通知は1日に1件まで（★の付け忘れだけは別に1件）。重なったら、年の振り返り・年始の願掛け → 連続記録 → 今月の一杯 → 行事の日 の順に大事なほうだけを届けます';
+
+  @override
+  String ratingReminderTitle(String shop) {
+    return '$shopはどうでしたか？';
+  }
+
+  @override
+  String yearReviewReminderTitle(int year) {
+    return '$year年の振り返り';
+  }
+
+  @override
+  String get newYearWishReminderTitle => '年始の願掛け';
+
+  @override
+  String monthlyReminderTitle(int month) {
+    return '$month月の一杯';
+  }
+
+  @override
+  String eventReminderTitle(String event) {
+    String _temp0 = intl.Intl.selectLogic(event, {
+      'valentine': 'バレンタインデー',
+      'whiteDay': 'ホワイトデー',
+      'tanabata': '七夕',
+      'ramenDay': 'ラーメンの日',
+      'halloween': 'ハロウィン',
+      'christmas': 'クリスマス',
+      'newYearsEve': '大晦日',
+      'other': '今日の一杯',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get notificationDebugTitle => '（開発用）予約中の通知';
+
+  @override
+  String get notificationDebugNote => 'タップすると、その通知が5秒後に届きます';
+
+  @override
   String get notificationStreakTime => '連続記録を知らせる曜日と時刻';
 
   @override

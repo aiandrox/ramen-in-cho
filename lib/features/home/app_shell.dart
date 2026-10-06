@@ -10,6 +10,10 @@ import '../checkin/checkin_controller.dart';
 import '../checkin/checkin_screen.dart';
 import '../records/clock.dart';
 import '../map/map_screen.dart';
+import '../notifications/notification_plan.dart';
+import '../notifications/notification_service.dart';
+import '../review/year_review_list_screen.dart';
+import '../visit_detail/visit_detail_screen.dart';
 import '../shugyo/shugyo_screen.dart';
 import '../wishes/wish_list_screen.dart';
 import '../../theme/washi_buttons.dart';
@@ -44,6 +48,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   final _sheetHost = GlobalKey<ShellSheetHostState>();
   late final StreamSubscription<LocationBlock> _locationBlocks;
+  late final StreamSubscription<String> _notificationTaps;
 
   /// 同じ案内を何度も出さないよう、アプリを開いている間は1つの理由につき1回だけにする。
   final _shownLocationBlocks = <LocationBlock>{};
@@ -52,6 +57,12 @@ class _AppShellState extends ConsumerState<AppShell> {
   void initState() {
     super.initState();
     _locationBlocks = locationBlocks.stream.listen(_explainLocationBlock);
+    final notifications = ref.read(notificationServiceProvider);
+    _notificationTaps = notifications.taps.listen(_openFromNotification);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final payload = await notifications.takeLaunchPayload();
+      if (payload != null) _openFromNotification(payload);
+    });
     if (ref.read(showOnboardingOnLaunchProvider)) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _maybeOnboard());
     }
@@ -59,6 +70,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   void dispose() {
+    _notificationTaps.cancel();
     _locationBlocks.cancel();
     super.dispose();
   }
@@ -91,6 +103,34 @@ class _AppShellState extends ConsumerState<AppShell> {
     await (block == LocationBlock.serviceOff
         ? Geolocator.openLocationSettings()
         : Geolocator.openAppSettings());
+  }
+
+  /// 通知をタップしたときに、その行き先（1杯・年の振り返り・願掛けタブ）を開く。
+  Future<void> _openFromNotification(String payload) async {
+    final route = NotificationRoute.parse(payload);
+    if (route == null || !mounted) return;
+    // 書きかけの記録などを消さないよう、開いている画面は閉じずにその上へ開く。
+    final navigator = Navigator.of(context);
+    _sheetHost.currentState?.close();
+    final tabs = ref.read(appTabProvider.notifier);
+    switch (route) {
+      case WishesRoute():
+        tabs.select(AppTab.wishes);
+      case YearReviewRoute(:final year):
+        tabs.select(AppTab.shugyo);
+        openYearReview(context, year: year);
+      case VisitRoute(:final visitId):
+        final visits = await ref.read(visitsProvider.future);
+        if (!mounted || !visits.any((entry) => entry.visit.id == visitId)) {
+          return;
+        }
+        tabs.select(AppTab.records);
+        await navigator.push<void>(
+          MaterialPageRoute(
+            builder: (_) => VisitDetailScreen(visitId: visitId),
+          ),
+        );
+    }
   }
 
   Future<void> _maybeOnboard() async {

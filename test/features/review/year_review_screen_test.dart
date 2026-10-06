@@ -7,6 +7,7 @@ import 'package:ramen_in_cho/features/inkan/inkan_stamp.dart';
 
 import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
+import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/review/year_review_entry.dart';
 import 'package:ramen_in_cho/features/review/year_review_list_screen.dart';
@@ -15,6 +16,7 @@ import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
 import 'package:ramen_in_cho/features/words/words.dart';
 
 import '../../support/builders.dart';
+import '../../support/fakes.dart';
 import '../../support/l10n.dart';
 
 void main() {
@@ -49,6 +51,7 @@ void main() {
           visitsProvider.overrideWithValue(AsyncData(entries ?? visits)),
           homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           wishesProvider.overrideWithValue(const AsyncData([])),
+          documentsDirectoryProvider.overrideWithValue(createTempDirectory()),
           clockProvider.overrideWithValue(() => now ?? DateTime(2026, 10, 3)),
         ],
         child: localizedApp(home: home),

@@ -25,7 +25,9 @@ import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/settings/settings_screen.dart';
 import 'package:ramen_in_cho/features/shop_search/location_service.dart';
+import 'package:ramen_in_cho/features/wishes/wish_list_screen.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
+import 'package:ramen_in_cho/features/visit_detail/visit_detail_screen.dart';
 import 'package:ramen_in_cho/features/inkan/inkan_stamp.dart';
 import 'package:ramen_in_cho/main.dart';
 import 'package:ramen_in_cho/theme/washi.dart';
@@ -89,6 +91,37 @@ void main() {
       tester.getRect(find.byType(SnackBar)).bottom,
       lessThanOrEqualTo(before.top),
     );
+  });
+
+  testWidgets('通知をタップすると、その行き先（願掛けタブ・1杯）を開く', (tester) async {
+    final visit = VisitWithShop(
+      shop: Shop(id: 'shop', name: '麺屋つうち', createdAt: DateTime(2026)),
+      visit: Visit(
+        id: 'tapped',
+        shopId: 'shop',
+        result: VisitResult.eaten,
+        eatenAt: DateTime(2026, 10, 1, 12),
+        isLimited: false,
+        hasTicket: false,
+        memo: '',
+        createdAt: DateTime(2026, 10, 1, 12),
+      ),
+    );
+    await pumpApp(tester, [visit], now: DateTime(2026, 10, 1, 13));
+
+    notifications.tapController.add('tab:wishes');
+    await tester.pumpAndSettle();
+    expect(find.byType(WishListScreen), findsOneWidget);
+
+    notifications.tapController.add('visit:tapped');
+    await tester.pumpAndSettle();
+    expect(find.byType(VisitDetailScreen), findsOneWidget);
+
+    Navigator.of(tester.element(find.byType(VisitDetailScreen))).pop();
+    await tester.pumpAndSettle();
+    notifications.tapController.add('visit:missing');
+    await tester.pumpAndSettle();
+    expect(find.byType(VisitDetailScreen), findsNothing);
   });
 
   testWidgets('下のタブで修行・地図に切り替えられる。地図は開いたときだけ作る', (tester) async {
@@ -474,12 +507,16 @@ void main() {
       expect(find.text(ja.notificationNotPermitted), findsOneWidget);
       expect(find.text(ja.notificationStreakTime), findsOneWidget);
 
+      await tester.ensureVisible(find.text(ja.notificationKindStreak));
+      await tester.pumpAndSettle();
       await tester.tap(find.text(ja.notificationKindStreak));
       await tester.pumpAndSettle();
       expect(notifications.streakReminders, isEmpty);
       expect(find.text(ja.notificationStreakTime), findsNothing);
 
       await tester.tap(find.text(ja.notificationKindStreak));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text(ja.weekdayShort('6')));
       await tester.pumpAndSettle();
       await tester.tap(find.text(ja.weekdayShort('6')));
       await tester.pumpAndSettle();

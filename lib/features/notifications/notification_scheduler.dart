@@ -7,20 +7,30 @@ import '../checkin/checkin_controller.dart';
 import '../inkan/inkan.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
+import '../records/record_repository.dart';
+import '../review/year_review_seen.dart';
 import '../streak/streak.dart';
+import '../wishes/wish_repository.dart';
 import '../words/words.dart';
 import 'notification_plan.dart';
 import 'notification_service.dart';
 import 'notification_settings.dart';
 
-/// 予約しておく通知。記録・設定・「今」が変わるたびに決め直す。
-final notificationPlanProvider = Provider<List<PlannedNotification>>(
-  (ref) => planNotifications(
+/// 予約しておく通知。記録・願・設定・「今」が変わるたびに決め直す。
+/// 記録や願を読み込んでいる間はnull（読み込む前の空の記録で予約し直さないため）。
+final notificationPlanProvider = Provider<List<PlannedNotification>?>((ref) {
+  final visits = ref.watch(visitsProvider);
+  final wishes = ref.watch(wishesProvider);
+  if (!visits.hasValue || !wishes.hasValue) return null;
+  return planNotifications(
     settings: ref.watch(notificationSettingsProvider),
     streak: ref.watch(streakProvider),
     now: ref.watch(currentTimeProvider),
-  ),
-);
+    visits: visits.value!,
+    wishes: wishes.value!,
+    reviewedYears: ref.watch(yearReviewSeenProvider),
+  );
+});
 
 ScheduledNotification describeNotification(
   AppLocalizations l10n,
@@ -31,6 +41,26 @@ ScheduledNotification describeNotification(
       l10n.streakReminderTitle(proseNumber(weeks)),
       streakReminderBody(at),
     ),
+    RatingNotice(:final shopName, :final visitId) => (
+      l10n.ratingReminderTitle(shopName),
+      ratingReminderBody(visitId),
+    ),
+    YearReviewNotice(:final year, :final at) => (
+      l10n.yearReviewReminderTitle(year),
+      yearReviewReminderBody(at),
+    ),
+    NewYearWishNotice(:final at) => (
+      l10n.newYearWishReminderTitle,
+      newYearWishReminderBody(at),
+    ),
+    MonthlyNotice(:final at) => (
+      l10n.monthlyReminderTitle(at.month),
+      monthlyReminderBody(at),
+    ),
+    EventNotice(:final event, :final at) => (
+      l10n.eventReminderTitle(event.name),
+      eventReminderBody(event, at.year),
+    ),
   };
   return ScheduledNotification(
     id: plan.id,
@@ -38,6 +68,7 @@ ScheduledNotification describeNotification(
     at: plan.at,
     title: title,
     body: body,
+    payload: plan.payload,
   );
 }
 
@@ -89,10 +120,11 @@ void listenForNotifications(WidgetRef ref, AppLocalizations Function() l10n) {
   );
 
   List<ScheduledNotification>? scheduled;
-  ref.listenManual<List<PlannedNotification>>(notificationPlanProvider, (
+  ref.listenManual<List<PlannedNotification>?>(notificationPlanProvider, (
     _,
     plans,
   ) {
+    if (plans == null) return;
     final texts = l10n();
     final next = [for (final plan in plans) describeNotification(texts, plan)];
     // 「今」は1分ごとに進むので、予約が変わらないときは問い合わせない。

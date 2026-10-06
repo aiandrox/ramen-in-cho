@@ -3046,6 +3046,114 @@ abstract class AppLocalizations {
   /// **'その週にまだ食べていないとき、途切れる前に知らせます'**
   String get notificationKindStreakNote;
 
+  /// No description provided for @notificationKindRating.
+  ///
+  /// In ja, this message translates to:
+  /// **'★の付け忘れ'**
+  String get notificationKindRating;
+
+  /// No description provided for @notificationKindRatingNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'★をつけずに保存した一杯を、1時間半後に知らせます'**
+  String get notificationKindRatingNote;
+
+  /// No description provided for @notificationKindYearReview.
+  ///
+  /// In ja, this message translates to:
+  /// **'年の振り返り'**
+  String get notificationKindYearReview;
+
+  /// No description provided for @notificationKindYearReviewNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'12月26日と30日の夜に、その年の振り返りを勧めます（開いたら知らせません）'**
+  String get notificationKindYearReviewNote;
+
+  /// No description provided for @notificationKindNewYearWish.
+  ///
+  /// In ja, this message translates to:
+  /// **'年始の願掛け'**
+  String get notificationKindNewYearWish;
+
+  /// No description provided for @notificationKindNewYearWishNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'1月1日と5日に、行きたい店に願を掛けるよう勧めます（年が明けてから願を掛けたら知らせません）'**
+  String get notificationKindNewYearWishNote;
+
+  /// No description provided for @notificationKindMonthly.
+  ///
+  /// In ja, this message translates to:
+  /// **'今月の一杯'**
+  String get notificationKindMonthly;
+
+  /// No description provided for @notificationKindMonthlyNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'20日になってもその月にまだ食べていないとき、夜に知らせます'**
+  String get notificationKindMonthlyNote;
+
+  /// No description provided for @notificationKindEvent.
+  ///
+  /// In ja, this message translates to:
+  /// **'行事の日'**
+  String get notificationKindEvent;
+
+  /// No description provided for @notificationKindEventNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'バレンタインデー・ラーメンの日・クリスマスなどに、ひとこと届けます'**
+  String get notificationKindEventNote;
+
+  /// No description provided for @notificationDailyCapNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'届く通知は1日に1件まで（★の付け忘れだけは別に1件）。重なったら、年の振り返り・年始の願掛け → 連続記録 → 今月の一杯 → 行事の日 の順に大事なほうだけを届けます'**
+  String get notificationDailyCapNote;
+
+  /// No description provided for @ratingReminderTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{shop}はどうでしたか？'**
+  String ratingReminderTitle(String shop);
+
+  /// No description provided for @yearReviewReminderTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{year}年の振り返り'**
+  String yearReviewReminderTitle(int year);
+
+  /// No description provided for @newYearWishReminderTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'年始の願掛け'**
+  String get newYearWishReminderTitle;
+
+  /// No description provided for @monthlyReminderTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{month}月の一杯'**
+  String monthlyReminderTitle(int month);
+
+  /// No description provided for @eventReminderTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{event, select, valentine{バレンタインデー} whiteDay{ホワイトデー} tanabata{七夕} ramenDay{ラーメンの日} halloween{ハロウィン} christmas{クリスマス} newYearsEve{大晦日} other{今日の一杯}}'**
+  String eventReminderTitle(String event);
+
+  /// No description provided for @notificationDebugTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'（開発用）予約中の通知'**
+  String get notificationDebugTitle;
+
+  /// No description provided for @notificationDebugNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'タップすると、その通知が5秒後に届きます'**
+  String get notificationDebugNote;
+
   /// No description provided for @notificationStreakTime.
   ///
   /// In ja, this message translates to:
