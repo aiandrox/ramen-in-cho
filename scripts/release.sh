@@ -121,8 +121,6 @@ if [[ -f "$config" ]]; then
   # shellcheck disable=SC1090
   source "$config"
 fi
-# Yahoo! ローカルサーチの Client ID。無いと Yahoo! で探さないビルドになる。
-defines="$(first_existing env/local.json "${HOME}/.config/ramen-in-cho/local.json")"
 
 confirm() {
   [[ $assume_yes -eq 1 ]] && return 0
@@ -148,8 +146,6 @@ check_android() {
   [[ -f "$PLAY_SERVICE_ACCOUNT_JSON" ]] || die "サービスアカウント鍵が見つかりません: ${PLAY_SERVICE_ACCOUNT_JSON}"
   command -v fastlane >/dev/null || die "fastlaneが必要です（gem install fastlane）"
 }
-
-[[ -f "$defines" ]] || die "Yahoo! の Client ID のファイルがありません: ${defines}"
 
 case "$platform" in
   ios) check_ios ;;
@@ -284,7 +280,7 @@ build_ios() {
   echo "==> flutter build ipa"
   # 前回のipaが残っていると、どれを上げたのか分からなくなる。
   rm -rf build/ios/ipa
-  flutter build ipa --release --dart-define-from-file="$defines"
+  flutter build ipa --release
   local ipa
   ipa="$(find build/ios/ipa -maxdepth 1 -name '*.ipa' | head -n 1)"
   [[ -n "$ipa" ]] || die "ipaが見つかりません（build/ios/ipa）"
@@ -299,7 +295,7 @@ build_ios() {
 
 build_android() {
   echo "==> flutter build appbundle"
-  flutter build appbundle --release --dart-define-from-file="$defines"
+  flutter build appbundle --release
   local aab="build/app/outputs/bundle/release/app-release.aab"
   [[ -f "$aab" ]] || die "aabが見つかりません: ${aab}"
   echo "==> ${aab}"

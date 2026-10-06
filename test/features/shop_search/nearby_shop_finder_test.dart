@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +9,6 @@ import 'package:ramen_in_cho/features/shop_search/nearby_shop_finder.dart';
 import 'package:ramen_in_cho/features/shop_search/openpoi_client.dart';
 import 'package:ramen_in_cho/features/shop_search/overpass.dart';
 import 'package:ramen_in_cho/features/shop_search/overpass_client.dart';
-import 'package:ramen_in_cho/features/shop_search/yahoo_local_client.dart';
 
 const _origin = GeoPoint(35.69, 139.70);
 
@@ -154,49 +152,5 @@ void main() {
       expect(shops.single.osmId, isNull);
       expect(shops.single.address, '東京都港区三田2-16-4');
     });
-  });
-
-  test('Yahoo! の結果も合わせ、OpenStreetMap と同じ店は1つにまとめる', () async {
-    final finder = NearbyShopFinder(
-      overpass: OverpassClient(
-        MockClient(
-          (_) async => http.Response.bytes(
-            utf8.encode(
-              jsonEncode({
-                'elements': [
-                  {
-                    'type': 'node',
-                    'id': 1,
-                    'lat': 35.6908,
-                    'lon': 139.7006,
-                    'tags': {'name': '麺処 さくら'},
-                  },
-                ],
-              }),
-            ),
-            200,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          ),
-        ),
-      ),
-      openPoi: OpenPoiClient(MockClient((_) async => http.Response('', 503))),
-      yahoo: YahooLocalClient(
-        MockClient(
-          (_) async => http.Response.bytes(
-            utf8.encode(
-              File('test/fixtures/yahoo_local_shinjuku.json')
-                  .readAsStringSync(),
-            ),
-            200,
-          ),
-        ),
-        appId: 'test-id',
-      ),
-    );
-
-    final shops = await finder.searchNearby(const GeoPoint(35.6905, 139.7000));
-
-    expect(shops.map((s) => s.name), ['麺処 さくら', '麺屋ふじみち']);
-    expect(shops.first.osmId, 'node/1');
   });
 }

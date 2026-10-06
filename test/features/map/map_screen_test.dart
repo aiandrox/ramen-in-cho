@@ -106,7 +106,10 @@ void main() {
     expect(overpass.radii, [nearbySearchRadiusMeters]);
     expect(find.text(ja.mapNearbyFound(1)), findsOneWidget);
     expect(find.bySemanticsLabel('まだ行っていない店'), findsOneWidget);
-    expect(find.text(ja.openPoiAttribution), findsOneWidget);
+    expect(
+      find.text('${ja.openPoiAttribution}\n${ja.yahooAttribution}'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('位置のわからない手入力の店や、撤退しただけの店は「まだ行っていない店」に出さない', (tester) async {

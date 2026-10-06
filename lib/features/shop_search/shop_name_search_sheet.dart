@@ -8,8 +8,6 @@ import 'found_shop.dart';
 import 'geo.dart';
 import 'openpoi_client.dart';
 import 'ramen_in_cho_api.dart';
-import 'yahoo_local.dart';
-import 'yahoo_local_client.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
 
@@ -76,9 +74,7 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
       _failed = false;
     });
     try {
-      // 同じ店なら、ラーメン店の業種で絞れる Yahoo! のほうを残す。
-      // Yahoo! が使えないとき（Client ID が無い・失敗）も、OpenPOI の結果は出す。
-      // まずサーバーに聞く（空白の言い換えもサーバーで行う）。だめなら端末から直接探す。
+      // まずサーバーに聞く（空白の言い換えもサーバーで行う）。だめなら端末から OpenPOI で直接探す。
       final curatedShops = ref.read(curatedShopsProvider);
       final curated = builtinShopsNamed(
         name,
@@ -122,29 +118,20 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
         return [for (final shops in results) ...?shops];
       }
 
-      final yahoo = isYahooEnabled
-          ? searchAll(
-              'Yahoo',
-              (query) => ref
-                  .read(yahooLocalClientProvider)
-                  .searchByName(query, near: widget.near),
-            )
-          : Future<List<FoundShop>?>.value();
       final poi = searchAll(
         'OpenPOI',
         (query) => ref
             .read(openPoiClientProvider)
             .searchByName(query, near: widget.near),
       );
-      final yahooShops = await yahoo;
       final poiShops = await poi;
       // アプリに持たせている店（ラーメン二郎の直系店）は、通信できなくても出す。
       final builtin = curated;
-      if (yahooShops == null && poiShops == null && builtin.isEmpty) {
+      if (poiShops == null && builtin.isEmpty) {
         throw StateError('店名の検索がすべて失敗しました');
       }
       final results = nearestFirst(
-        mergeFoundShops(builtin, [...?yahooShops, ...?poiShops]),
+        mergeFoundShops(builtin, poiShops ?? const []),
         widget.near,
       );
       if (!mounted || generation != _generation) return;
@@ -248,7 +235,7 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
                       child: Text(
                         [
                           l10n.openPoiAttribution,
-                          if (isYahooEnabled) l10n.yahooAttribution,
+                          l10n.yahooAttribution,
                         ].join('\n'),
                         style: textTheme.labelSmall,
                         textAlign: TextAlign.right,

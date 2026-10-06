@@ -8,35 +8,28 @@ import 'openpoi_client.dart';
 import 'overpass.dart';
 import 'overpass_client.dart';
 import 'ramen_in_cho_api.dart';
-import 'yahoo_local.dart';
-import 'yahoo_local_client.dart';
 
 final nearbyShopFinderProvider = Provider<NearbyShopFinder>(
   (ref) => NearbyShopFinder(
     overpass: ref.watch(overpassClientProvider),
     openPoi: ref.watch(openPoiClientProvider),
-    // Client ID が無いときは Yahoo! を使わない（「見つからなかった」と「探せなかった」を取り違えないため）。
-    yahoo: isYahooEnabled ? ref.watch(yahooLocalClientProvider) : null,
     api: ref.watch(ramenInChoApiProvider),
     curated: () => ref.read(curatedShopsProvider),
   ),
 );
 
-/// Overpass・Yahoo!・OpenPOI を同時に探し、結果を1つにまとめる。
-/// OpenStreetMap に載っていない個人店を、Yahoo!（ラーメン店の業種で絞れる）と
-/// OpenPOI（食品営業許可のデータを含む）で補う。Yahoo! は Client ID があるときだけ使う。
+/// まずサーバー（手で持つ店・Overpass・OpenPOI・Yahoo! をまとめる）に聞き、届かなければ
+/// 端末から Overpass と OpenPOI を同時に探して1つにまとめる。Yahoo! の Client ID はアプリに持たない。
 class NearbyShopFinder {
   NearbyShopFinder({
     required this._overpass,
     required this._openPoi,
-    this._yahoo,
     this._api,
     List<BuiltinShop> Function()? curated,
   }) : _curated = curated ?? (() => builtinShops);
 
   final OverpassClient _overpass;
   final OpenPoiClient _openPoi;
-  final YahooLocalClient? _yahoo;
 
   /// 麺印帳のサーバー。使えるときはまずサーバーに聞き、だめなら端末から直接探す。
   final RamenInChoApi? _api;
@@ -78,8 +71,7 @@ class NearbyShopFinder {
         debugPrint('Ramen-In-Cho API search failed: $e');
       }
     }
-    final yahoo = _yahoo;
-    final [osm, poi, yahooShops] = await Future.wait([
+    final [osm, poi] = await Future.wait([
       attempt(
         'Overpass',
         () => _overpass.searchNearby(
@@ -96,27 +88,12 @@ class NearbyShopFinder {
           timeout: timeout,
         ),
       ),
-      if (yahoo == null)
-        Future<List<FoundShop>?>.value()
-      else
-        attempt(
-          'Yahoo',
-          () => yahoo.searchNearby(
-            center,
-            radiusMeters: radiusMeters,
-            timeout: timeout,
-          ),
-        ),
     ]);
-    if (osm == null && poi == null && yahooShops == null) {
+    if (osm == null && poi == null) {
       if (builtin.isNotEmpty) return builtin;
       throw StateError('店の検索がすべて失敗しました');
     }
-    // OpenStreetMap の店を優先し（IDがあるため）、次にアプリに持たせている店、Yahoo!、最後に OpenPOI。
-    return mergeFoundShops(osm ?? const [], [
-      ...builtin,
-      ...?yahooShops,
-      ...?poi,
-    ]);
+    // OpenStreetMap の店を優先し（IDがあるため）、次にアプリに持たせている店、最後に OpenPOI。
+    return mergeFoundShops(osm ?? const [], [...builtin, ...?poi]);
   }
 }

@@ -30,7 +30,6 @@ import 'map_camera.dart';
 import 'map_places.dart';
 import 'pin_clusters.dart';
 import 'washi_map.dart';
-import '../shop_search/yahoo_local.dart';
 import 'shop_pins.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
@@ -508,10 +507,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                 child: Padding(
                   padding: const EdgeInsets.all(3),
                   child: Text(
-                    [
-                      l10n.openPoiAttribution,
-                      if (isYahooEnabled) l10n.yahooAttribution,
-                    ].join('\n'),
+                    [l10n.openPoiAttribution, l10n.yahooAttribution].join('\n'),
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                 ),

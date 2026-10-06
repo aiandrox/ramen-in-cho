@@ -143,7 +143,10 @@ void main() {
     expect(find.text(ja.shopSearchAfterPhoto), findsNothing);
     expect(find.text('麺屋テスト'), findsOneWidget);
     expect(find.text('111m'), findsOneWidget);
-    expect(find.text(ja.shopSearchAttribution), findsOneWidget);
+    expect(
+      find.text('${ja.shopSearchAttribution}\n${ja.yahooAttribution}'),
+      findsOneWidget,
+    );
     final saveButton = find.widgetWithText(AiFuda, ja.save);
     expect(tester.widget<AiFuda>(saveButton).onPressed, isNull);
 

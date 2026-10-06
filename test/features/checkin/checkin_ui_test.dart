@@ -65,7 +65,10 @@ void main() {
 
       expect(find.text('56m'), findsOneWidget);
       expect(find.text('222m・${ja.checkinTooFar}'), findsOneWidget);
-      expect(find.text(ja.shopSearchAttribution), findsOneWidget);
+      expect(
+        find.text('${ja.shopSearchAttribution}\n${ja.yahooAttribution}'),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('遠い店'));
       await tester.pumpAndSettle();
