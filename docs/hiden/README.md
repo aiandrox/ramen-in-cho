@@ -29,3 +29,5 @@
 | <img src="far_journey.png" width="72"> | 遥かなる遠征 | いちばん通っている店から100km以上離れた店で食べる | 旅 | 方位 | いつでも | `far_journey` |
 | <img src="new_year_eve.png" width="72"> | 年越しの一杯 | 十二月三十一日に食べる | 年越 | 四隅の点 | いつでも | `new_year_eve` |
 | <img src="summer_cold.png" width="72"> | 夏の涼麺 | 七〜八月につけ麺か汁なしを食べる | 涼 | 波 | いつでも | `summer_cold` |
+| <img src="all_prefectures.png" width="72"> | 全国行脚 | 四十七都道府県すべてで食べる | 行脚 | 47の点の輪 | いつでも | `all_prefectures` |
+| <img src="overseas.png" width="72"> | 麺の道は海を越えて | 海外の店で食べる | 渡 | 地球儀 | いつでも | `overseas` |

@@ -41,6 +41,8 @@ const _shapeNames = {
   QuestSealShape.compass: '方位',
   QuestSealShape.cornerDots: '四隅の点',
   QuestSealShape.wave: '波',
+  QuestSealShape.fortySevenDots: '47の点の輪',
+  QuestSealShape.globe: '地球儀',
 };
 
 String _date(DateTime d) => '${d.year}/${d.month}/${d.day}';

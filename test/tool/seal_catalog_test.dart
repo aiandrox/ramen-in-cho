@@ -51,7 +51,16 @@ const _frames = <SealFrame, (String, String, String, String)>{
     '福岡県',
   ),
   SealFrame.okinawa: ('沖縄', '南国の花（デイゴ。八枚の花びら）', '沖縄県', '沖縄県'),
+  SealFrame.overseas: (
+    '海外',
+    '羅針盤（東西南北に長い針、そのあいだに短い針を出した丸）。隠し要素なので「まだ」の印は無い',
+    '日本の外',
+    _overseas,
+  ),
 };
+
+/// 海外の見本（店はソウル）。
+const _overseas = '海外';
 
 /// 格ごとの見本の修行点（良・秀・妙・極の境の内側）。
 const _grades = [('良', 20), ('秀', 30), ('妙', 45), ('極', 70)];
@@ -80,6 +89,9 @@ String catalogMarkdown() {
       '- 格（良・秀・妙・極。1杯の修行点の高さ）の飾りは外枠の上に重ねる: 良＝細い枠 / 秀＝二重枠と点の輪 / 妙＝三重枠と点線と四隅の菱形 / 極＝朱塗りと金の輪と外側の点',
     )
     ..writeln('- 印の下に短い都道府県名（「東京」「北海道」など）を入れる。都道府県のわからない店は、今までの丸・角の印のまま')
+    ..writeln(
+      '- 海外の店（位置が日本の島々の外。`lib/features/prefecture/overseas.dart`）は羅針盤の外枠にする',
+    )
     ..writeln('- 撤退の印も地方の形で灰色に塗る')
     ..writeln(
       '- 印の描き方を変えたら `flutter test --dart-define=UPDATE_SEAL_CATALOG=true '
@@ -99,13 +111,19 @@ String catalogMarkdown() {
   return buffer.toString();
 }
 
+Shop _shopFor(String sample) => sample == _overseas
+    ? buildShop(latitude: 37.5665, longitude: 126.9780)
+    : buildShop();
+
+String? _prefectureFor(String sample) => sample == _overseas ? null : sample;
+
 ScoredVisit _sample(String prefecture, int points, int index) => ScoredVisit(
   visit: buildVisit(
     id: 'seal-$prefecture-$points',
     style: RamenStyle.values[index % 8],
     eatenAt: DateTime(2026, 10, 6, 12),
   ),
-  shop: buildShop(),
+  shop: _shopFor(prefecture),
   points: PointsBreakdown(
     base: points,
     waitBonus: 0,
@@ -115,7 +133,7 @@ ScoredVisit _sample(String prefecture, int points, int index) => ScoredVisit(
   ),
   isFirstVisit: false,
   isRetrySuccess: false,
-  prefecture: prefecture,
+  prefecture: _prefectureFor(prefecture),
 );
 
 Widget _catalog() {
@@ -170,16 +188,20 @@ Widget _catalog() {
                       result: VisitResult.retreated,
                       eatenAt: DateTime(2026, 10, 6, 12),
                     ),
-                    shop: buildShop(),
+                    shop: _shopFor(sample),
                     points: PointsBreakdown.zero,
                     isFirstVisit: false,
                     isRetrySuccess: false,
-                    prefecture: sample,
+                    prefecture: _prefectureFor(sample),
                   ),
                   size: 96,
                 ),
               ),
-              cell(BlankPrefectureSeal(prefecture: sample, size: 80)),
+              cell(
+                sample == _overseas
+                    ? const SizedBox.shrink()
+                    : BlankPrefectureSeal(prefecture: sample, size: 80),
+              ),
             ],
           ),
       ],
@@ -192,13 +214,15 @@ void main() {
     expect(_frames.keys, unorderedEquals(SealFrame.values));
     for (final MapEntry(key: frame, value: (_, _, prefectures, sample))
         in _frames.entries) {
+      if (frame == SealFrame.overseas) continue;
       for (final name in prefectures.split('・')) {
         expect(sealFrameFor(name), frame, reason: name);
       }
       expect(sealFrameFor(sample), frame);
     }
     expect([
-      for (final (_, _, p, _) in _frames.values) ...p.split('・'),
+      for (final MapEntry(key: frame, value: (_, _, p, _)) in _frames.entries)
+        if (frame != SealFrame.overseas) ...p.split('・'),
     ], unorderedEquals(prefectureNames));
   });
 
@@ -211,7 +235,7 @@ void main() {
 
   testWidgets('地方の印の見本帳が、印の描き方と合っている', (tester) async {
     final readme = File('$_dir/README.md');
-    tester.view.physicalSize = const Size(900, 1220) * 2;
+    tester.view.physicalSize = const Size(900, 1330) * 2;
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     if (_update) {

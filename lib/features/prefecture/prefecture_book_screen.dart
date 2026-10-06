@@ -14,6 +14,14 @@ final prefectureStampsProvider = Provider<Map<String, PrefectureStamp>>(
   (ref) => prefectureStamps(ref.watch(scoredVisitsProvider)),
 );
 
+/// 海外で食べた記録。まだ一度も無ければnull（隠し要素なので、それまでは印帳に場所も出さない）。
+final overseasStampProvider = Provider<PrefectureStamp?>((ref) {
+  final bowls = overseasBowls(ref.watch(scoredVisitsProvider));
+  return bowls.isEmpty
+      ? null
+      : PrefectureStamp(first: bowls.first, bowls: bowls);
+});
+
 String regionLabel(AppLocalizations l10n, Region region) => switch (region) {
   Region.hokkaido => l10n.prefectureBookRegionHokkaido,
   Region.tohoku => l10n.prefectureBookRegionTohoku,
@@ -65,6 +73,7 @@ class PrefectureBookScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final stamps = ref.watch(prefectureStampsProvider);
+    final overseas = ref.watch(overseasStampProvider);
     return Scaffold(
       backgroundColor: Washi.desk,
       appBar: AppBar(
@@ -108,6 +117,20 @@ class PrefectureBookScreen extends ConsumerWidget {
               },
             ),
           ],
+          if (overseas != null) ...[
+            const SizedBox(height: 20),
+            SectionTitle(l10n.prefectureBookOverseas),
+            EvenGrid(
+              minItemWidth: prefectureTileMinWidth,
+              runSpacing: 12,
+              itemCount: 1,
+              itemBuilder: (context, index, _) => _PrefectureTile(
+                prefecture: l10n.prefectureBookOverseas,
+                stamp: overseas,
+                overseas: true,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -115,10 +138,16 @@ class PrefectureBookScreen extends ConsumerWidget {
 }
 
 class _PrefectureTile extends StatelessWidget {
-  const _PrefectureTile({required this.prefecture, required this.stamp});
+  const _PrefectureTile({
+    required this.prefecture,
+    required this.stamp,
+    this.overseas = false,
+  });
 
+  /// 升目の名前（海外の升目では「海外」）。
   final String prefecture;
   final PrefectureStamp? stamp;
+  final bool overseas;
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +195,8 @@ class _PrefectureTile extends StatelessWidget {
     return InkWell(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => PrefectureBowlsScreen(prefecture: prefecture),
+          builder: (_) =>
+              PrefectureBowlsScreen(prefecture: prefecture, overseas: overseas),
         ),
       ),
       child: tile,
@@ -177,16 +207,23 @@ class _PrefectureTile extends StatelessWidget {
 /// 狭い升目でも1行に収める。
 Widget _fit(Widget child) => FittedBox(fit: BoxFit.scaleDown, child: child);
 
-/// その都道府県で食べた1杯の一覧（古い順）。
+/// その都道府県（[overseas]なら海外）で食べた1杯の一覧（古い順）。
 class PrefectureBowlsScreen extends ConsumerWidget {
-  const PrefectureBowlsScreen({super.key, required this.prefecture});
+  const PrefectureBowlsScreen({
+    super.key,
+    required this.prefecture,
+    this.overseas = false,
+  });
 
   final String prefecture;
+  final bool overseas;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final bowls = ref.watch(prefectureStampsProvider)[prefecture]?.bowls ?? [];
+    final bowls = overseas
+        ? ref.watch(overseasStampProvider)?.bowls ?? []
+        : ref.watch(prefectureStampsProvider)[prefecture]?.bowls ?? [];
     return Scaffold(
       appBar: AppBar(title: Text(prefecture)),
       body: ListView(

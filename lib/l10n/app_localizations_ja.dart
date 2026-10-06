@@ -1270,6 +1270,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get inkanNoStyle => '拉麺';
 
   @override
+  String get inkanOverseas => '海外';
+
+  @override
   String get inkanStyleShoyu => '醤油';
 
   @override
@@ -1371,6 +1374,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get prefectureBookRegionOkinawa => '沖縄';
+
+  @override
+  String get prefectureBookOverseas => '海外';
 
   @override
   String prefectureBookFirst(String date) {

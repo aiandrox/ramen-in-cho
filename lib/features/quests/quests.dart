@@ -32,6 +32,8 @@ enum QuestSealShape {
   compass,
   cornerDots,
   wave,
+  fortySevenDots,
+  globe,
 }
 
 /// 秘伝の印の字（なるべく1文字、1文字で表しにくければ2文字）と形。
@@ -321,6 +323,27 @@ const quests = <Quest>[
     thresholds: [1],
     count: _summerColdCount,
     seal: QuestSealDesign('涼', QuestSealShape.wave),
+  ),
+  Quest(
+    id: 'all_prefectures',
+    kind: QuestKind.spot,
+    title: '全国行脚',
+    description: '四十七都道府県すべてで食べる',
+    unit: '都道府県',
+    thresholds: [47],
+    count: _prefectureCount,
+    seal: QuestSealDesign('行脚', QuestSealShape.fortySevenDots),
+  ),
+  // 海外は隠し要素。秘伝はどれも会得するまで一覧に出ないので、この秘伝も会得して初めて姿を見せる。
+  Quest(
+    id: 'overseas',
+    kind: QuestKind.spot,
+    title: '麺の道は海を越えて',
+    description: '海外の店で食べる',
+    unit: '杯',
+    thresholds: [1],
+    count: _overseasCount,
+    seal: QuestSealDesign('渡', QuestSealShape.globe),
   ),
 ];
 
@@ -678,3 +701,12 @@ int _summerColdCount(List<ScoredVisit> scored) => scored
               e.visit.style == RamenStyle.shirunashi),
     )
     .length;
+
+/// 食べたことのある都道府県の数。
+int _prefectureCount(List<ScoredVisit> scored) => {
+  for (final entry in scored)
+    if (_isEaten(entry)) ?entry.prefecture,
+}.length;
+
+int _overseasCount(List<ScoredVisit> scored) =>
+    scored.where((e) => _isEaten(e) && e.isOverseas).length;

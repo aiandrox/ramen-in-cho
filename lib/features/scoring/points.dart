@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import '../home_base/home_base.dart';
+import '../prefecture/overseas.dart';
 import '../records/models.dart';
 import '../records/wait_time.dart';
 import '../streak/streak.dart';
@@ -190,6 +191,9 @@ class ScoredVisit {
 
   /// この1杯がその週の最初の1杯のとき、前の週から途切れずに続いていた週の数。それ以外は0。
   final int streakWeeksBefore;
+
+  /// 海外の店で食べた（または撤退した）記録か。都道府県のわかる店と、位置のわからない店は海外にしない。
+  bool get isOverseas => prefecture == null && isOverseasShop(shop);
 
   /// 拠点から遠い店で食べた1杯か（遠征）。
   bool get isExpedition =>

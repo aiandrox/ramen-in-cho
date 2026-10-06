@@ -464,6 +464,55 @@ class _SpotSealPainter extends CustomPainter {
         }
         canvas.drawPath(wave..close(), line);
         canvas.drawCircle(c, r - w * 3.6, thin);
+      // 47都道府県を表す、47の小さな点の輪。
+      case QuestSealShape.fortySevenDots:
+        canvas.drawCircle(c, r - w * 0.8, line);
+        canvas.drawCircle(c, r - w * 3.4, thin);
+        final dots = Path();
+        const count = 47;
+        for (var i = 0; i < count; i++) {
+          final a = 2 * math.pi * i / count - math.pi / 2;
+          dots.addOval(
+            Rect.fromCircle(
+              center: c + Offset(math.cos(a), math.sin(a)) * (r - w * 2.1),
+              radius: w * 0.34,
+            ),
+          );
+        }
+        canvas.drawPath(dots, fill);
+      // 地球儀（経線と緯線は縁の帯の中だけに引き、真ん中は字のために空ける）。
+      case QuestSealShape.globe:
+        final outer = r - w;
+        final inner = r * 0.64;
+        canvas.drawCircle(c, outer, line);
+        canvas.drawCircle(c, inner, thin);
+        canvas.save();
+        canvas.clipPath(
+          Path.combine(
+            PathOperation.difference,
+            Path()..addOval(Rect.fromCircle(center: c, radius: outer)),
+            Path()..addOval(Rect.fromCircle(center: c, radius: inner)),
+          ),
+        );
+        for (final width in [0.38, 0.74]) {
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: c,
+              width: outer * 2 * width,
+              height: outer * 2,
+            ),
+            thin,
+          );
+        }
+        canvas.drawLine(c - Offset(0, outer), c + Offset(0, outer), thin);
+        for (final y in [-0.5, 0.0, 0.5]) {
+          canvas.drawLine(
+            c + Offset(-outer, y * outer),
+            c + Offset(outer, y * outer),
+            thin,
+          );
+        }
+        canvas.restore();
     }
   }
 

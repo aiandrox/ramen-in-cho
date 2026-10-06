@@ -84,3 +84,9 @@ Map<String, PrefectureStamp> prefectureStamps(List<ScoredVisit> scored) {
       key: PrefectureStamp(first: value.first, bowls: value),
   };
 }
+
+/// 海外で食べた記録（古い順）。撤退は入れない。
+List<ScoredVisit> overseasBowls(List<ScoredVisit> scored) => [
+  for (final entry in scored)
+    if (entry.isOverseas && entry.visit.result == VisitResult.eaten) entry,
+];
