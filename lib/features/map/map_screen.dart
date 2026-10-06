@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -410,9 +412,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           : _LightingPin(
                               animation: _replayController,
                               plan: replayPlan!,
-                              order: replayStops.indexWhere(
-                                (stop) => stop.shop.id == pin.shop.id,
-                              ),
+                              orders: [
+                                for (var i = 0; i < replayStops.length; i++)
+                                  if (replayStops[i].shop.id == pin.shop.id) i,
+                              ],
                               child: _Pin(pin: pin),
                             ),
                     ),
@@ -859,15 +862,15 @@ class _LightingPin extends StatelessWidget {
   const _LightingPin({
     required this.animation,
     required this.plan,
-    required this.order,
+    required this.orders,
     required this.child,
   });
 
   final Animation<double> animation;
   final JourneyReplayPlan plan;
 
-  /// 旅路の何番目に着く店か。
-  final int order;
+  /// 旅路の何番目に着く店か（同じ店に何度も行っていれば、着くたびの番号）。
+  final List<int> orders;
   final Widget child;
 
   @override
@@ -875,16 +878,26 @@ class _LightingPin extends StatelessWidget {
     animation: animation,
     child: child,
     builder: (context, child) {
+      final t = animation.value;
       // 1杯目の店は寄せたときから灯し、ほかは線が着いて止まっている間に刺す。
-      final lit = plan.pinAt(animation.value, order);
+      final lit = plan.pinAt(t, orders.first);
       if (lit == 0) return const SizedBox.shrink();
       final pop = Curves.easeOutBack.transform(lit);
+      // 二度目からは、もう刺さっているピンを跳ねさせて「また来た」を見せる。
+      var hop = 0.0;
+      for (final order in orders.skip(1)) {
+        final again = plan.pinAt(t, order);
+        if (again > 0 && again < 1) hop = math.sin(again * math.pi);
+      }
       return Opacity(
         opacity: lit,
-        child: Transform.scale(
-          scale: 0.6 + 0.4 * pop,
-          alignment: Alignment.bottomCenter,
-          child: child,
+        child: Transform.translate(
+          offset: Offset(0, -10 * hop),
+          child: Transform.scale(
+            scale: (0.6 + 0.4 * pop) * (1 + 0.25 * hop),
+            alignment: Alignment.bottomCenter,
+            child: child,
+          ),
         ),
       );
     },
