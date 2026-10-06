@@ -31,10 +31,11 @@ concurrency:
 
 jobs:
   analyze-and-test:
-    runs-on: ubuntu-latest
+    # ubuntu-latest が 2026-10-19 から Ubuntu 26 に変わっても急に壊れないよう、版を固定する（#285）
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-flutter
 

@@ -27,10 +27,11 @@ concurrency:
 
 jobs:
   android-build:
-    runs-on: ubuntu-latest
+    # ubuntu-latest が 2026-10-19 から Ubuntu 26 に変わっても急に壊れないよう、版を固定する（#285）
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-flutter
 
@@ -45,11 +46,11 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-flutter
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/Library/Caches/CocoaPods
           key: ${{ runner.os }}-cocoapods-${{ hashFiles('pubspec.lock') }}
