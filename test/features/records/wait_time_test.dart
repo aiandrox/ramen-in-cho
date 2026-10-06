@@ -21,7 +21,6 @@ void main() {
       checkedInAt: eatenAt.subtract(const Duration(minutes: 9, seconds: 59)),
       eatenAt: eatenAt,
       isLimited: false,
-      hasTicket: false,
       memo: '',
       createdAt: eatenAt,
     );

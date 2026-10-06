@@ -32,7 +32,6 @@ void main() {
         eatenAt: DateTime(2026, 10, 20, 12),
         rating: 3,
         isLimited: false,
-        hasTicket: false,
         memo: '',
         createdAt: DateTime(2026, 10, 20, 12),
       ),

@@ -108,6 +108,13 @@ const _wishesV8 =
     'fulfilled_visit_id TEXT, '
     "hours_conditions TEXT NOT NULL DEFAULT '', PRIMARY KEY (id))";
 
+const _wishesV12 =
+    'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
+    'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
+    "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
+    "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
+    'fulfilled_visit_id TEXT, link TEXT, PRIMARY KEY (id))';
+
 const _homeBasesV9 =
     'CREATE TABLE home_base_settings (id TEXT NOT NULL, '
     'name TEXT NOT NULL, latitude REAL NOT NULL, '
@@ -126,9 +133,10 @@ const _schemas = <int, List<String>>{
   9: [_shopsV7, _visits, _checkinsV5, _wishesV8, _homeBasesV9],
   10: [_shopsV10, _visits, _checkinsV5, _wishesV8, _homeBasesV9],
   11: [_shopsV11, _visits, _checkinsV5, _wishesV6, _homeBasesV9],
+  12: [_shopsV11, _visits, _checkinsV5, _wishesV12, _homeBasesV9],
 };
 
-/// 表の列の名前。店の条件（hours_conditions）の列が消えたことを確かめる。
+/// 表の列の名前。店の条件（hours_conditions）や整理券（has_ticket）の列が消えたことを確かめる。
 Future<List<String>> _columns(AppDatabase database, String table) async => [
   for (final row
       in await database.customSelect('PRAGMA table_info($table)').get())
@@ -583,6 +591,85 @@ void main() {
     expect(await _columns(database, 'wishes'), contains('link'));
   });
 
+  test('バージョン12の記録から整理券の列を消し、記録・店・願・拠点・並びはそのまま残す', () async {
+    final seconds = DateTime(2026, 10, 6, 12).millisecondsSinceEpoch ~/ 1000;
+    final checkedIn = seconds - 1800;
+    final database = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          for (final statement in _schemas[12]!) {
+            raw.execute(statement);
+          }
+          raw.execute(
+            'INSERT INTO shops VALUES '
+            "('shop', '麺屋', 43.06, 141.35, 'node/1', 1, "
+            "'券売機は現金のみ', NULL, '札幌市中央区', $seconds)",
+          );
+          raw.execute(
+            'INSERT INTO visits VALUES '
+            "('visit', 'shop', 'eaten', 'photos/a.jpg', $checkedIn, "
+            "$seconds, 'miso', 5, 1, 1, 'うまい', $seconds), "
+            "('retreat', 'shop', 'retreated', NULL, NULL, $seconds, "
+            "NULL, NULL, 0, 0, '売り切れ', $seconds)",
+          );
+          raw.execute(
+            'INSERT INTO wishes VALUES '
+            "('done', 'shop', NULL, '麺屋', 43.06, 141.35, NULL, "
+            "'友人', 'また行く', $seconds, 'visit', 'https://example.com/a'), "
+            "('wish', NULL, NULL, '中華そば', NULL, NULL, NULL, "
+            "'テレビ', '', $seconds, NULL, NULL)",
+          );
+          raw.execute(
+            'INSERT INTO home_base_settings VALUES '
+            "('base', '札幌駅', 43.068, 141.350, $seconds)",
+          );
+          raw.execute(
+            'INSERT INTO active_checkins VALUES '
+            "(1, 'shop', 'node/1', '麺屋', 43.06, 141.35, NULL, $checkedIn)",
+          );
+          raw.execute('PRAGMA user_version = 12');
+        },
+      ),
+    );
+    addTearDown(database.close);
+
+    final repository = RecordRepository(database);
+    final data = await repository.exportAll();
+    final visits = {for (final visit in data.visits) visit.id: visit};
+    expect(visits.keys, unorderedEquals(['visit', 'retreat']));
+    final visit = visits['visit']!;
+    expect(visit.shopId, 'shop');
+    expect(visit.result, VisitResult.eaten);
+    expect(visit.photoPath, 'photos/a.jpg');
+    expect(
+      visit.checkedInAt,
+      DateTime.fromMillisecondsSinceEpoch(checkedIn * 1000),
+    );
+    expect(visit.eatenAt, DateTime(2026, 10, 6, 12));
+    expect(visit.style, RamenStyle.miso);
+    expect(visit.rating, 5);
+    expect(visit.isLimited, isTrue);
+    expect(visit.memo, 'うまい');
+    expect(visit.createdAt, DateTime(2026, 10, 6, 12));
+    expect(visits['retreat']!.result, VisitResult.retreated);
+    expect(visits['retreat']!.memo, '売り切れ');
+    expect(await _columns(database, 'visits'), isNot(contains('has_ticket')));
+
+    final shop = data.shops.single;
+    expect(shop.strategyMemo, '券売機は現金のみ');
+    expect(shop.isFamous, isTrue);
+    expect(shop.area, '札幌市中央区');
+    final wishes = {for (final wish in data.wishes) wish.id: wish};
+    expect(wishes.keys, unorderedEquals(['done', 'wish']));
+    expect(wishes['done']!.fulfilledVisitId, 'visit');
+    expect(wishes['done']!.link, 'https://example.com/a');
+    expect(wishes['wish']!.trigger, 'テレビ');
+    expect(data.homeBases.single.name, '札幌駅');
+    final checkin = await repository.activeCheckin();
+    expect(checkin!.shopId, 'shop');
+    expect(checkin.name, '麺屋');
+  });
+
   test('これまでのすべての版に、移行のテストがある', () {
     final database = AppDatabase(NativeDatabase.memory());
     addTearDown(database.close);
@@ -657,7 +744,6 @@ void main() {
         expect(visit.style, RamenStyle.shoyu);
         expect(visit.rating, 4);
         expect(visit.isLimited, isTrue);
-        expect(visit.hasTicket, isTrue);
         expect(visit.memo, '醤油が澄んでいた');
         expect(visit.createdAt, _createdAt);
         final retreat = visits['retreat']!;
@@ -665,6 +751,10 @@ void main() {
         expect(retreat.result, VisitResult.retreated);
         expect(retreat.photoPath, isNull);
         expect(retreat.rating, isNull);
+        expect(
+          await _columns(database, 'visits'),
+          isNot(contains('has_ticket')),
+        );
 
         final shops = {for (final shop in data.shops) shop.id: shop};
         expect(shops.keys, unorderedEquals(['shop', 'manual']));

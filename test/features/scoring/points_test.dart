@@ -9,7 +9,6 @@ import '../../support/builders.dart';
 PointsBreakdown _points({
   int? waitMinutes,
   bool isLimited = false,
-  bool hasTicket = false,
   bool isFirstVisit = false,
   bool isRetrySuccess = false,
   bool isFamous = false,
@@ -19,7 +18,6 @@ PointsBreakdown _points({
     result: result,
     waitMinutes: waitMinutes,
     isLimited: isLimited,
-    hasTicket: hasTicket,
   ),
   isFirstVisit: isFirstVisit,
   isRetrySuccess: isRetrySuccess,
@@ -53,9 +51,8 @@ void main() {
       expect(_points(waitMinutes: -30).waitBonus, 0);
     });
 
-    test('限定+20、初訪問+5、再挑戦成功+15、名店+15。整理券は点にしない', () {
+    test('限定+20、初訪問+5、再挑戦成功+15、名店+15', () {
       expect(_points(isLimited: true).total, 30);
-      expect(_points(hasTicket: true).total, 10);
       expect(_points(isFirstVisit: true).total, 15);
       expect(_points(isRetrySuccess: true).total, 25);
       expect(_points(isFamous: true).famousBonus, 15);

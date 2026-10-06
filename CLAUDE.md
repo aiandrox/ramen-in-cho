@@ -145,7 +145,6 @@ Visit（1杯の記録。撤退も含む）
   style         系統: shoyu / miso / shio / tonkotsu / iekei / jiro / tsukemen / shirunashi（汁なし＝油そば・まぜそば）/ other / null
   rating        1〜5（撤退は null）
   isLimited     限定メニューか
-  hasTicket     使っていない（整理券をやめたあとも、過去の値を残している）
   memo          この一杯について（1杯ごとの感想。任意）
   createdAt
 

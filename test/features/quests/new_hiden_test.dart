@@ -196,7 +196,6 @@ void main() {
         eatenAt: DateTime(2026, 2, 1 + i),
         rating: 5,
         isLimited: false,
-        hasTicket: false,
         memo: '',
         createdAt: DateTime(2026, 2, 1 + i),
       ),

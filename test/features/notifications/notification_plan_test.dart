@@ -22,7 +22,6 @@ VisitWithShop _visit(
     eatenAt: eatenAt,
     rating: rating,
     isLimited: false,
-    hasTicket: false,
     memo: '',
     createdAt: createdAt ?? eatenAt,
   ),

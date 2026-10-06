@@ -53,7 +53,6 @@ void main() {
         rating: null,
         style: null,
         isLimited: false,
-        hasTicket: false,
         memo: '',
         changesPhoto: edit.isChanged,
         photoPath: photoPath ?? edit.current,

@@ -38,7 +38,6 @@ void main() {
       photoPath: 'photos/a.jpg',
       style: RamenStyle.shoyu,
       isLimited: true,
-      hasTicket: true,
       memo: 'うまい',
       now: DateTime(2026, 9, 30, 12, 5),
     );
@@ -56,7 +55,6 @@ void main() {
     expect(entry.visit.style, RamenStyle.shoyu);
     expect(entry.visit.rating, 5);
     expect(entry.visit.isLimited, isTrue);
-    expect(entry.visit.hasTicket, isTrue);
     expect(entry.visit.memo, 'うまい');
   });
 
@@ -444,7 +442,6 @@ void main() {
       rating: rating,
       style: visit.style,
       isLimited: visit.isLimited,
-      hasTicket: visit.hasTicket,
       memo: memo,
       shopMemo: shopMemo,
       now: DateTime(2026, 10, 1),
@@ -481,7 +478,6 @@ void main() {
           rating: visit.rating,
           style: visit.style,
           isLimited: visit.isLimited,
-          hasTicket: visit.hasTicket,
           memo: visit.memo,
           changesPhoto: true,
           photoPath: photoPath,
@@ -538,7 +534,6 @@ void main() {
         rating: 2,
         style: RamenStyle.miso,
         isLimited: true,
-        hasTicket: true,
         memo: '書き直した',
         now: DateTime(2026, 10, 1),
       );
@@ -550,7 +545,6 @@ void main() {
       expect(entry.visit.rating, 2);
       expect(entry.visit.style, RamenStyle.miso);
       expect(entry.visit.isLimited, isTrue);
-      expect(entry.visit.hasTicket, isTrue);
       expect(entry.visit.memo, '書き直した');
     });
 
@@ -794,7 +788,6 @@ void main() {
           rating: visit.rating,
           style: visit.style,
           isLimited: visit.isLimited,
-          hasTicket: visit.hasTicket,
           memo: visit.memo,
           pickedShop: picked,
           now: DateTime(2026, 10, 5),

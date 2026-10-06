@@ -65,7 +65,6 @@ class Visit {
     this.style,
     this.rating,
     required this.isLimited,
-    required this.hasTicket,
     required this.memo,
     required this.createdAt,
   });
@@ -82,8 +81,6 @@ class Visit {
   final int? rating;
   final bool isLimited;
 
-  /// 整理券制か。今は入力も採点もしないが、過去の記録の値は残している。
-  final bool hasTicket;
   final String memo;
   final DateTime createdAt;
 }

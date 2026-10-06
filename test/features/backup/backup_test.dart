@@ -45,7 +45,6 @@ void main() {
         style: RamenStyle.iekei,
         rating: 4,
         isLimited: true,
-        hasTicket: false,
         memo: 'うまい',
         createdAt: DateTime(2026, 9, 1, 12, 5),
       );
@@ -505,7 +504,6 @@ void main() {
       expect(visit.style, RamenStyle.shoyu);
       expect(visit.rating, 4);
       expect(visit.isLimited, isTrue);
-      expect(visit.hasTicket, isTrue);
       expect(visit.memo, '醤油が澄んでいた');
       expect(visits['retreat']!.result, VisitResult.retreated);
       expect(visits['retreat']!.memo, '売り切れ');
@@ -582,7 +580,6 @@ void main() {
             style: RamenStyle.iekei,
             rating: 4,
             isLimited: true,
-            hasTicket: true,
             memo: 'うまい',
             createdAt: DateTime(2026, 9, 1, 12, 5),
           ),
@@ -592,7 +589,6 @@ void main() {
             result: VisitResult.retreated,
             eatenAt: DateTime(2026, 9, 2, 12),
             isLimited: false,
-            hasTicket: false,
             memo: '売り切れ',
             createdAt: DateTime(2026, 9, 2, 12),
           ),
