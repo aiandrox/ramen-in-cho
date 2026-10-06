@@ -89,6 +89,48 @@ void main() {
     });
   });
 
+  group('動画やページの題', () {
+    test('Android の YouTube の件名から題を取り出す', () {
+      expect(
+        parseSharedWish(
+          'https://youtu.be/abc',
+          subject: '"【新宿】行列の絶えない一杯" を YouTube で見る',
+        )!.title,
+        '【新宿】行列の絶えない一杯',
+      );
+      expect(
+        parseSharedWish(
+          'https://youtu.be/abc',
+          subject: 'Watch "Sapporo miso ramen tour" on YouTube',
+        )!.title,
+        'Sapporo miso ramen tour',
+      );
+    });
+
+    test('URLに添えられた行の「 - YouTube」を外す', () {
+      expect(
+        parseSharedWish(
+          '横浜の家系を食べ歩く - YouTube\nhttps://www.youtube.com/watch?v=abc',
+        )!.title,
+        '横浜の家系を食べ歩く',
+      );
+    });
+
+    test('題が無ければnull。地図の共有では題にしない', () {
+      expect(parseSharedWish('https://youtu.be/abc')!.title, isNull);
+      expect(
+        parseSharedWish('麺屋さくら\nhttps://maps.app.goo.gl/AbC')!.title,
+        isNull,
+      );
+    });
+
+    test('長すぎる題は切り詰める', () {
+      final title = sharedTitleOf('あ' * 150)!;
+      expect(title.length, 101);
+      expect(title.endsWith('…'), isTrue);
+    });
+  });
+
   test('ほかのサイトはホストを残し、店名は空', () {
     final wish = parseSharedWish(
       '新宿で食べたい一杯10選 https://example.com/ramen/shinjuku。',
@@ -97,6 +139,7 @@ void main() {
     expect(wish.name, '');
     expect(wish.link, 'https://example.com/ramen/shinjuku');
     expect(wish.host, 'example.com');
+    expect(wish.title, '新宿で食べたい一杯10選');
   });
 
   test('リンクの無い文は、1行目を店名にする', () {

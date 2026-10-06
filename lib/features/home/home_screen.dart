@@ -139,8 +139,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       trigger: switch (shared.source) {
         SharedSource.googleMaps => l10n.wishTriggerGoogleMaps,
         SharedSource.appleMaps => l10n.wishTriggerAppleMaps,
-        SharedSource.youtube => l10n.wishTriggerYouTube,
-        SharedSource.web => shared.host ?? '',
+        SharedSource.youtube => shared.title ?? l10n.wishTriggerYouTube,
+        SharedSource.web => shared.title ?? shared.host ?? '',
         SharedSource.text => '',
       },
       link: shared.link,
