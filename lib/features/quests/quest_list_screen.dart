@@ -138,19 +138,19 @@ class _QuestCard extends StatelessWidget {
   }
 }
 
-/// 秘伝の印を、横幅いっぱいに同じ幅でそろえて並べる（右に余白を残さない）。
+/// 秘伝の印を、1行に4つずつ横幅いっぱいにそろえて並べる。
 class _SpotGrid extends StatelessWidget {
   const _SpotGrid({required this.achieved});
 
   final List<QuestProgress> achieved;
 
-  static const _minWidth = 96.0;
+  static const _columns = 4;
   static const _spacing = 8.0;
 
   @override
   Widget build(BuildContext context) {
     return EvenGrid(
-      minItemWidth: _minWidth,
+      columns: _columns,
       spacing: _spacing,
       runSpacing: _spacing,
       itemCount: achieved.length,
