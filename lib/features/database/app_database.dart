@@ -34,8 +34,6 @@ class Shops extends Table {
   RealColumn get latitude => real().nullable()();
   RealColumn get longitude => real().nullable()();
   TextColumn get osmId => text().nullable()();
-  // 店の条件（攻略しにくさ）。2026-10-06 に使うのをやめた。保存済みの値は消さずに残す。
-  TextColumn get hoursConditions => text().withDefault(const Constant(''))();
   BoolColumn get isFamous => boolean().withDefault(const Constant(false))();
   TextColumn get strategyMemo => text().withDefault(const Constant(''))();
   TextColumn get dataSource =>
@@ -80,8 +78,6 @@ class Wishes extends Table {
   TextColumn get note => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
   TextColumn get fulfilledVisitId => text().nullable()();
-  // 店の条件。2026-10-06 に使うのをやめた。保存済みの値は消さずに残す。
-  TextColumn get hoursConditions => text().withDefault(const Constant(''))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -125,7 +121,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'ramen_in_cho'));
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -135,19 +131,12 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(activeCheckins, activeCheckins.dataSource);
       }
       if (from < 3) {
-        // 営業時間の種類（1つだけ選ぶ）を、条件（いくつでも選べる）に置き換える。
+        // 営業時間の種類の列（hours_type）は、店の条件とともにやめたので持ち越さない。
         await migrator.alterTable(
           TableMigration(
             shops,
-            columnTransformer: {
-              shops.hoursConditions: const CustomExpression<String>(
-                "CASE hours_type WHEN 'lunchOnly' THEN 'lunchOnly' "
-                "WHEN 'fewDays' THEN 'fewDays' ELSE '' END",
-              ),
-            },
             // 作り直した表には、バージョン4・5・7・10で足した列もすでに入る。
             newColumns: [
-              shops.hoursConditions,
               shops.strategyMemo,
               shops.dataSource,
               shops.area,
@@ -162,12 +151,16 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 6) await migrator.createTable(wishes);
       if (from >= 3 && from < 7) await migrator.addColumn(shops, shops.area);
-      if (from >= 6 && from < 8) {
-        await migrator.addColumn(wishes, wishes.hoursConditions);
-      }
       if (from < 9) await migrator.createTable(homeBaseSettings);
       if (from >= 3 && from < 10) {
         await migrator.addColumn(shops, shops.isFamous);
+      }
+      // 店の条件（hours_conditions）の列を消す。表を作り直し、ほかの列の値はそのまま移す。
+      if (from >= 3 && from < 11) {
+        await migrator.alterTable(TableMigration(shops));
+      }
+      if (from >= 8 && from < 11) {
+        await migrator.alterTable(TableMigration(wishes));
       }
     },
     beforeOpen: (details) async {

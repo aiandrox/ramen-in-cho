@@ -57,18 +57,6 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _hoursConditionsMeta = const VerificationMeta(
-    'hoursConditions',
-  );
-  @override
-  late final GeneratedColumn<String> hoursConditions = GeneratedColumn<String>(
-    'hours_conditions',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
   static const VerificationMeta _isFamousMeta = const VerificationMeta(
     'isFamous',
   );
@@ -132,7 +120,6 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
     latitude,
     longitude,
     osmId,
-    hoursConditions,
     isFamous,
     strategyMemo,
     dataSource,
@@ -180,15 +167,6 @@ class $ShopsTable extends Shops with TableInfo<$ShopsTable, Shop> {
       context.handle(
         _osmIdMeta,
         osmId.isAcceptableOrUnknown(data['osm_id']!, _osmIdMeta),
-      );
-    }
-    if (data.containsKey('hours_conditions')) {
-      context.handle(
-        _hoursConditionsMeta,
-        hoursConditions.isAcceptableOrUnknown(
-          data['hours_conditions']!,
-          _hoursConditionsMeta,
-        ),
       );
     }
     if (data.containsKey('is_famous')) {
@@ -291,7 +269,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
   final Value<double?> latitude;
   final Value<double?> longitude;
   final Value<String?> osmId;
-  final Value<String> hoursConditions;
   final Value<bool> isFamous;
   final Value<String> strategyMemo;
   final Value<ShopSource?> dataSource;
@@ -304,7 +281,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
     this.osmId = const Value.absent(),
-    this.hoursConditions = const Value.absent(),
     this.isFamous = const Value.absent(),
     this.strategyMemo = const Value.absent(),
     this.dataSource = const Value.absent(),
@@ -318,7 +294,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
     this.osmId = const Value.absent(),
-    this.hoursConditions = const Value.absent(),
     this.isFamous = const Value.absent(),
     this.strategyMemo = const Value.absent(),
     this.dataSource = const Value.absent(),
@@ -334,7 +309,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     Expression<double>? latitude,
     Expression<double>? longitude,
     Expression<String>? osmId,
-    Expression<String>? hoursConditions,
     Expression<bool>? isFamous,
     Expression<String>? strategyMemo,
     Expression<String>? dataSource,
@@ -348,7 +322,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
       if (osmId != null) 'osm_id': osmId,
-      if (hoursConditions != null) 'hours_conditions': hoursConditions,
       if (isFamous != null) 'is_famous': isFamous,
       if (strategyMemo != null) 'strategy_memo': strategyMemo,
       if (dataSource != null) 'data_source': dataSource,
@@ -364,7 +337,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     Value<double?>? latitude,
     Value<double?>? longitude,
     Value<String?>? osmId,
-    Value<String>? hoursConditions,
     Value<bool>? isFamous,
     Value<String>? strategyMemo,
     Value<ShopSource?>? dataSource,
@@ -378,7 +350,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       osmId: osmId ?? this.osmId,
-      hoursConditions: hoursConditions ?? this.hoursConditions,
       isFamous: isFamous ?? this.isFamous,
       strategyMemo: strategyMemo ?? this.strategyMemo,
       dataSource: dataSource ?? this.dataSource,
@@ -405,9 +376,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
     }
     if (osmId.present) {
       map['osm_id'] = Variable<String>(osmId.value);
-    }
-    if (hoursConditions.present) {
-      map['hours_conditions'] = Variable<String>(hoursConditions.value);
     }
     if (isFamous.present) {
       map['is_famous'] = Variable<bool>(isFamous.value);
@@ -440,7 +408,6 @@ class ShopsCompanion extends UpdateCompanion<Shop> {
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('osmId: $osmId, ')
-          ..write('hoursConditions: $hoursConditions, ')
           ..write('isFamous: $isFamous, ')
           ..write('strategyMemo: $strategyMemo, ')
           ..write('dataSource: $dataSource, ')
@@ -1566,18 +1533,6 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _hoursConditionsMeta = const VerificationMeta(
-    'hoursConditions',
-  );
-  @override
-  late final GeneratedColumn<String> hoursConditions = GeneratedColumn<String>(
-    'hours_conditions',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1591,7 +1546,6 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
     note,
     createdAt,
     fulfilledVisitId,
-    hoursConditions,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1668,15 +1622,6 @@ class $WishesTable extends Wishes with TableInfo<$WishesTable, Wish> {
         fulfilledVisitId.isAcceptableOrUnknown(
           data['fulfilled_visit_id']!,
           _fulfilledVisitIdMeta,
-        ),
-      );
-    }
-    if (data.containsKey('hours_conditions')) {
-      context.handle(
-        _hoursConditionsMeta,
-        hoursConditions.isAcceptableOrUnknown(
-          data['hours_conditions']!,
-          _hoursConditionsMeta,
         ),
       );
     }
@@ -1761,7 +1706,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
   final Value<String> note;
   final Value<DateTime> createdAt;
   final Value<String?> fulfilledVisitId;
-  final Value<String> hoursConditions;
   final Value<int> rowid;
   const WishesCompanion({
     this.id = const Value.absent(),
@@ -1775,7 +1719,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.fulfilledVisitId = const Value.absent(),
-    this.hoursConditions = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   WishesCompanion.insert({
@@ -1790,7 +1733,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     this.note = const Value.absent(),
     required DateTime createdAt,
     this.fulfilledVisitId = const Value.absent(),
-    this.hoursConditions = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -1807,7 +1749,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     Expression<String>? note,
     Expression<DateTime>? createdAt,
     Expression<String>? fulfilledVisitId,
-    Expression<String>? hoursConditions,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1822,7 +1763,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
       if (fulfilledVisitId != null) 'fulfilled_visit_id': fulfilledVisitId,
-      if (hoursConditions != null) 'hours_conditions': hoursConditions,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1839,7 +1779,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     Value<String>? note,
     Value<DateTime>? createdAt,
     Value<String?>? fulfilledVisitId,
-    Value<String>? hoursConditions,
     Value<int>? rowid,
   }) {
     return WishesCompanion(
@@ -1854,7 +1793,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       fulfilledVisitId: fulfilledVisitId ?? this.fulfilledVisitId,
-      hoursConditions: hoursConditions ?? this.hoursConditions,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1897,9 +1835,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
     if (fulfilledVisitId.present) {
       map['fulfilled_visit_id'] = Variable<String>(fulfilledVisitId.value);
     }
-    if (hoursConditions.present) {
-      map['hours_conditions'] = Variable<String>(hoursConditions.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1920,7 +1855,6 @@ class WishesCompanion extends UpdateCompanion<Wish> {
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('fulfilledVisitId: $fulfilledVisitId, ')
-          ..write('hoursConditions: $hoursConditions, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2201,7 +2135,6 @@ typedef $$ShopsTableCreateCompanionBuilder = ShopsCompanion Function({
   Value<double?> latitude,
   Value<double?> longitude,
   Value<String?> osmId,
-  Value<String> hoursConditions,
   Value<bool> isFamous,
   Value<String> strategyMemo,
   Value<ShopSource?> dataSource,
@@ -2215,7 +2148,6 @@ typedef $$ShopsTableUpdateCompanionBuilder = ShopsCompanion Function({
   Value<double?> latitude,
   Value<double?> longitude,
   Value<String?> osmId,
-  Value<String> hoursConditions,
   Value<bool> isFamous,
   Value<String> strategyMemo,
   Value<ShopSource?> dataSource,
@@ -2278,11 +2210,6 @@ class $$ShopsTableFilterComposer extends Composer<_$AppDatabase, $ShopsTable> {
 
   ColumnFilters<String> get osmId => $composableBuilder(
     column: $table.osmId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get hoursConditions => $composableBuilder(
-    column: $table.hoursConditions,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2372,11 +2299,6 @@ class $$ShopsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get hoursConditions => $composableBuilder(
-    column: $table.hoursConditions,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<bool> get isFamous => $composableBuilder(
     column: $table.isFamous,
     builder: (column) => ColumnOrderings(column),
@@ -2426,11 +2348,6 @@ class $$ShopsTableAnnotationComposer
 
   GeneratedColumn<String> get osmId =>
       $composableBuilder(column: $table.osmId, builder: (column) => column);
-
-  GeneratedColumn<String> get hoursConditions => $composableBuilder(
-    column: $table.hoursConditions,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<bool> get isFamous =>
       $composableBuilder(column: $table.isFamous, builder: (column) => column);
@@ -2511,7 +2428,6 @@ class $$ShopsTableTableManager
                 Value<double?> latitude = const Value.absent(),
                 Value<double?> longitude = const Value.absent(),
                 Value<String?> osmId = const Value.absent(),
-                Value<String> hoursConditions = const Value.absent(),
                 Value<bool> isFamous = const Value.absent(),
                 Value<String> strategyMemo = const Value.absent(),
                 Value<ShopSource?> dataSource = const Value.absent(),
@@ -2524,7 +2440,6 @@ class $$ShopsTableTableManager
                 latitude: latitude,
                 longitude: longitude,
                 osmId: osmId,
-                hoursConditions: hoursConditions,
                 isFamous: isFamous,
                 strategyMemo: strategyMemo,
                 dataSource: dataSource,
@@ -2539,7 +2454,6 @@ class $$ShopsTableTableManager
                 Value<double?> latitude = const Value.absent(),
                 Value<double?> longitude = const Value.absent(),
                 Value<String?> osmId = const Value.absent(),
-                Value<String> hoursConditions = const Value.absent(),
                 Value<bool> isFamous = const Value.absent(),
                 Value<String> strategyMemo = const Value.absent(),
                 Value<ShopSource?> dataSource = const Value.absent(),
@@ -2552,7 +2466,6 @@ class $$ShopsTableTableManager
                 latitude: latitude,
                 longitude: longitude,
                 osmId: osmId,
-                hoursConditions: hoursConditions,
                 isFamous: isFamous,
                 strategyMemo: strategyMemo,
                 dataSource: dataSource,
@@ -3340,7 +3253,6 @@ typedef $$WishesTableCreateCompanionBuilder = WishesCompanion Function({
   Value<String> note,
   required DateTime createdAt,
   Value<String?> fulfilledVisitId,
-  Value<String> hoursConditions,
   Value<int> rowid,
 });
 typedef $$WishesTableUpdateCompanionBuilder = WishesCompanion Function({
@@ -3355,7 +3267,6 @@ typedef $$WishesTableUpdateCompanionBuilder = WishesCompanion Function({
   Value<String> note,
   Value<DateTime> createdAt,
   Value<String?> fulfilledVisitId,
-  Value<String> hoursConditions,
   Value<int> rowid,
 });
 
@@ -3423,11 +3334,6 @@ class $$WishesTableFilterComposer
     column: $table.fulfilledVisitId,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnFilters<String> get hoursConditions => $composableBuilder(
-    column: $table.hoursConditions,
-    builder: (column) => ColumnFilters(column),
-  );
 }
 
 class $$WishesTableOrderingComposer
@@ -3493,11 +3399,6 @@ class $$WishesTableOrderingComposer
     column: $table.fulfilledVisitId,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<String> get hoursConditions => $composableBuilder(
-    column: $table.hoursConditions,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$WishesTableAnnotationComposer
@@ -3546,11 +3447,6 @@ class $$WishesTableAnnotationComposer
     column: $table.fulfilledVisitId,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get hoursConditions => $composableBuilder(
-    column: $table.hoursConditions,
-    builder: (column) => column,
-  );
 }
 
 class $$WishesTableTableManager
@@ -3592,7 +3488,6 @@ class $$WishesTableTableManager
                 Value<String> note = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String?> fulfilledVisitId = const Value.absent(),
-                Value<String> hoursConditions = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WishesCompanion(
                 id: id,
@@ -3606,7 +3501,6 @@ class $$WishesTableTableManager
                 note: note,
                 createdAt: createdAt,
                 fulfilledVisitId: fulfilledVisitId,
-                hoursConditions: hoursConditions,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3622,7 +3516,6 @@ class $$WishesTableTableManager
                 Value<String> note = const Value.absent(),
                 required DateTime createdAt,
                 Value<String?> fulfilledVisitId = const Value.absent(),
-                Value<String> hoursConditions = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WishesCompanion.insert(
                 id: id,
@@ -3636,7 +3529,6 @@ class $$WishesTableTableManager
                 note: note,
                 createdAt: createdAt,
                 fulfilledVisitId: fulfilledVisitId,
-                hoursConditions: hoursConditions,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

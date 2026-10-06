@@ -38,17 +38,12 @@ CREATE TABLE visits (
 )''',
 ];
 
-/// 今は使っていない店の条件の列に、保存したままの値。
-Future<Map<String, String>> _storedConditions(
-  AppDatabase database,
-  String table,
-) async => {
+/// 表の列の名前。店の条件（hours_conditions）の列が消えたことを確かめる。
+Future<List<String>> _columns(AppDatabase database, String table) async => [
   for (final row
-      in await database
-          .customSelect('SELECT id, hours_conditions FROM $table')
-          .get())
-    row.read<String>('id'): row.read<String>('hours_conditions'),
-};
+      in await database.customSelect('PRAGMA table_info($table)').get())
+    row.read<String>('name'),
+];
 
 void main() {
   test('バージョン1のデータを残したまま、チェックインのテーブルを追加する', () async {
@@ -77,8 +72,11 @@ void main() {
 
     final entry = (await repository.watchVisits().first).single;
     expect(entry.shop.name, '麺屋');
-    // 以前の「週3日以下」は、条件「週3日以下」として表に残す（今は使っていない）。
-    expect(await _storedConditions(database, 'shops'), {'shop': 'fewDays'});
+    // 以前の営業時間の種類は持ち越さない。
+    expect(
+      await _columns(database, 'shops'),
+      isNot(contains('hours_conditions')),
+    );
     expect(entry.visit.photoPath, 'photos/a.jpg');
     expect(entry.visit.eatenAt, eatenAt);
     expect(entry.visit.style, RamenStyle.shoyu);
@@ -93,7 +91,7 @@ void main() {
     expect((await repository.activeCheckin())!.name, '麺屋');
   });
 
-  test('バージョン2の「昼のみ」「通常」の店を、営業の条件として表に残す', () async {
+  test('バージョン2の店は、営業時間の種類を持ち越さずにそのまま残す', () async {
     final seconds = DateTime(2026, 9, 30).millisecondsSinceEpoch ~/ 1000;
     final database = AppDatabase(
       NativeDatabase.memory(
@@ -120,10 +118,10 @@ void main() {
     final shops = await RecordRepository(database).allShops();
 
     expect(shops.map((s) => s.name), unorderedEquals(['昼の店', '普通の店']));
-    expect(await _storedConditions(database, 'shops'), {
-      'lunch': 'lunchOnly',
-      'normal': '',
-    });
+    expect(
+      await _columns(database, 'shops'),
+      isNot(contains('hours_conditions')),
+    );
   });
 
   test('バージョン3の店に、攻略メモの列を足す', () async {
@@ -156,9 +154,10 @@ void main() {
 
     final shop = (await repository.allShops()).single;
     expect(shop.strategyMemo, '');
-    expect(await _storedConditions(database, 'shops'), {
-      'shop': 'weekdaysOnly',
-    });
+    expect(
+      await _columns(database, 'shops'),
+      isNot(contains('hours_conditions')),
+    );
 
     await repository.setShopMemo('shop', '平日の昼だけ');
     expect((await repository.allShops()).single.strategyMemo, '平日の昼だけ');
@@ -290,7 +289,7 @@ void main() {
     expect((await repository.allShops()).single.area, '新宿区');
   });
 
-  test('バージョン7の願に店の条件の列を足し、願はそのまま残す', () async {
+  test('バージョン7の願はそのまま残す', () async {
     final seconds = DateTime(2026, 10, 3).millisecondsSinceEpoch ~/ 1000;
     final database = AppDatabase(
       NativeDatabase.memory(
@@ -330,7 +329,10 @@ void main() {
 
     final wish = (await wishes.watchWishes().first).single;
     expect(wish.trigger, '同僚に聞いた');
-    expect(await _storedConditions(database, 'wishes'), {'wish': ''});
+    expect(
+      await _columns(database, 'wishes'),
+      isNot(contains('hours_conditions')),
+    );
   });
 
   test('バージョン8に拠点の表を足し、記録と願はそのまま残す', () async {
@@ -491,17 +493,97 @@ void main() {
       '横浜駅',
     );
     expect((await repository.activeCheckin())!.name, '麺屋');
-    // 使わなくなった店の条件も、表には残っている。
-    expect(await _storedConditions(database, 'shops'), {
-      'shop': 'lunchOnly,irregular',
-      'other': '',
-    });
-    expect(await _storedConditions(database, 'wishes'), {'wish': 'nightOnly'});
+    // 店の条件の列は消え、ほかの値はそのまま残る。
+    expect(
+      await _columns(database, 'shops'),
+      isNot(contains('hours_conditions')),
+    );
+    expect(
+      await _columns(database, 'wishes'),
+      isNot(contains('hours_conditions')),
+    );
 
     await repository.setShopFamous('shop', true);
     expect(
       (await repository.allShops()).singleWhere((s) => s.id == 'shop').isFamous,
       isTrue,
+    );
+  });
+
+  test('バージョン10の店と願から店の条件の列を消し、名店の印・記録・願はそのまま残す', () async {
+    final seconds = DateTime(2026, 10, 6, 12).millisecondsSinceEpoch ~/ 1000;
+    final database = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw.execute(
+            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+            'latitude REAL, longitude REAL, osm_id TEXT, '
+            "hours_conditions TEXT NOT NULL DEFAULT '', "
+            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
+            'area TEXT, created_at INTEGER NOT NULL, '
+            'is_famous INTEGER NOT NULL DEFAULT 0 CHECK (is_famous IN (0, 1)), '
+            'PRIMARY KEY (id))',
+          );
+          raw.execute(_v1Schema[1]);
+          raw.execute(
+            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
+            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
+            'longitude REAL, data_source TEXT, '
+            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
+          );
+          raw.execute(
+            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
+            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
+            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
+            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
+            'fulfilled_visit_id TEXT, '
+            "hours_conditions TEXT NOT NULL DEFAULT '', PRIMARY KEY (id))",
+          );
+          raw.execute(
+            'CREATE TABLE home_base_settings (id TEXT NOT NULL, '
+            'name TEXT NOT NULL, latitude REAL NOT NULL, '
+            'longitude REAL NOT NULL, set_at INTEGER NOT NULL, '
+            'PRIMARY KEY (id))',
+          );
+          raw.execute(
+            'INSERT INTO shops VALUES '
+            "('shop', '麺屋', 35.0, 139.0, 'node/1', 'lunchOnly', "
+            "'券売機は現金のみ', NULL, '新宿区', $seconds, 1)",
+          );
+          raw.execute(
+            "INSERT INTO visits VALUES ('visit', 'shop', 'eaten', "
+            "'photos/a.jpg', NULL, $seconds, 'miso', 5, 0, 0, 'うまい', "
+            '$seconds)',
+          );
+          raw.execute(
+            'INSERT INTO wishes VALUES '
+            "('wish', 'shop', NULL, '麺屋', 35.0, 139.0, NULL, "
+            "'友人', 'また行く', $seconds, 'visit', 'nightOnly')",
+          );
+          raw.execute('PRAGMA user_version = 10');
+        },
+      ),
+    );
+    addTearDown(database.close);
+    final repository = RecordRepository(database);
+
+    final entry = (await repository.watchVisits().first).single;
+    expect(entry.visit.photoPath, 'photos/a.jpg');
+    expect(entry.visit.memo, 'うまい');
+    expect(entry.visit.rating, 5);
+    expect(entry.shop.strategyMemo, '券売機は現金のみ');
+    expect(entry.shop.area, '新宿区');
+    expect(entry.shop.isFamous, isTrue);
+    final wish = (await WishRepository(database).watchWishes().first).single;
+    expect(wish.fulfilledVisitId, 'visit');
+    expect(wish.trigger, '友人');
+    expect(
+      await _columns(database, 'shops'),
+      isNot(contains('hours_conditions')),
+    );
+    expect(
+      await _columns(database, 'wishes'),
+      isNot(contains('hours_conditions')),
     );
   });
 }
