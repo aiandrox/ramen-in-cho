@@ -35,7 +35,9 @@ class SourceCredit extends StatelessWidget {
 
     Future<void> openYahoo() async {
       try {
-        await launchUrl(_yahooUri, mode: LaunchMode.externalApplication);
+        if (!await launchUrl(_yahooUri, mode: LaunchMode.externalApplication)) {
+          debugPrint('Open Yahoo! credit failed');
+        }
       } on PlatformException catch (e) {
         debugPrint('Open Yahoo! credit failed: $e');
       }
