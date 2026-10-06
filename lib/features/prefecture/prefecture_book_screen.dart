@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../theme/even_grid.dart';
 import '../../theme/washi.dart';
 import '../inkan/inkan_stamp.dart';
 import '../records/date_format.dart';
@@ -26,6 +27,9 @@ String regionLabel(AppLocalizations l10n, Region region) => switch (region) {
   Region.kyushu => l10n.prefectureBookRegionKyushu,
   Region.okinawa => l10n.prefectureBookRegionOkinawa,
 };
+
+/// 都道府県の印帳の升目の、いちばん狭い幅（印と「鹿児島県」が収まる幅）。
+const prefectureTileMinWidth = 84.0;
 
 /// 修行タブの入口。集めた都道府県の数を添える。
 class PrefectureBookEntry extends ConsumerWidget {
@@ -91,16 +95,17 @@ class PrefectureBookScreen extends ConsumerWidget {
           for (final region in Region.values) ...[
             const SizedBox(height: 20),
             SectionTitle(regionLabel(l10n, region)),
-            Wrap(
-              spacing: 4,
+            EvenGrid(
+              minItemWidth: prefectureTileMinWidth,
               runSpacing: 12,
-              children: [
-                for (final prefecture in prefecturesIn(region))
-                  _PrefectureTile(
-                    prefecture: prefecture,
-                    stamp: stamps[prefecture],
-                  ),
-              ],
+              itemCount: prefecturesIn(region).length,
+              itemBuilder: (context, index, _) {
+                final prefecture = prefecturesIn(region)[index];
+                return _PrefectureTile(
+                  prefecture: prefecture,
+                  stamp: stamps[prefecture],
+                );
+              },
             ),
           ],
         ],
@@ -122,7 +127,7 @@ class _PrefectureTile extends StatelessWidget {
     final small = Theme.of(context).textTheme.bodySmall
         ?.copyWith(color: Washi.inkSoft);
     final tile = SizedBox(
-      width: 100,
+      width: double.infinity,
       child: Column(
         children: [
           SizedBox.square(
@@ -134,19 +139,23 @@ class _PrefectureTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            prefecture,
-            maxLines: 1,
-            style: TextStyle(
-              fontFamily: Washi.brush,
-              fontSize: 15,
-              color: stamp == null ? Washi.faded : Washi.ink,
+          _fit(
+            Text(
+              prefecture,
+              maxLines: 1,
+              style: TextStyle(
+                fontFamily: Washi.brush,
+                fontSize: 15,
+                color: stamp == null ? Washi.faded : Washi.ink,
+              ),
             ),
           ),
           if (stamp != null) ...[
-            Text(
-              l10n.prefectureBookFirst(formatDate(stamp.first.visit.eatenAt)),
-              style: small,
+            _fit(
+              Text(
+                l10n.prefectureBookFirst(formatDate(stamp.first.visit.eatenAt)),
+                style: small,
+              ),
             ),
             Text(l10n.prefectureBookBowls(stamp.bowls.length), style: small),
           ],
@@ -164,6 +173,9 @@ class _PrefectureTile extends StatelessWidget {
     );
   }
 }
+
+/// 狭い升目でも1行に収める。
+Widget _fit(Widget child) => FittedBox(fit: BoxFit.scaleDown, child: child);
 
 /// その都道府県で食べた1杯の一覧（古い順）。
 class PrefectureBowlsScreen extends ConsumerWidget {
