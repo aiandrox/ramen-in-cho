@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
 import 'package:ramen_in_cho/features/database/app_database.dart';
@@ -27,6 +28,7 @@ import 'package:ramen_in_cho/features/wishes/shared_wish.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
 
 import '../../support/fakes.dart';
+import '../../support/photos.dart';
 
 const _here = GeoPoint(35.0, 139.0);
 final _photoTime = DateTime(2026, 9, 30, 12);
@@ -1488,6 +1490,106 @@ void main() {
       final resumed = next.read(recordControllerProvider);
       expect(resumed.shopFamous, isTrue);
       expect(resumed.shopFamousEdited, isTrue);
+    });
+  });
+
+  group('写真を回す', () {
+    setUp(() => writeJpeg(picker.cameraPath!));
+
+    (int, int) savedSize(VisitWithShop entry) {
+      final image = img.decodeJpg(
+        File(p.join(documents.path, entry.visit.photoPath!)).readAsBytesSync(),
+      )!;
+      return (image.width, image.height);
+    }
+
+    test('回して保存すると、回した写真が記録に残る（下書きの写真はもとのまま）', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      final draftPhoto = state().photoPath!;
+      final original = File(draftPhoto).readAsBytesSync();
+
+      controller().rotatePhoto();
+      expect(state().photoQuarterTurns, 1);
+      expect(File(draftPhoto).readAsBytesSync(), original);
+      controller().setManualName('麺屋');
+
+      expect(await controller().save(), isNotNull);
+
+      final entry = (await visits()).single;
+      expect(p.extension(entry.visit.photoPath!), '.jpg');
+      expect(savedSize(entry), (20, 40));
+    });
+
+    test('4回押すと元の向きに戻り、そのまま保存する', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      for (var i = 0; i < 4; i++) {
+        controller().rotatePhoto();
+      }
+      expect(state().photoQuarterTurns, 0);
+      controller().setManualName('麺屋');
+
+      expect(await controller().save(), isNotNull);
+
+      expect(savedSize((await visits()).single), (40, 20));
+    });
+
+    test('写真を撮り直すと向きは元に戻る', () async {
+      await controller().start();
+      await controller().takePhoto();
+      controller().rotatePhoto();
+      await controller().takePhoto();
+
+      expect(state().photoQuarterTurns, 0);
+    });
+
+    test('写真が無ければ回さない', () async {
+      await controller().start();
+      controller().rotatePhoto();
+
+      expect(state().photoQuarterTurns, 0);
+    });
+
+    test('回した向きは下書きに残り、次に開いても同じ向きで保存できる', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller()
+        ..rotatePhoto()
+        ..rotatePhoto()
+        ..rotatePhoto()
+        ..setManualName('麺屋');
+      await container.read(recordDraftStoreProvider).load();
+      container.dispose();
+
+      final next = newSession();
+      final resumed = next.read(recordControllerProvider.notifier);
+      await resumed.start();
+      expect(next.read(recordControllerProvider).photoQuarterTurns, 3);
+
+      expect(await resumed.save(), isNotNull);
+      final entry =
+          (await next.read(recordRepositoryProvider).watchVisits().first)
+              .single;
+      expect(savedSize(entry), (20, 40));
+    });
+
+    test('回せない写真でも、もとの向きのまま記録できる', () async {
+      File(picker.cameraPath!).writeAsBytesSync([1, 2, 3]);
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller()
+        ..rotatePhoto()
+        ..setManualName('麺屋');
+
+      expect(await controller().save(), isNotNull);
+
+      final saved = (await visits()).single.visit.photoPath!;
+      expect(File(p.join(documents.path, saved)).readAsBytesSync(), [1, 2, 3]);
     });
   });
 }
