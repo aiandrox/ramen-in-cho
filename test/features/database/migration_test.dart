@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,9 +9,8 @@ import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
 
-/// 最初の版（バージョン1）のテーブル定義。
-const _v1Schema = [
-  '''
+// これまでの版のテーブル定義。版を上げたら、上げる前の版をここに足す（足さないとテストが失敗する）。
+const _shopsV1 = '''
 CREATE TABLE shops (
   id TEXT NOT NULL,
   name TEXT NOT NULL,
@@ -19,8 +20,52 @@ CREATE TABLE shops (
   hours_type TEXT NOT NULL,
   created_at INTEGER NOT NULL,
   PRIMARY KEY (id)
-)''',
-  '''
+)''';
+
+const _shopsV3 =
+    'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+    'latitude REAL, longitude REAL, osm_id TEXT, '
+    "hours_conditions TEXT NOT NULL DEFAULT '', "
+    'created_at INTEGER NOT NULL, PRIMARY KEY (id))';
+
+const _shopsV4 =
+    'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+    'latitude REAL, longitude REAL, osm_id TEXT, '
+    "hours_conditions TEXT NOT NULL DEFAULT '', "
+    "strategy_memo TEXT NOT NULL DEFAULT '', "
+    'created_at INTEGER NOT NULL, PRIMARY KEY (id))';
+
+const _shopsV5 =
+    'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+    'latitude REAL, longitude REAL, osm_id TEXT, '
+    "hours_conditions TEXT NOT NULL DEFAULT '', "
+    "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
+    'created_at INTEGER NOT NULL, PRIMARY KEY (id))';
+
+const _shopsV7 =
+    'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+    'latitude REAL, longitude REAL, osm_id TEXT, '
+    "hours_conditions TEXT NOT NULL DEFAULT '', "
+    "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
+    'area TEXT, created_at INTEGER NOT NULL, PRIMARY KEY (id))';
+
+const _shopsV10 =
+    'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+    'latitude REAL, longitude REAL, osm_id TEXT, '
+    "hours_conditions TEXT NOT NULL DEFAULT '', "
+    "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
+    'area TEXT, created_at INTEGER NOT NULL, '
+    'is_famous INTEGER NOT NULL DEFAULT 0 CHECK (is_famous IN (0, 1)), '
+    'PRIMARY KEY (id))';
+
+const _shopsV11 =
+    'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
+    'latitude REAL, longitude REAL, osm_id TEXT, '
+    'is_famous INTEGER NOT NULL DEFAULT 0 CHECK (is_famous IN (0, 1)), '
+    "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
+    'area TEXT, created_at INTEGER NOT NULL, PRIMARY KEY (id))';
+
+const _visits = '''
 CREATE TABLE visits (
   id TEXT NOT NULL,
   shop_id TEXT NOT NULL REFERENCES shops (id),
@@ -35,8 +80,53 @@ CREATE TABLE visits (
   memo TEXT NOT NULL DEFAULT '',
   created_at INTEGER NOT NULL,
   PRIMARY KEY (id)
-)''',
-];
+)''';
+
+const _checkinsV2 =
+    'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
+    'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
+    'longitude REAL, checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))';
+
+const _checkinsV5 =
+    'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
+    'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
+    'longitude REAL, data_source TEXT, '
+    'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))';
+
+const _wishesV6 =
+    'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
+    'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
+    "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
+    "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
+    'fulfilled_visit_id TEXT, PRIMARY KEY (id))';
+
+const _wishesV8 =
+    'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
+    'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
+    "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
+    "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
+    'fulfilled_visit_id TEXT, '
+    "hours_conditions TEXT NOT NULL DEFAULT '', PRIMARY KEY (id))";
+
+const _homeBasesV9 =
+    'CREATE TABLE home_base_settings (id TEXT NOT NULL, '
+    'name TEXT NOT NULL, latitude REAL NOT NULL, '
+    'longitude REAL NOT NULL, set_at INTEGER NOT NULL, '
+    'PRIMARY KEY (id))';
+
+const _schemas = <int, List<String>>{
+  1: [_shopsV1, _visits],
+  2: [_shopsV1, _visits, _checkinsV2],
+  3: [_shopsV3, _visits, _checkinsV2],
+  4: [_shopsV4, _visits, _checkinsV2],
+  5: [_shopsV5, _visits, _checkinsV5],
+  6: [_shopsV5, _visits, _checkinsV5, _wishesV6],
+  7: [_shopsV7, _visits, _checkinsV5, _wishesV6],
+  8: [_shopsV7, _visits, _checkinsV5, _wishesV8],
+  9: [_shopsV7, _visits, _checkinsV5, _wishesV8, _homeBasesV9],
+  10: [_shopsV10, _visits, _checkinsV5, _wishesV8, _homeBasesV9],
+  11: [_shopsV11, _visits, _checkinsV5, _wishesV6, _homeBasesV9],
+};
 
 /// 表の列の名前。店の条件（hours_conditions）の列が消えたことを確かめる。
 Future<List<String>> _columns(AppDatabase database, String table) async => [
@@ -52,7 +142,7 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          for (final statement in _v1Schema) {
+          for (final statement in _schemas[1]!) {
             raw.execute(statement);
           }
           raw.execute(
@@ -96,14 +186,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          for (final statement in _v1Schema) {
+          for (final statement in _schemas[2]!) {
             raw.execute(statement);
           }
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
           raw.execute(
             'INSERT INTO shops VALUES '
             "('lunch', '昼の店', NULL, NULL, NULL, 'lunchOnly', $seconds), "
@@ -129,18 +214,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', "
-            'created_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
+          for (final statement in _schemas[3]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO shops VALUES '
             "('shop', '麺屋', NULL, NULL, NULL, 'weekdaysOnly', $seconds)",
@@ -168,19 +244,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', "
-            "strategy_memo TEXT NOT NULL DEFAULT '', "
-            'created_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
+          for (final statement in _schemas[4]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO shops VALUES '
             "('shop', '麺屋', NULL, NULL, NULL, '', 'メモ', $seconds)",
@@ -209,20 +275,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', "
-            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
-            'created_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, data_source TEXT, '
-            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
+          for (final statement in _schemas[5]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO shops VALUES '
             "('shop', '麺屋', NULL, NULL, NULL, '', '', NULL, $seconds)",
@@ -252,27 +307,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', "
-            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
-            'created_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, data_source TEXT, '
-            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(
-            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
-            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
-            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
-            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
-            'fulfilled_visit_id TEXT, PRIMARY KEY (id))',
-          );
+          for (final statement in _schemas[6]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO shops VALUES '
             "('shop', '麺屋', 35.0, 139.0, NULL, '', '', NULL, $seconds)",
@@ -294,27 +331,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', "
-            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
-            'area TEXT, created_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, data_source TEXT, '
-            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(
-            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
-            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
-            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
-            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
-            'fulfilled_visit_id TEXT, PRIMARY KEY (id))',
-          );
+          for (final statement in _schemas[7]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO wishes VALUES '
             "('wish', NULL, NULL, 'はやし田', NULL, NULL, NULL, "
@@ -341,28 +360,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', "
-            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
-            'area TEXT, created_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, data_source TEXT, '
-            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(
-            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
-            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
-            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
-            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
-            'fulfilled_visit_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', PRIMARY KEY (id))",
-          );
+          for (final statement in _schemas[8]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO shops VALUES '
             "('shop', '麺屋', 35.0, 139.0, NULL, '', '', NULL, NULL, $seconds)",
@@ -409,34 +409,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', "
-            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
-            'area TEXT, created_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, data_source TEXT, '
-            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(
-            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
-            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
-            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
-            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
-            'fulfilled_visit_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', PRIMARY KEY (id))",
-          );
-          raw.execute(
-            'CREATE TABLE home_base_settings (id TEXT NOT NULL, '
-            'name TEXT NOT NULL, latitude REAL NOT NULL, '
-            'longitude REAL NOT NULL, set_at INTEGER NOT NULL, '
-            'PRIMARY KEY (id))',
-          );
+          for (final statement in _schemas[9]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO shops VALUES '
             "('shop', '麺屋', 35.0, 139.0, 'node/1', 'lunchOnly,irregular', "
@@ -515,36 +490,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', "
-            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
-            'area TEXT, created_at INTEGER NOT NULL, '
-            'is_famous INTEGER NOT NULL DEFAULT 0 CHECK (is_famous IN (0, 1)), '
-            'PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, data_source TEXT, '
-            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(
-            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
-            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
-            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
-            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
-            'fulfilled_visit_id TEXT, '
-            "hours_conditions TEXT NOT NULL DEFAULT '', PRIMARY KEY (id))",
-          );
-          raw.execute(
-            'CREATE TABLE home_base_settings (id TEXT NOT NULL, '
-            'name TEXT NOT NULL, latitude REAL NOT NULL, '
-            'longitude REAL NOT NULL, set_at INTEGER NOT NULL, '
-            'PRIMARY KEY (id))',
-          );
+          for (final statement in _schemas[10]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO shops VALUES '
             "('shop', '麺屋', 35.0, 139.0, 'node/1', 'lunchOnly', "
@@ -592,33 +540,9 @@ void main() {
     final database = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute(
-            'CREATE TABLE shops (id TEXT NOT NULL, name TEXT NOT NULL, '
-            'latitude REAL, longitude REAL, osm_id TEXT, '
-            'is_famous INTEGER NOT NULL DEFAULT 0 CHECK (is_famous IN (0, 1)), '
-            "strategy_memo TEXT NOT NULL DEFAULT '', data_source TEXT, "
-            'area TEXT, created_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(_v1Schema[1]);
-          raw.execute(
-            'CREATE TABLE active_checkins (id INTEGER NOT NULL, '
-            'shop_id TEXT, osm_id TEXT, name TEXT NOT NULL, latitude REAL, '
-            'longitude REAL, data_source TEXT, '
-            'checked_in_at INTEGER NOT NULL, PRIMARY KEY (id))',
-          );
-          raw.execute(
-            'CREATE TABLE wishes (id TEXT NOT NULL, shop_id TEXT, '
-            'osm_id TEXT, name TEXT NOT NULL, latitude REAL, longitude REAL, '
-            "data_source TEXT, \"trigger\" TEXT NOT NULL DEFAULT '', "
-            "note TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL, "
-            'fulfilled_visit_id TEXT, PRIMARY KEY (id))',
-          );
-          raw.execute(
-            'CREATE TABLE home_base_settings (id TEXT NOT NULL, '
-            'name TEXT NOT NULL, latitude REAL NOT NULL, '
-            'longitude REAL NOT NULL, set_at INTEGER NOT NULL, '
-            'PRIMARY KEY (id))',
-          );
+          for (final statement in _schemas[11]!) {
+            raw.execute(statement);
+          }
           raw.execute(
             'INSERT INTO shops VALUES '
             "('shop', '麺屋', 43.06, 141.35, 'node/1', 1, "
@@ -658,4 +582,301 @@ void main() {
     expect(wishes.values.map((w) => w.link), everyElement(isNull));
     expect(await _columns(database, 'wishes'), contains('link'));
   });
+
+  test('これまでのすべての版に、移行のテストがある', () {
+    final database = AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+
+    expect(_schemas.keys.toSet(), {
+      for (var version = 1; version < database.schemaVersion; version++)
+        version,
+    });
+  });
+
+  for (final version in _schemas.keys) {
+    group('バージョン$versionから今の版へ', () {
+      late AppDatabase database;
+      late Map<String, Set<String>> oldColumns;
+
+      setUp(() {
+        oldColumns = {};
+        database = AppDatabase(
+          NativeDatabase.memory(
+            setup: (raw) {
+              for (final statement in _schemas[version]!) {
+                raw.execute(statement);
+              }
+              for (final MapEntry(key: table, value: rows) in _seed.entries) {
+                final columns = {
+                  for (final row in raw.select('PRAGMA table_info($table)'))
+                    row['name'] as String,
+                };
+                if (columns.isEmpty) continue;
+                oldColumns[table] = columns;
+                for (final row in rows) {
+                  final names = row.keys.where(columns.contains).toList();
+                  raw.execute(
+                    'INSERT INTO $table '
+                    '(${names.map((n) => '"$n"').join(', ')}) '
+                    'VALUES (${List.filled(names.length, '?').join(', ')})',
+                    [for (final name in names) row[name]],
+                  );
+                }
+              }
+              raw.execute('PRAGMA user_version = $version');
+            },
+          ),
+        );
+        addTearDown(database.close);
+      });
+
+      bool had(String table, String column) =>
+          oldColumns[table]?.contains(column) ?? false;
+
+      test('表の形が、新しく入れたときと同じになる', () async {
+        final migrated = await _schemaOf(database);
+        await database.close();
+        final fresh = AppDatabase(NativeDatabase.memory());
+        addTearDown(fresh.close);
+
+        expect(migrated, await _schemaOf(fresh));
+      });
+
+      test('記録・写真のパス・店・願・拠点・並びの値が残る', () async {
+        final repository = RecordRepository(database);
+        final data = await repository.exportAll();
+
+        final visits = {for (final visit in data.visits) visit.id: visit};
+        expect(visits.keys, unorderedEquals(['visit', 'retreat']));
+        final visit = visits['visit']!;
+        expect(visit.shopId, 'shop');
+        expect(visit.result, VisitResult.eaten);
+        expect(visit.photoPath, 'photos/a.jpg');
+        expect(visit.checkedInAt, _checkedInAt);
+        expect(visit.eatenAt, _eatenAt);
+        expect(visit.style, RamenStyle.shoyu);
+        expect(visit.rating, 4);
+        expect(visit.isLimited, isTrue);
+        expect(visit.hasTicket, isTrue);
+        expect(visit.memo, '醤油が澄んでいた');
+        expect(visit.createdAt, _createdAt);
+        final retreat = visits['retreat']!;
+        expect(retreat.shopId, 'manual');
+        expect(retreat.result, VisitResult.retreated);
+        expect(retreat.photoPath, isNull);
+        expect(retreat.rating, isNull);
+
+        final shops = {for (final shop in data.shops) shop.id: shop};
+        expect(shops.keys, unorderedEquals(['shop', 'manual']));
+        final shop = shops['shop']!;
+        expect(shop.name, '麺屋');
+        expect(shop.latitude, 35.0);
+        expect(shop.longitude, 139.0);
+        expect(shop.osmId, 'node/1');
+        expect(shop.createdAt, _createdAt);
+        expect(
+          shop.strategyMemo,
+          had('shops', 'strategy_memo') ? '券売機は現金のみ' : '',
+        );
+        expect(shop.area, had('shops', 'area') ? '新宿区' : isNull);
+        expect(shop.isFamous, had('shops', 'is_famous'));
+        expect(
+          shop.dataSource?.licenses,
+          had('shops', 'data_source') ? ['CC BY 4.0'] : isNull,
+        );
+        expect(shops['manual']!.latitude, isNull);
+
+        final checkin = await repository.activeCheckin();
+        if (oldColumns.containsKey('active_checkins')) {
+          expect(checkin!.shopId, 'shop');
+          expect(checkin.name, '麺屋');
+          expect(checkin.latitude, 35.0);
+          expect(checkin.checkedInAt, _checkedInAt);
+          expect(
+            checkin.dataSource?.attributions,
+            had('active_checkins', 'data_source') ? ['新宿区'] : isNull,
+          );
+        } else {
+          expect(checkin, isNull);
+        }
+
+        if (oldColumns.containsKey('wishes')) {
+          final wishes = {for (final wish in data.wishes) wish.id: wish};
+          expect(wishes.keys, unorderedEquals(['wish', 'done']));
+          final wish = wishes['wish']!;
+          expect(wish.name, 'はやし田');
+          expect(wish.osmId, 'node/2');
+          expect(wish.latitude, 35.1);
+          expect(wish.trigger, '同僚に聞いた');
+          expect(wish.note, '煮干し');
+          expect(wish.dataSource?.licenses, ['CC BY 4.0']);
+          expect(wish.createdAt, _createdAt);
+          expect(wish.link, isNull);
+          expect(wishes['done']!.shopId, 'shop');
+          expect(wishes['done']!.fulfilledVisitId, 'visit');
+        } else {
+          expect(data.wishes, isEmpty);
+        }
+
+        if (oldColumns.containsKey('home_base_settings')) {
+          final base = data.homeBases.single;
+          expect(base.name, '横浜駅');
+          expect(base.latitude, 35.466);
+          expect(base.setAt, _createdAt);
+        } else {
+          expect(data.homeBases, isEmpty);
+        }
+      });
+
+      test('移行のあとも、記録・願・拠点を足せる', () async {
+        final repository = RecordRepository(database);
+        await repository.saveEatenVisit(
+          shop: const ShopInput(shopId: 'shop', name: '麺屋'),
+          eatenAt: DateTime(2026, 10, 6, 12),
+          now: DateTime(2026, 10, 6, 12),
+        );
+        await WishRepository(database).addWish(
+          shop: const ShopInput(name: '中華そば'),
+          now: DateTime(2026, 10, 6),
+        );
+        await HomeBaseRepository(database).setHomeBase(
+          name: '札幌',
+          latitude: 43.06,
+          longitude: 141.35,
+          now: DateTime(2026, 10, 6),
+        );
+
+        final data = await repository.exportAll();
+        expect(data.visits, hasLength(3));
+        expect(data.wishes.map((w) => w.name), contains('中華そば'));
+        expect(data.homeBases.map((b) => b.name), contains('札幌'));
+      });
+    });
+  }
+}
+
+final _eatenAt = DateTime(2026, 9, 30, 12);
+final _checkedInAt = DateTime(2026, 9, 30, 11, 20);
+final _createdAt = DateTime(2026, 9, 30, 12, 5);
+
+int _seconds(DateTime time) => time.millisecondsSinceEpoch ~/ 1000;
+
+final _source = jsonEncode({
+  'licenses': ['CC BY 4.0'],
+  'attributions': ['新宿区'],
+});
+
+/// どの版にも入れる記録。その版に無い列の値は入れない。
+final Map<String, List<Map<String, Object?>>> _seed = {
+  'shops': [
+    {
+      'id': 'shop',
+      'name': '麺屋',
+      'latitude': 35.0,
+      'longitude': 139.0,
+      'osm_id': 'node/1',
+      'hours_type': 'fewDays',
+      'hours_conditions': 'lunchOnly,irregular',
+      'strategy_memo': '券売機は現金のみ',
+      'data_source': _source,
+      'area': '新宿区',
+      'is_famous': 1,
+      'created_at': _seconds(_createdAt),
+    },
+    {
+      'id': 'manual',
+      'name': '手入力の店',
+      'hours_type': 'normal',
+      'created_at': _seconds(_createdAt),
+    },
+  ],
+  'visits': [
+    {
+      'id': 'visit',
+      'shop_id': 'shop',
+      'result': 'eaten',
+      'photo_path': 'photos/a.jpg',
+      'checked_in_at': _seconds(_checkedInAt),
+      'eaten_at': _seconds(_eatenAt),
+      'style': 'shoyu',
+      'rating': 4,
+      'is_limited': 1,
+      'has_ticket': 1,
+      'memo': '醤油が澄んでいた',
+      'created_at': _seconds(_createdAt),
+    },
+    {
+      'id': 'retreat',
+      'shop_id': 'manual',
+      'result': 'retreated',
+      'eaten_at': _seconds(_eatenAt),
+      'created_at': _seconds(_createdAt),
+    },
+  ],
+  'active_checkins': [
+    {
+      'id': 1,
+      'shop_id': 'shop',
+      'osm_id': 'node/1',
+      'name': '麺屋',
+      'latitude': 35.0,
+      'longitude': 139.0,
+      'data_source': _source,
+      'checked_in_at': _seconds(_checkedInAt),
+    },
+  ],
+  'wishes': [
+    {
+      'id': 'wish',
+      'osm_id': 'node/2',
+      'name': 'はやし田',
+      'latitude': 35.1,
+      'longitude': 139.1,
+      'data_source': _source,
+      'trigger': '同僚に聞いた',
+      'note': '煮干し',
+      'created_at': _seconds(_createdAt),
+      'hours_conditions': 'nightOnly',
+    },
+    {
+      'id': 'done',
+      'shop_id': 'shop',
+      'name': '麺屋',
+      'created_at': _seconds(_createdAt),
+      'fulfilled_visit_id': 'visit',
+    },
+  ],
+  'home_base_settings': [
+    {
+      'id': 'base',
+      'name': '横浜駅',
+      'latitude': 35.466,
+      'longitude': 139.622,
+      'set_at': _seconds(_createdAt),
+    },
+  ],
+};
+
+/// 表ごとの列（名前・型・必須・初期値・主キー）。列の順番は問わない。
+Future<Map<String, Set<String>>> _schemaOf(AppDatabase database) async {
+  final tables = await database
+      .customSelect(
+        "SELECT name FROM sqlite_master WHERE type = 'table' "
+        "AND name NOT LIKE 'sqlite_%'",
+      )
+      .get();
+  return {
+    for (final table in tables.map((row) => row.read<String>('name')))
+      table: {
+        for (final column
+            in await database.customSelect('PRAGMA table_info($table)').get())
+          [
+            column.data['name'],
+            column.data['type'],
+            column.data['notnull'],
+            column.data['dflt_value'],
+            column.data['pk'],
+          ].join('|'),
+      },
+  };
 }
