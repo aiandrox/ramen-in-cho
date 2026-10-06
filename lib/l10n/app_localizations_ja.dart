@@ -1320,6 +1320,59 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shugyorokuOpen => 'これまでの一杯を、物語で読み返す';
 
   @override
+  String get prefectureBookTitle => '都道府県の印帳';
+
+  @override
+  String get prefectureBookOpen => '四十七の印を集める';
+
+  @override
+  String prefectureBookProgress(int count) {
+    return '$count / 47';
+  }
+
+  @override
+  String get prefectureBookNote => '店の位置から都道府県を決めます。位置のわからない店は入りません';
+
+  @override
+  String get prefectureBookRegionHokkaido => '北海道';
+
+  @override
+  String get prefectureBookRegionTohoku => '東北';
+
+  @override
+  String get prefectureBookRegionKanto => '関東';
+
+  @override
+  String get prefectureBookRegionChubu => '中部';
+
+  @override
+  String get prefectureBookRegionKinki => '近畿';
+
+  @override
+  String get prefectureBookRegionChugoku => '中国';
+
+  @override
+  String get prefectureBookRegionShikoku => '四国';
+
+  @override
+  String get prefectureBookRegionKyushu => '九州・沖縄';
+
+  @override
+  String prefectureBookFirst(String date) {
+    return '初 $date';
+  }
+
+  @override
+  String prefectureBookBowls(int count) {
+    return '$count杯';
+  }
+
+  @override
+  String prefectureBookEntry(String date, String shop) {
+    return '$date　$shop';
+  }
+
+  @override
   String get shugyorokuEmpty => '最初の一杯から、修行録が始まります';
 
   @override
