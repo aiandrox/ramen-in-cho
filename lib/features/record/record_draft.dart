@@ -22,6 +22,7 @@ class RecordDraft {
   const RecordDraft({
     this.photoPath,
     this.photoTakenAt,
+    this.photoQuarterTurns = 0,
     this.photoFromCamera = false,
     this.photoDateFromPhoto = false,
     this.photoLocation,
@@ -50,6 +51,7 @@ class RecordDraft {
     return RecordDraft(
       photoPath: state.photoPath,
       photoTakenAt: state.photoPath == null ? null : state.photoTakenAt,
+      photoQuarterTurns: state.photoPath == null ? 0 : state.photoQuarterTurns,
       photoFromCamera: state.photoFromCamera,
       photoDateFromPhoto: state.photoDateFromPhoto,
       photoLocation: state.photoLocation,
@@ -73,6 +75,9 @@ class RecordDraft {
   /// 写真のパス。保存先のファイルでは documents からの相対パスにする。
   final String? photoPath;
   final DateTime? photoTakenAt;
+
+  /// 回した回数。下書きの写真はもとのまま持ち、記録するときに回す。
+  final int photoQuarterTurns;
   final bool photoFromCamera;
   final bool photoDateFromPhoto;
   final GeoPoint? photoLocation;
@@ -113,6 +118,7 @@ class RecordDraft {
   RecordDraft withoutArrival() => RecordDraft(
     photoPath: photoPath,
     photoTakenAt: photoTakenAt,
+    photoQuarterTurns: photoQuarterTurns,
     photoFromCamera: photoFromCamera,
     photoDateFromPhoto: photoDateFromPhoto,
     photoLocation: photoLocation,
@@ -133,6 +139,7 @@ class RecordDraft {
   RecordDraft withPhotoPath(String? path) => RecordDraft(
     photoPath: path,
     photoTakenAt: path == null ? null : photoTakenAt,
+    photoQuarterTurns: path == null ? 0 : photoQuarterTurns,
     photoFromCamera: path != null && photoFromCamera,
     photoDateFromPhoto: path != null && photoDateFromPhoto,
     photoLocation: path == null ? null : photoLocation,
@@ -156,6 +163,7 @@ class RecordDraft {
     'version': 1,
     'photoPath': photoPath,
     'photoTakenAt': photoTakenAt?.toUtc().toIso8601String(),
+    'photoQuarterTurns': photoQuarterTurns,
     'photoFromCamera': photoFromCamera,
     'photoDateFromPhoto': photoDateFromPhoto,
     'photoLocation': _geoToJson(photoLocation),
@@ -181,6 +189,7 @@ class RecordDraft {
     final rating = _int(json['rating']);
     final wait = _int(json['manualWaitMinutes']);
     final photoPath = _string(json['photoPath']);
+    final turns = _int(json['photoQuarterTurns']);
     final arrivedAt = _dateTime(json['arrivedAt']);
     final arrivedCheckin = _checkinFromJson(json['arrivedCheckin']);
     final arrived = arrivedAt != null && arrivedCheckin != null;
@@ -195,6 +204,7 @@ class RecordDraft {
       photoTakenAt: photoPath == null
           ? null
           : DateTime.tryParse(_string(json['photoTakenAt']) ?? '')?.toLocal(),
+      photoQuarterTurns: photoPath == null || turns == null ? 0 : turns % 4,
       photoFromCamera: json['photoFromCamera'] == true,
       photoDateFromPhoto: json['photoDateFromPhoto'] == true,
       photoLocation: _geoFromJson(json['photoLocation']),

@@ -90,6 +90,7 @@
   "editShopName": "店名",
   "editEatenAt": "食べた日時",
   "editRemovePhoto": "写真を外す",
+  "rotatePhoto": "写真を回す",
   "editPhotoFailed": "写真を読み込めませんでした",
   "editShopRepick": "店を選び直す",
   "editShopRepickTitle": "どの店の記録ですか？",

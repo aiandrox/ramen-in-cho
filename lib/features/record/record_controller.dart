@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../checkin/checkin_rules.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
+import '../records/photo_rotation.dart';
 import '../records/photo_storage.dart';
 import '../records/record_repository.dart';
 import '../records/wait_time.dart';
@@ -319,6 +320,7 @@ class RecordController extends Notifier<RecordState> {
     state = state.copyWith(
       photoPath: draft.photoPath,
       photoTakenAt: draft.photoTakenAt,
+      photoQuarterTurns: draft.photoQuarterTurns,
       photoFromCamera: draft.photoFromCamera,
       photoDateFromPhoto: draft.photoDateFromPhoto,
       photoLocation: draft.photoLocation,
@@ -366,6 +368,7 @@ class RecordController extends Notifier<RecordState> {
     state = RecordState(
       photoPath: keepPhoto ? previous.photoPath : null,
       photoTakenAt: keepPhoto ? previous.photoTakenAt : null,
+      photoQuarterTurns: keepPhoto ? previous.photoQuarterTurns : 0,
       photoFromCamera: keepPhoto && previous.photoFromCamera,
       photoDateFromPhoto: keepPhoto && previous.photoDateFromPhoto,
       photoLocation: keepPhoto ? previous.photoLocation : null,
@@ -468,6 +471,7 @@ class RecordController extends Notifier<RecordState> {
     final now = ref.read(clockProvider)();
     state = state.copyWith(
       photoPath: path,
+      photoQuarterTurns: 0,
       // 撮り直しても、待ち時間が食べている時間だけ延びないよう最初の時刻を残す。
       // 前の写真の撮影日時を使っていたときは、今撮ったので今の時刻にする。
       photoTakenAt:
@@ -624,6 +628,14 @@ class RecordController extends Notifier<RecordState> {
   void setPinnedLocation(GeoPoint? location) =>
       state = state.copyWith(pinnedLocation: location);
 
+  /// 写真を時計回りに90度回す（画面ではすぐ回し、ファイルは保存のときに回す）。
+  void rotatePhoto() {
+    if (state.photoPath == null || state.isSaving) return;
+    state = state.copyWith(
+      photoQuarterTurns: nextQuarterTurn(state.photoQuarterTurns),
+    );
+  }
+
   void setRating(int rating) => state = state.copyWith(rating: rating);
 
   void setStyle(RamenStyle? style) => state = state.copyWith(style: style);
@@ -648,7 +660,9 @@ class RecordController extends Notifier<RecordState> {
     String? savedPhoto;
     try {
       final photoPath = draft.photoPath;
-      if (photoPath != null) savedPhoto = await storage.save(photoPath);
+      if (photoPath != null) {
+        savedPhoto = await _savePhoto(storage, photoPath, draft);
+      }
       final now = ref.read(clockProvider)();
       // 別の店を選んだときは「着」の時刻を使わない（並んでいる間に別の記録をすることもあるため）。
       final atCheckinShop = draft.isCheckinShopSelected;
@@ -696,6 +710,21 @@ class RecordController extends Notifier<RecordState> {
       }
       if (ref.mounted) state = state.copyWith(isSaving: false);
       return null;
+    }
+  }
+
+  /// 回した写真は回して書く。回せない写真（読めない形式など）は、記録を止めずにもとの向きで残す。
+  Future<String> _savePhoto(
+    PhotoStorage storage,
+    String photoPath,
+    RecordState draft,
+  ) async {
+    try {
+      return await storage.saveRotated(photoPath, draft.photoQuarterTurns);
+    } catch (e) {
+      if (draft.photoQuarterTurns == 0) rethrow;
+      debugPrint('Photo rotate failed: $e');
+      return storage.save(photoPath);
     }
   }
 
