@@ -110,6 +110,17 @@ void main() {
     expect(parseSharedWish('  \n '), isNull);
   });
 
+  test('途中で切れたリンクや Shift_JIS のリンクでも止まらない', () {
+    final cut = parseSharedWish(
+      '横浜の店\nhttps://www.google.com/maps/place/%E9%BA%BA%E5',
+    )!;
+    expect(cut.name, '横浜の店');
+    expect(cut.location, isNull);
+    final sjis = parseSharedWish('https://example.jp/search?q=%82%A0')!;
+    expect(sjis.host, 'example.jp');
+    expect(sjis.location, isNull);
+  });
+
   test('ありえない座標は位置にしない', () {
     expect(
       locationInUrl(Uri.parse('https://maps.google.com/?q=135.0,139.0')),

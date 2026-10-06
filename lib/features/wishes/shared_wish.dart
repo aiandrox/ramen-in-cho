@@ -131,7 +131,12 @@ SharedSource _sourceOf(Uri uri) {
 
 /// google.com/maps/place/店名/@… の店名。
 String _placeNameOf(Uri uri) {
-  final segments = uri.pathSegments;
+  final List<String> segments;
+  try {
+    segments = uri.pathSegments;
+  } on FormatException {
+    return '';
+  }
   final index = segments.indexOf('place');
   if (index < 0 || index + 1 >= segments.length) return '';
   return segments[index + 1].replaceAll('+', ' ').trim();
@@ -146,6 +151,15 @@ final _pairPattern = RegExp(
 /// リンクに書かれた位置。店のピン（!3d…!4d…）、座標の問い合わせ（?q=緯度,経度 など）、
 /// 地図の中心（/@緯度,経度）の順に探す。
 GeoPoint? locationInUrl(Uri uri) {
+  // 途中で切れたリンクや Shift_JIS のリンクは、% の読み解きで失敗する。そのときは位置なし。
+  try {
+    return _locationInUrl(uri);
+  } on FormatException {
+    return null;
+  }
+}
+
+GeoPoint? _locationInUrl(Uri uri) {
   final full = Uri.decodeFull(uri.toString());
   final pin = _pinPattern.firstMatch(full);
   if (pin != null) return _point(pin.group(1)!, pin.group(2)!);
