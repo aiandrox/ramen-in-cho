@@ -183,6 +183,25 @@ void main() {
       expect(plan([older, _visit(eaten, id: 'new')]), isEmpty);
     });
 
+    test('あとから過去の写真の1杯を記録しても、今日の1杯の知らせは消えない', () {
+      final now = DateTime(2026, 10, 1, 12, 30);
+      final today = _visit(eaten, id: 'today', rating: null);
+      final old = _visit(
+        DateTime(2026, 9, 1, 12),
+        id: 'old',
+        rating: null,
+        createdAt: DateTime(2026, 10, 1, 12, 20),
+      );
+      final plans = planNotifications(
+        settings: _only(NotificationKind.rating),
+        streak: Streak.none,
+        now: now,
+        visits: [today, old],
+      );
+      expect(plans.single, isA<RatingNotice>());
+      expect((plans.single as RatingNotice).visitId, 'today');
+    });
+
     test('夜は知らせない設定では、翌朝8時に回す。12時間を過ぎるなら知らせない', () {
       List<PlannedNotification> plan(DateTime eatenAt, DateTime savedAt) =>
           planNotifications(
@@ -219,6 +238,13 @@ void main() {
       expect(plan(DateTime(2026, 12, 27)), [
         YearReviewNotice(DateTime(2026, 12, 30, 20), year: 2026),
       ]);
+    });
+
+    test('振り返りは年末（12月26日から）に開いたときだけ、その年の通知をやめる', () {
+      expect(closesYearReview(2026, DateTime(2026, 10, 1)), isFalse);
+      expect(closesYearReview(2026, DateTime(2026, 12, 25, 23, 59)), isFalse);
+      expect(closesYearReview(2026, DateTime(2026, 12, 26)), isTrue);
+      expect(closesYearReview(2025, DateTime(2026, 1, 3)), isTrue);
     });
 
     test('その年をもう開いていたら、その年に食べていなければ勧めない', () {

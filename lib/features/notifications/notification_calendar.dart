@@ -38,6 +38,10 @@ List<DateTime> yearReviewTimes(int year) => [
   DateTime(year, 12, 30, 20),
 ];
 
+/// 振り返りを開いたら、その年の通知をやめるか。年の途中で開いても、まとめを見たことにはしない。
+bool closesYearReview(int year, DateTime openedAt) =>
+    !openedAt.isBefore(DateTime(year, 12, 26));
+
 /// 年始の願掛けを勧める時刻（1月1日〜7日のうち2回）。
 List<DateTime> newYearWishTimes(int year) => [
   DateTime(year, 1, 1, 11),

@@ -24,6 +24,8 @@ import '../stats/stats_screen.dart';
 import '../words/words.dart';
 import 'year_review.dart';
 import 'year_review_seen.dart';
+import '../notifications/notification_calendar.dart';
+import '../records/clock.dart';
 import '../../theme/washi_buttons.dart';
 
 /// 1年の振り返り。紙芝居のように、横にめくって1枚ずつ見る。数字の無いページは飛ばす。
@@ -46,9 +48,10 @@ class _YearReviewScreenState extends ConsumerState<YearReviewScreen> {
   @override
   void initState() {
     super.initState();
-    // 開いた年には、振り返りを勧める通知をもう出さない。
+    // 年末に開いた年には、振り返りを勧める通知をもう出さない。
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
+      if (mounted &&
+          closesYearReview(widget.year, ref.read(currentTimeProvider))) {
         ref.read(yearReviewSeenProvider.notifier).markSeen(widget.year);
       }
     });

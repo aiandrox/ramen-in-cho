@@ -352,23 +352,25 @@ List<PlannedNotification> planNotifications({
   ];
 }
 
-/// いちばん新しく保存した「食べた」記録に★が無ければ、★の付け忘れを知らせる。
+/// ★の無い「食べた」記録（食べてから12時間以内）のうち、いちばん新しく保存した1杯を知らせる。
 /// 夜を避けるなら翌朝8時に回す（食べてから12時間を過ぎるなら知らせない）。
 RatingNotice? _ratingNotice(
   List<VisitWithShop> visits,
   NotificationSettings settings,
 ) {
   VisitWithShop? latest;
+  DateTime? latestAt;
   for (final entry in visits) {
-    if (entry.visit.result != VisitResult.eaten) continue;
+    final at = ratingReminderAt(entry.visit);
+    if (at == null) continue;
     if (latest == null ||
         entry.visit.createdAt.isAfter(latest.visit.createdAt)) {
       latest = entry;
+      latestAt = at;
     }
   }
-  if (latest == null) return null;
-  var at = ratingReminderAt(latest.visit);
-  if (at == null) return null;
+  if (latest == null || latestAt == null) return null;
+  var at = latestAt;
   if (settings.quietNight && _isNight(at)) {
     at = DateTime(at.year, at.month, at.day + (at.hour >= 22 ? 1 : 0), 8);
     if (at.difference(latest.visit.eatenAt) > ratingWindow) return null;
