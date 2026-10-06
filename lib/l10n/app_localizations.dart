@@ -3019,7 +3019,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationSettingsNote.
   ///
   /// In ja, this message translates to:
-  /// **'種類ごとに、知らせるかを選べます'**
+  /// **'どんなときに知らせるかを選べます'**
   String get notificationSettingsNote;
 
   /// No description provided for @notificationNotPermitted.
@@ -3043,7 +3043,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationKindCheckinNote.
   ///
   /// In ja, this message translates to:
-  /// **'並んでいる間、経過時間を出しておきます'**
+  /// **'並んでいる時間を表示します'**
   String get notificationKindCheckinNote;
 
   /// No description provided for @notificationKindStreak.
@@ -3055,7 +3055,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationKindStreakNote.
   ///
   /// In ja, this message translates to:
-  /// **'その週にまだ食べていないとき、途切れる前に知らせます'**
+  /// **'連続記録が途切れそうなときにお知らせします'**
   String get notificationKindStreakNote;
 
   /// No description provided for @notificationKindRating.
@@ -3063,36 +3063,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'★の付け忘れ'**
   String get notificationKindRating;
-
-  /// No description provided for @notificationKindRatingNote.
-  ///
-  /// In ja, this message translates to:
-  /// **'★をつけずに保存した一杯を、1時間半後に知らせます'**
-  String get notificationKindRatingNote;
-
-  /// No description provided for @notificationKindYearReview.
-  ///
-  /// In ja, this message translates to:
-  /// **'年の振り返り'**
-  String get notificationKindYearReview;
-
-  /// No description provided for @notificationKindYearReviewNote.
-  ///
-  /// In ja, this message translates to:
-  /// **'12月26日と30日の夜に、その年の振り返りを勧めます（開いたら知らせません）'**
-  String get notificationKindYearReviewNote;
-
-  /// No description provided for @notificationKindNewYearWish.
-  ///
-  /// In ja, this message translates to:
-  /// **'年始の願掛け'**
-  String get notificationKindNewYearWish;
-
-  /// No description provided for @notificationKindNewYearWishNote.
-  ///
-  /// In ja, this message translates to:
-  /// **'1月1日と5日に、行きたい店に願を掛けるよう勧めます（年が明けてから願を掛けたら知らせません）'**
-  String get notificationKindNewYearWishNote;
 
   /// No description provided for @notificationKindMonthly.
   ///
@@ -3103,26 +3073,20 @@ abstract class AppLocalizations {
   /// No description provided for @notificationKindMonthlyNote.
   ///
   /// In ja, this message translates to:
-  /// **'20日になってもその月にまだ食べていないとき、夜に知らせます'**
+  /// **'ラーメンを食べ忘れていないかお知らせします'**
   String get notificationKindMonthlyNote;
 
-  /// No description provided for @notificationKindEvent.
+  /// No description provided for @notificationKindSeasonal.
   ///
   /// In ja, this message translates to:
-  /// **'行事の日'**
-  String get notificationKindEvent;
+  /// **'季節のお知らせ'**
+  String get notificationKindSeasonal;
 
-  /// No description provided for @notificationKindEventNote.
+  /// No description provided for @notificationKindSeasonalNote.
   ///
   /// In ja, this message translates to:
-  /// **'バレンタインデー・ラーメンの日・クリスマスなどに、ひとこと届けます'**
-  String get notificationKindEventNote;
-
-  /// No description provided for @notificationDailyCapNote.
-  ///
-  /// In ja, this message translates to:
-  /// **'届く通知は1日に1件まで（★の付け忘れだけは別に1件）。重なったら、年の振り返り・年始の願掛け → 連続記録 → 今月の一杯 → 行事の日 の順に大事なほうだけを届けます'**
-  String get notificationDailyCapNote;
+  /// **'年の瀬・年始・行事の日にお知らせします'**
+  String get notificationKindSeasonalNote;
 
   /// No description provided for @ratingReminderTitle.
   ///
@@ -3207,6 +3171,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'スマホの設定で、麺印帳の通知を切り替えます'**
   String get notificationOsSettingsNote;
+
+  /// No description provided for @notificationOsSettingsKindsNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知の種類ごとのオン・オフは、ここで切り替えます'**
+  String get notificationOsSettingsKindsNote;
 
   /// No description provided for @nameSearchPickOnMap.
   ///

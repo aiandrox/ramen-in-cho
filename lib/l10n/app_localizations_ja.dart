@@ -1693,7 +1693,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationSettings => '通知';
 
   @override
-  String get notificationSettingsNote => '種類ごとに、知らせるかを選べます';
+  String get notificationSettingsNote => 'どんなときに知らせるかを選べます';
 
   @override
   String get notificationNotPermitted => '通知が許可されていません';
@@ -1705,49 +1705,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationKindCheckin => '並び中';
 
   @override
-  String get notificationKindCheckinNote => '並んでいる間、経過時間を出しておきます';
+  String get notificationKindCheckinNote => '並んでいる時間を表示します';
 
   @override
   String get notificationKindStreak => '連続記録';
 
   @override
-  String get notificationKindStreakNote => 'その週にまだ食べていないとき、途切れる前に知らせます';
+  String get notificationKindStreakNote => '連続記録が途切れそうなときにお知らせします';
 
   @override
   String get notificationKindRating => '★の付け忘れ';
 
   @override
-  String get notificationKindRatingNote => '★をつけずに保存した一杯を、1時間半後に知らせます';
-
-  @override
-  String get notificationKindYearReview => '年の振り返り';
-
-  @override
-  String get notificationKindYearReviewNote =>
-      '12月26日と30日の夜に、その年の振り返りを勧めます（開いたら知らせません）';
-
-  @override
-  String get notificationKindNewYearWish => '年始の願掛け';
-
-  @override
-  String get notificationKindNewYearWishNote =>
-      '1月1日と5日に、行きたい店に願を掛けるよう勧めます（年が明けてから願を掛けたら知らせません）';
-
-  @override
   String get notificationKindMonthly => '今月の一杯';
 
   @override
-  String get notificationKindMonthlyNote => '20日になってもその月にまだ食べていないとき、夜に知らせます';
+  String get notificationKindMonthlyNote => 'ラーメンを食べ忘れていないかお知らせします';
 
   @override
-  String get notificationKindEvent => '行事の日';
+  String get notificationKindSeasonal => '季節のお知らせ';
 
   @override
-  String get notificationKindEventNote => 'バレンタインデー・ラーメンの日・クリスマスなどに、ひとこと届けます';
-
-  @override
-  String get notificationDailyCapNote =>
-      '届く通知は1日に1件まで（★の付け忘れだけは別に1件）。重なったら、年の振り返り・年始の願掛け → 連続記録 → 今月の一杯 → 行事の日 の順に大事なほうだけを届けます';
+  String get notificationKindSeasonalNote => '年の瀬・年始・行事の日にお知らせします';
 
   @override
   String ratingReminderTitle(String shop) {
@@ -1821,6 +1800,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get notificationOsSettingsNote => 'スマホの設定で、麺印帳の通知を切り替えます';
+
+  @override
+  String get notificationOsSettingsKindsNote => '通知の種類ごとのオン・オフは、ここで切り替えます';
 
   @override
   String get nameSearchPickOnMap => '見つからないときは、地図で場所を指す';

@@ -7,22 +7,26 @@ import 'package:path/path.dart' as p;
 
 import '../records/photo_storage.dart';
 
-/// 通知の種類。種類ごとに設定でオン・オフでき、Android では通知チャンネルも分ける。
-/// 種類を足すときは、ここと文言（`notificationKind…`）とチャンネルの名前を足す。
+/// 通知の種類。Android では種類ごとに通知チャンネルを分け、オン・オフはスマホの設定に任せる。
+/// iOS には種類ごとの設定が無いので、アプリの設定で種類ごとにオン・オフする。
+/// 種類を足すときは、ここと文言（`notificationKind…`）を足す。
 enum NotificationKind {
   checkin('checkin'),
-  rating('rating'),
-  yearReview('year_review'),
-  newYearWish('new_year_wish'),
   streak('streak'),
+  rating('rating'),
   monthly('monthly'),
-  event('event');
+
+  /// 年の振り返り・年始の願掛け・行事の日。
+  seasonal('seasonal');
 
   const NotificationKind(this.key);
 
   /// 保存と Android の通知チャンネルの ID に使う名前。変えると設定が引き継がれない。
   final String key;
 }
+
+/// 「季節のお知らせ」にまとめる前の種類。前の版で作った Android の通知チャンネルの ID でもある。
+const legacySeasonalKeys = ['year_review', 'new_year_wish', 'event'];
 
 @immutable
 class NotificationSettings {
@@ -88,9 +92,13 @@ class NotificationSettings {
     final disabled = json['disabled'];
     return NotificationSettings(
       disabled: {
-        if (disabled is List)
+        if (disabled is List) ...{
           for (final kind in NotificationKind.values)
             if (disabled.contains(kind.key)) kind,
+          // まとめる前の3つをすべて止めていた人だけ、季節のお知らせを止めたままにする。
+          if (legacySeasonalKeys.every(disabled.contains))
+            NotificationKind.seasonal,
+        },
       },
       streakWeekday: read('streakWeekday', 1, 7, defaults.streakWeekday),
       streakHour: read('streakHour', 0, 23, defaults.streakHour),

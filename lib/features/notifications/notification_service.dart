@@ -30,6 +30,10 @@ abstract class NotificationService {
   /// 通知が許可されているか。わからなければnull。
   Future<bool?> isPermitted();
 
+  /// Android で、スマホの設定で止められている種類（通知そのものを止めていればすべて）。
+  /// iOS や、わからないときは空。
+  Future<Set<NotificationKind>> blockedKinds();
+
   /// 予約済みの通知（並び中の通知を除く）を[notifications]に置き換える。
   /// 置き換えられなかったらfalse。
   Future<bool> replaceScheduled(List<ScheduledNotification> notifications);
@@ -80,10 +84,15 @@ const _checkinNotificationId = 1;
 const _testNotificationId = 999;
 
 /// Android の通知チャンネルの名前と説明。スマホの設定の「通知」に、この名前で並ぶ。
-(String, String) _channelOf(NotificationKind kind) {
+(String, String?) _channelOf(NotificationKind kind) {
   final l10n = lookupAppLocalizations(const Locale('ja'));
   return (notificationKindLabel(l10n, kind), notificationKindNote(l10n, kind));
 }
+
+Importance _channelImportance(NotificationKind kind) =>
+    kind == NotificationKind.checkin
+    ? Importance.low
+    : Importance.defaultImportance;
 
 int? _remainingUntilTimeout(DateTime checkedInAt) {
   final remaining = checkedInAt
@@ -115,7 +124,36 @@ class LocalNotificationService implements NotificationService {
         ),
       ),
     );
+    await _prepareChannels();
   }();
+
+  /// 通知チャンネルは予約より先にすべて作り、はじめからスマホの設定に種類が並ぶようにする。
+  /// 「季節のお知らせ」にまとめる前のチャンネルは消す。
+  Future<void> _prepareChannels() async {
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (android == null) return;
+    try {
+      for (final kind in NotificationKind.values) {
+        final (name, description) = _channelOf(kind);
+        await android.createNotificationChannel(
+          AndroidNotificationChannel(
+            kind.key,
+            name,
+            description: description,
+            importance: _channelImportance(kind),
+          ),
+        );
+      }
+      for (final key in legacySeasonalKeys) {
+        await android.deleteNotificationChannel(channelId: key);
+      }
+    } catch (e) {
+      debugPrint('Notification channel setup failed: $e');
+    }
+  }
 
   /// 許可は、初めて通知を出すとき（並んだとき）に尋ねる。起動しただけでは尋ねない。
   Future<void> _requestPermission() => _permissionRequest ??= () async {
@@ -152,7 +190,7 @@ class LocalNotificationService implements NotificationService {
             NotificationKind.checkin.key,
             channelName,
             channelDescription: channelDescription,
-            importance: Importance.low,
+            importance: _channelImportance(NotificationKind.checkin),
             priority: Priority.low,
             ongoing: true,
             autoCancel: false,
@@ -208,6 +246,32 @@ class LocalNotificationService implements NotificationService {
     return null;
   }
 
+  @override
+  Future<Set<NotificationKind>> blockedKinds() async {
+    try {
+      await _initialize();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (android == null) return const {};
+      if (await android.areNotificationsEnabled() == false) {
+        return {...NotificationKind.values};
+      }
+      final blocked = {
+        for (final channel in await android.getNotificationChannels() ?? [])
+          if (channel.importance == Importance.none) channel.id,
+      };
+      return {
+        for (final kind in NotificationKind.values)
+          if (blocked.contains(kind.key)) kind,
+      };
+    } catch (e) {
+      debugPrint('Notification channel check failed: $e');
+      return const {};
+    }
+  }
+
   Future<bool> _replacing = Future.value(true);
 
   // 続けて呼ばれても前の置き換えと混ざらないよう、1つずつ順に行う。
@@ -251,6 +315,7 @@ class LocalNotificationService implements NotificationService {
           notification.kind.key,
           channelName,
           channelDescription: channelDescription,
+          importance: _channelImportance(notification.kind),
         ),
         iOS: const DarwinNotificationDetails(),
       ),

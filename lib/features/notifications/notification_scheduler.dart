@@ -12,18 +12,20 @@ import '../review/year_review_seen.dart';
 import '../streak/streak.dart';
 import '../wishes/wish_repository.dart';
 import '../words/words.dart';
+import 'notification_channels.dart';
 import 'notification_plan.dart';
 import 'notification_service.dart';
 import 'notification_settings.dart';
 
 /// 予約しておく通知。記録・願・設定・「今」が変わるたびに決め直す。
-/// 記録や願を読み込んでいる間はnull（読み込む前の空の記録で予約し直さないため）。
+/// 記録や願や設定を読み込んでいる間はnull（読み込む前の空の記録で予約し直さないため）。
 final notificationPlanProvider = Provider<List<PlannedNotification>?>((ref) {
   final visits = ref.watch(visitsProvider);
   final wishes = ref.watch(wishesProvider);
-  if (!visits.hasValue || !wishes.hasValue) return null;
+  final settings = ref.watch(effectiveNotificationSettingsProvider);
+  if (!visits.hasValue || !wishes.hasValue || settings == null) return null;
   return planNotifications(
-    settings: ref.watch(notificationSettingsProvider),
+    settings: settings,
     streak: ref.watch(streakProvider),
     now: ref.watch(currentTimeProvider),
     visits: visits.value!,
@@ -81,9 +83,9 @@ void listenForNotifications(WidgetRef ref, AppLocalizations Function() l10n) {
     final checkin = next.value;
     final notifications = ref.read(notificationServiceProvider);
     final enabled = ref
-        .read(notificationSettingsProvider)
-        .isEnabled(NotificationKind.checkin);
-    if (checkin == null || next.hasError || !enabled) {
+        .read(effectiveNotificationSettingsProvider)
+        ?.isEnabled(NotificationKind.checkin);
+    if (checkin == null || next.hasError || enabled == false) {
       // 起動時に期限切れで取り消された場合なども、前の通知が残らないよう必ず消す。
       notifications.cancelCheckin();
       return;
@@ -112,9 +114,10 @@ void listenForNotifications(WidgetRef ref, AppLocalizations Function() l10n) {
     }
     updateCheckin();
   }, fireImmediately: true);
+  // 止めた種類を読み込む前は、出してよいものとして扱う（止められていれば OS が出さない）。
   ref.listenManual<bool>(
-    notificationSettingsProvider.select(
-      (settings) => settings.isEnabled(NotificationKind.checkin),
+    effectiveNotificationSettingsProvider.select(
+      (settings) => settings?.isEnabled(NotificationKind.checkin) ?? true,
     ),
     (_, _) => updateCheckin(),
   );
