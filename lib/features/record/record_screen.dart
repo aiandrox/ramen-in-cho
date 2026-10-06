@@ -632,7 +632,7 @@ class _ShopSection extends ConsumerWidget {
             alignment: Alignment.centerLeft,
             child: FudeLink(
               icon: const Icon(Icons.travel_explore),
-              child: Text(l10n.nameSearchOpen(state.manualName.trim())),
+              child: Text(l10n.nameSearchOpen),
               onPressed: () async {
                 final found = await showShopNameSearch(
                   context,
@@ -674,6 +674,11 @@ class _ShopSection extends ConsumerWidget {
   }
 
   String? _message(AppLocalizations l10n) {
+    if (state.searchStatus == ShopSearchStatus.idle &&
+        state.photoPath == null &&
+        !state.hasShop) {
+      return l10n.shopSearchAfterPhoto;
+    }
     // 店が決まっていれば、店名の入力を促す案内は要らない。
     if (state.searchStatus != ShopSearchStatus.done || state.hasShop) {
       return null;

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -27,6 +28,17 @@ import 'package:ramen_in_cho/theme/washi_buttons.dart';
 
 import '../../support/fakes.dart';
 import '../../support/l10n.dart';
+
+/// 1×1 の PNG。写真を選んだときの画像として使う。
+String _photoFile() {
+  final file = File('${createTempDirectory().path}/camera.png')
+    ..writeAsBytesSync(
+      base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+      ),
+    );
+  return file.path;
+}
 
 void main() {
   late AppDatabase database;
@@ -95,9 +107,29 @@ void main() {
     );
   });
 
-  testWidgets('候補の店と出典を表示し、店と★を選ぶと「着丼！」で保存して結果を見せる', (tester) async {
+  testWidgets('開いただけでは店を探さず、写真を選ぶよう案内する。店名を打つと「店名から探す」が出る', (tester) async {
     await pumpScreen(tester);
 
+    expect(overpass.calls, 0);
+    expect(find.text('麺屋テスト'), findsNothing);
+    expect(find.text(ja.shopSearchAfterPhoto), findsOneWidget);
+    expect(find.text(ja.nameSearchOpen), findsNothing);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.shopNameLabel),
+      '麺屋',
+    );
+    await tester.pump();
+    expect(find.text(ja.nameSearchOpen), findsOneWidget);
+  });
+
+  testWidgets('候補の店と出典を表示し、店と★を選ぶと「着丼！」で保存して結果を見せる', (tester) async {
+    picker.cameraPath = _photoFile();
+    await pumpScreen(tester);
+    await tester.tap(find.text(ja.takePhoto));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.shopSearchAfterPhoto), findsNothing);
     expect(find.text('麺屋テスト'), findsOneWidget);
     expect(find.text('111m'), findsOneWidget);
     expect(find.text(ja.shopSearchAttribution), findsOneWidget);
@@ -158,7 +190,10 @@ void main() {
 
   testWidgets('検索に失敗しても、店名を入力して保存できる', (tester) async {
     overpass.error = const SocketException('offline');
+    picker.cameraPath = _photoFile();
     await pumpScreen(tester);
+    await tester.tap(find.text(ja.takePhoto));
+    await tester.pumpAndSettle();
 
     expect(find.text(ja.shopSearchFailed), findsOneWidget);
 

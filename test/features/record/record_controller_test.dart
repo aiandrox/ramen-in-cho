@@ -165,13 +165,41 @@ void main() {
     expect(entry.shop.latitude, isNull);
   });
 
-  test('位置情報が許可済みなら、許可を尋ねずにカメラと並行して検索する', () async {
+  test('開いただけでは店を探さず、位置情報の許可も尋ねない。カメラで撮ると現在地で探す', () async {
+    location.ready = false;
     await controller().start();
+    await pumpEventQueue();
+
+    expect(location.requests, isEmpty);
+    expect(overpass.calls, 0);
+    expect(state().searchStatus, ShopSearchStatus.idle);
+
     await controller().takePhoto();
     await pumpEventQueue();
 
-    expect(location.requests, [false]);
+    expect(location.requests, [true]);
     expect(overpass.calls, 1);
+    expect(overpass.centers.single.latitude, _here.latitude);
+    expect(state().candidates.single.name, '麺屋テスト');
+  });
+
+  test('位置情報が許可済みなら、開いたときに現在地だけ取り、店名で探すときの基準にする', () async {
+    await controller().start();
+    await pumpEventQueue();
+
+    expect(location.requests, [false]);
+    expect(overpass.calls, 0);
+    expect(controller().searchCenter, _here);
+  });
+
+  test('撮影場所の無いギャラリーの写真では、現在地で探す', () async {
+    await controller().start();
+    await controller().pickFromGallery();
+    await pumpEventQueue();
+
+    expect(location.requests.last, isTrue);
+    expect(overpass.centers.single.latitude, _here.latitude);
+    expect(state().candidates.single.name, '麺屋テスト');
   });
 
   test('候補が0件でも手入力で保存できる', () async {
@@ -289,16 +317,11 @@ void main() {
       metadata.metadata = PhotoMetadata(takenAt: takenAt, location: shopPlace);
 
       await controller().start();
-      await controller().takePhoto();
-      await pumpEventQueue();
-      expect(overpass.centers.last.latitude, _here.latitude);
-      final locationRequests = location.requests.length;
-
       await controller().pickFromGallery();
       await pumpEventQueue();
 
-      expect(overpass.centers.last.latitude, shopPlace.latitude);
-      expect(location.requests, hasLength(locationRequests));
+      expect(overpass.centers.single.latitude, shopPlace.latitude);
+      expect(location.requests, isNot(contains(true)));
       expect(state().searchStatus, ShopSearchStatus.done);
 
       controller().setManualName('写真の場所の店');
@@ -567,6 +590,22 @@ void main() {
       );
     });
 
+    test('開いたときは探さず、写真を撮ると候補を探しても並んだ店は選んだまま', () async {
+      await checkIn();
+
+      await controller().start();
+      await pumpEventQueue();
+      expect(overpass.calls, 0);
+      expect(state().isCheckinShopSelected, isTrue);
+
+      await controller().takePhoto();
+      await pumpEventQueue();
+
+      expect(overpass.calls, 1);
+      expect(state().candidates, isNotEmpty);
+      expect(state().isCheckinShopSelected, isTrue);
+    });
+
     test('並んでいる最中に、並ぶ前に撮った写真で記録しても待ち時間はつけない', () async {
       await checkIn();
       metadata.metadata = PhotoMetadata(
@@ -749,7 +788,7 @@ void main() {
         await checkIn();
 
         await controller().start(arrivedAt: arrivedAt);
-        // カメラは店の検索と並行して開くので、写真が入るまで待つ。
+        // カメラは開いたあとに写真が入るので、入るまで待つ。
         for (var i = 0; i < 100 && state().photoPath == null; i++) {
           await Future<void>.delayed(const Duration(milliseconds: 10));
         }
@@ -956,11 +995,9 @@ void main() {
       expect(File(resumed.photoPath!).readAsBytesSync(), [1, 2, 3]);
       expect(resumed.photoTakenAt, _photoTime);
       expect(resumed.photoFromCamera, isTrue);
-      // 検索の候補の同じ店に選び替え、同じ店が2つ並ばない。
-      expect(
-        identical(resumed.selectedShop, resumed.candidates.single),
-        isTrue,
-      );
+      // 店が決まっている下書きでは、探し直さない。
+      expect(resumed.searchStatus, ShopSearchStatus.idle);
+      expect(resumed.selectedShop?.name, '麺屋テスト');
       expect(resumed.rating, 4);
       expect(resumed.style, RamenStyle.iekei);
       expect(resumed.isLimited, isTrue);
@@ -978,6 +1015,25 @@ void main() {
       expect(entry.shop.name, '麺屋テスト');
       expect(entry.visit.memo, 'かため');
       expect(entry.visit.style, RamenStyle.iekei);
+    });
+
+    test('店の決まっていない写真つきの下書きは、再開すると写真で探し直す', () async {
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller().setRating(4);
+      await flushed(container);
+      container.dispose();
+      final calls = overpass.calls;
+
+      final next = newSession();
+      await next.read(recordControllerProvider.notifier).start();
+      await pumpEventQueue();
+      final resumed = next.read(recordControllerProvider);
+
+      expect(resumed.resumedFromDraft, isTrue);
+      expect(overpass.calls, calls + 1);
+      expect(resumed.candidates.single.name, '麺屋テスト');
     });
 
     test('何も入れていなければ下書きは作らず、再開の案内も出さない', () async {
@@ -1047,7 +1103,9 @@ void main() {
       expect(state.manualName, isEmpty);
       expect(state.memo, isEmpty);
       expect(state.resumedFromDraft, isFalse);
-      expect(state.candidates.map((c) => c.name), contains('麺屋テスト'));
+      // 写真ごと捨てたので、その写真で探した候補も消える。
+      expect(state.candidates, isEmpty);
+      expect(state.searchStatus, ShopSearchStatus.idle);
       expect(draftFile().existsSync(), isFalse);
       expect(draftPhotos().listSync(), isEmpty);
       expect(File(p.join(documents.path, saved)).existsSync(), isTrue);

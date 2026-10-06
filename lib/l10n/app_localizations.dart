@@ -226,6 +226,12 @@ abstract class AppLocalizations {
   /// **'近くに候補が見つかりませんでした。店名を入力してください'**
   String get shopNoCandidates;
 
+  /// No description provided for @shopSearchAfterPhoto.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真を選ぶと、近くの店を探します'**
+  String get shopSearchAfterPhoto;
+
   /// No description provided for @shopNameLabel.
   ///
   /// In ja, this message translates to:
@@ -1765,8 +1771,8 @@ abstract class AppLocalizations {
   /// No description provided for @nameSearchOpen.
   ///
   /// In ja, this message translates to:
-  /// **'全国の店から「{name}」を探す（地図に載せる）'**
-  String nameSearchOpen(String name);
+  /// **'店名から探す'**
+  String get nameSearchOpen;
 
   /// No description provided for @nameSearchTitle.
   ///

@@ -31,6 +31,9 @@ class RecordController extends Notifier<RecordState> {
   List<Shop> _knownShops = const [];
   List<Wish> _pendingWishes = const [];
   GeoPoint? _here;
+
+  /// 店を探さずに取った現在地。店名で探すときの基準にだけ使う。
+  GeoPoint? _quietHere;
   int _searchGeneration = 0;
 
   /// 下書きを読み終えるまでは書かない（空の入力で下書きを消してしまうため）。
@@ -99,7 +102,7 @@ class RecordController extends Notifier<RecordState> {
     }
   }
 
-  /// 近くの店を探しはじめる。カメラは「着」から開いたときだけ自動で開き、ふだんは利用者が写真の欄から選ぶ。
+  /// 記録を始める。近くの店は写真を選んでから探す。カメラは「着」から開いたときだけ自動で開く。
   /// 保存せずに閉じた入力があれば、そこから再開する（[startOver]なら捨てて新しく始める）。
   /// [sharedPhoto]は、[recoveredPhotoPath]がほかのアプリから共有された写真のとき。
   /// [arrivedAt]は、並んでいる最中に「着」を押した時刻。並んだ店を選び、すぐにカメラを開く。
@@ -144,9 +147,22 @@ class RecordController extends Notifier<RecordState> {
       await _setGalleryPhoto(recoveredPhotoPath, incoming: true);
       if (!ref.mounted) return;
     }
-    final locationReady = await ref.read(locationServiceProvider).isReady();
-    if (!ref.mounted) return;
-    await searchShops(requestPermission: !locationReady);
+    // 開いただけでは探さない。下書きの写真に店が決まっていなければ、その写真で探し直す。
+    if (state.photoPath != null &&
+        state.selectedShop == null &&
+        state.searchStatus == ShopSearchStatus.idle) {
+      await searchShops(requestPermission: state.photoLocation == null);
+    } else {
+      unawaited(_loadQuietHere());
+    }
+  }
+
+  /// 位置情報を許可済みなら、店名で探すときの基準に現在地を黙って取っておく（店は探さない）。
+  Future<void> _loadQuietHere() async {
+    final location = ref.read(locationServiceProvider);
+    if (!await location.isReady()) return;
+    final here = await location.currentPosition(requestPermission: false);
+    if (ref.mounted) _quietHere = here;
   }
 
   /// 並んでいる店があれば、その店を選んだ状態で始める。
@@ -276,8 +292,15 @@ class RecordController extends Notifier<RecordState> {
       selectedShop: checkinShop,
       arrivedAt: active == null ? null : _tappedArrivedAt,
     );
-    if (previous.photoLocation != null && state.photoLocation == null) {
-      unawaited(searchShops(requestPermission: false, force: true));
+    // 写真ごと捨てたら、その写真で探した候補も消す（写真を選ぶまで探さない）。
+    if (!keepPhoto) {
+      _searchGeneration++;
+      _here = null;
+      state = state.copyWith(
+        searchStatus: ShopSearchStatus.idle,
+        searchFailure: null,
+        candidates: const [],
+      );
     }
     try {
       await cleared;
@@ -352,7 +375,6 @@ class RecordController extends Notifier<RecordState> {
     required bool fromCamera,
     PhotoMetadata metadata = PhotoMetadata.empty,
   }) {
-    final previousLocation = state.photoLocation;
     final takenAt = metadata.takenAt;
     final now = ref.read(clockProvider)();
     state = state.copyWith(
@@ -369,10 +391,10 @@ class RecordController extends Notifier<RecordState> {
       photoFromCamera: fromCamera,
     );
     _photoFromDraft = false;
-    final location = metadata.location;
-    if (location != null || previousLocation != null) {
-      unawaited(searchShops(requestPermission: false, force: true));
-    }
+    // 写真を選ぶたびに、撮影場所（無ければ現在地）で探し直す。並んだ店などを選んでいれば、選んだままにする。
+    unawaited(
+      searchShops(requestPermission: metadata.location == null, force: true),
+    );
   }
 
   /// 写真に撮影場所があればそこで、無ければ現在地で探す。
@@ -424,7 +446,7 @@ class RecordController extends Notifier<RecordState> {
   }
 
   /// 店名で探すときに近い順に並べる基準（写真の撮影場所か現在地）。
-  GeoPoint? get searchCenter => state.photoLocation ?? _here;
+  GeoPoint? get searchCenter => state.photoLocation ?? _here ?? _quietHere;
 
   void selectShop(ShopCandidate shop) {
     state = state.copyWith(
