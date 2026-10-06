@@ -3363,6 +3363,36 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'見つからないときは、地図で場所を指す'**
   String get nameSearchPickOnMap;
+
+  /// No description provided for @locationSettings.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置情報'**
+  String get locationSettings;
+
+  /// No description provided for @locationAccessGranted.
+  ///
+  /// In ja, this message translates to:
+  /// **'使えます（アプリを使っている間だけ）。タップでスマホの設定を開く'**
+  String get locationAccessGranted;
+
+  /// No description provided for @locationAccessNotGranted.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ許可されていません。タップで許可する'**
+  String get locationAccessNotGranted;
+
+  /// No description provided for @locationAccessDeniedForever.
+  ///
+  /// In ja, this message translates to:
+  /// **'許可されていません。タップでスマホの設定を開いて許可する'**
+  String get locationAccessDeniedForever;
+
+  /// No description provided for @locationAccessServiceOff.
+  ///
+  /// In ja, this message translates to:
+  /// **'スマホの位置情報がオフです。タップで設定を開く'**
+  String get locationAccessServiceOff;
 }
 
 class _AppLocalizationsDelegate

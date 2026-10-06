@@ -865,5 +865,10 @@
   "notificationOsSettings": "スマホの通知の設定",
   "notificationOsSettingsNote": "スマホの設定で、麺印帳の通知を切り替えます",
   "notificationOsSettingsKindsNote": "通知の種類ごとのオン・オフは、ここで切り替えます",
-  "nameSearchPickOnMap": "見つからないときは、地図で場所を指す"
+  "nameSearchPickOnMap": "見つからないときは、地図で場所を指す",
+  "locationSettings": "位置情報",
+  "locationAccessGranted": "使えます（アプリを使っている間だけ）。タップでスマホの設定を開く",
+  "locationAccessNotGranted": "まだ許可されていません。タップで許可する",
+  "locationAccessDeniedForever": "許可されていません。タップでスマホの設定を開いて許可する",
+  "locationAccessServiceOff": "スマホの位置情報がオフです。タップで設定を開く"
 }
