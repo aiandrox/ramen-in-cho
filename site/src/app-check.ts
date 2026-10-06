@@ -7,22 +7,28 @@ const firebaseJwks = createRemoteJWKSet(new URL('https://firebaseappcheck.google
 
 export type AppCheckResult = 'ok' | 'missing' | 'invalid';
 
+/** [appId] はトークンの sub（Firebase のアプリ ID。端末ごとではなく iOS・Android のアプリごと）。 */
+export interface AppCheck {
+  result: AppCheckResult;
+  appId?: string;
+}
+
 /** `X-Firebase-AppCheck` のトークンが、このプロジェクトのアプリが発行したものか確かめる。 */
 export async function verifyAppCheck(
   token: string | null,
   keys: JWTVerifyGetKey = firebaseJwks,
   projectNumber = firebaseProjectNumber,
-): Promise<AppCheckResult> {
-  if (!token) return 'missing';
+): Promise<AppCheck> {
+  if (!token) return { result: 'missing' };
   try {
-    await jwtVerify(token, keys, {
+    const { payload } = await jwtVerify(token, keys, {
       algorithms: ['RS256'],
       typ: 'JWT',
       issuer: `https://firebaseappcheck.googleapis.com/${projectNumber}`,
       audience: `projects/${projectNumber}`,
     });
-    return 'ok';
+    return { result: 'ok', appId: payload.sub };
   } catch {
-    return 'invalid';
+    return { result: 'invalid' };
   }
 }

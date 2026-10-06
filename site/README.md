@@ -43,6 +43,14 @@ D1 のつなぎ（`DB`）は `wrangler.toml` に書いてあるので、デプ�
 - トークンの有効期限（Token time to live）は iOS・Android とも1日。店の中は電波が弱く、取り直しで待たせないため（返すのは店の公開情報だけなので、長めでも困らない）
 - デバッグビルド: `--dart-define=APP_CHECK_DEBUG_TOKEN=<UUID>` で渡したトークンを、Firebase コンソール → App Check → アプリ → デバッグトークンの管理 に登録する
 
+## 回数制限
+
+App Check のあと、同じ `_middleware.ts` で1台あたりの回数を数える（`src/rate-limit.ts`）。**1分に60回・1日（UTC の0時区切り）に600回**まで。越えると 429 と `Retry-After`（秒）を返し、アプリは端末から直接探す。
+
+- 数える単位は「App Check のアプリ ID（iOS・Android の別）＋接続元の IP（IPv6 は /64）」。IP が分からなければ数えない
+- 回数は Cache API（`caches.default`）に区切りごとにためる。データセンターごとのおおよその数で、同時の問い合わせは数え漏れうる
+- 鍵は SHA-256 にしてためるので、IP そのものは残さない。ログにも IP は出さない（`rate limited` とだけ出す）
+
 ## 手元で
 
 ```bash
