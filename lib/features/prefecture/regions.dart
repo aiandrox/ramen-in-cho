@@ -2,7 +2,19 @@ import '../records/models.dart';
 import '../scoring/points.dart';
 
 /// 地方。印の外枠の形を地方ごとに変える。
-enum Region { hokkaido, tohoku, kanto, chubu, kinki, chugoku, shikoku, kyushu }
+enum Region {
+  hokkaido,
+  tohoku,
+  kanto,
+  koshinetsu,
+  hokuriku,
+  tokai,
+  kinki,
+  chugoku,
+  shikoku,
+  kyushu,
+  okinawa,
+}
 
 /// 47都道府県（北から順。都道府県コードの順）。
 const prefectureNames = [
@@ -15,18 +27,21 @@ const prefectureNames = [
   '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県', //
 ];
 
-/// 都道府県コードで区切った地方（三重は近畿、新潟・山梨・長野・静岡は中部に入れる）。
+/// 地方。中部は甲信越（新潟・長野・山梨）・北陸（富山・石川・福井）・東海（岐阜・静岡・愛知・三重）に分け、三重は東海に入れる。
 Region? regionOf(String prefecture) {
   final code = prefectureNames.indexOf(prefecture) + 1;
   if (code == 0) return null;
   if (code == 1) return Region.hokkaido;
   if (code <= 7) return Region.tohoku;
   if (code <= 14) return Region.kanto;
-  if (code <= 23) return Region.chubu;
+  if (code == 15 || code == 19 || code == 20) return Region.koshinetsu;
+  if (code <= 18) return Region.hokuriku;
+  if (code <= 24) return Region.tokai;
   if (code <= 30) return Region.kinki;
   if (code <= 35) return Region.chugoku;
   if (code <= 39) return Region.shikoku;
-  return Region.kyushu;
+  if (code <= 46) return Region.kyushu;
+  return Region.okinawa;
 }
 
 /// 地方に入る都道府県（北から順）。
