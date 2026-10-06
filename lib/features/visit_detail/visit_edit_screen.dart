@@ -154,7 +154,14 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
 
   void _onNameChanged(String name) {
     setState(() {
-      if (_pickedShop?.name != name.trim()) _pickedShop = null;
+      if (_pickedShop == null || _pickedShop?.name == name.trim()) return;
+      _pickedShop = null;
+      // 選び直した店から外れたら、もとの店の覚え書きと名店の印に戻す。
+      final shop = widget.entry.shop;
+      _shopMemoController.text = shop.strategyMemo;
+      _shopMemoOriginal = shop.strategyMemo;
+      _shopFamous = shop.isFamous;
+      _shopFamousOriginal = shop.isFamous;
     });
   }
 

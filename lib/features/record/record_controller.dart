@@ -613,6 +613,8 @@ class RecordController extends Notifier<RecordState> {
             // 書き換えたときだけ店に書く（打った店名が記録済みの店でも、触らなければ前の覚え書きを残す）。
             shopMemo: draft.shopMemoEdited ? draft.shopMemo.trim() : null,
             shopFamous: draft.shopFamousEdited ? draft.shopFamous : null,
+            // 同じ名前の店の印が入っていても、離れた支店などで新しい店になれば、見えていた印を付ける。
+            newShopFamous: draft.shopFamous,
             now: now,
           );
       _draftClosed = true;

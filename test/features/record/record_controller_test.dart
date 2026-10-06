@@ -1256,6 +1256,28 @@ void main() {
       expect((await saved('行きつけの店')).shop.isFamous, isFalse);
     });
 
+    test('同じ名前の名店でも、離れた場所で新しい店になれば、見えていた印を付ける', () async {
+      final repository = container.read(recordRepositoryProvider);
+      final far = await repository.saveEatenVisit(
+        shop: const ShopInput(name: '行きつけの店', latitude: 35.1, longitude: 139.0),
+        eatenAt: DateTime(2026, 9, 1),
+        now: DateTime(2026, 9, 1),
+      );
+      await repository.setShopFamous(far.shopId, true);
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      controller()
+        ..setManualName('行きつけの店')
+        ..setMemo('かため');
+      expect(state().shopFamous, isTrue);
+      expect(await controller().save(), isNotNull);
+
+      final entry = await saved('行きつけの店');
+      expect(entry.shop.id, isNot(far.shopId));
+      expect(entry.shop.isFamous, isTrue);
+    });
+
     test('店を選び替えると、その店の印に入れ替わる', () async {
       await knownShop('行きつけの店', famous: true);
       await controller().start();
