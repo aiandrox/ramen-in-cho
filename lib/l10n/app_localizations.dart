@@ -2967,6 +2967,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'スマホの設定で、麺印帳の通知を切り替えます'**
   String get notificationSettingsNote;
+
+  /// No description provided for @nameSearchPickOnMap.
+  ///
+  /// In ja, this message translates to:
+  /// **'見つからないときは、地図で場所を指す'**
+  String get nameSearchPickOnMap;
 }
 
 class _AppLocalizationsDelegate

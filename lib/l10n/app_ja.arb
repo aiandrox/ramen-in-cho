@@ -778,5 +778,6 @@
   "locationServiceOffBody": "スマホの位置情報がオフになっています。設定で位置情報をオンにしてください。",
   "locationOpenSettings": "設定を開く",
   "notificationSettings": "通知",
-  "notificationSettingsNote": "スマホの設定で、麺印帳の通知を切り替えます"
+  "notificationSettingsNote": "スマホの設定で、麺印帳の通知を切り替えます",
+  "nameSearchPickOnMap": "見つからないときは、地図で場所を指す"
 }
