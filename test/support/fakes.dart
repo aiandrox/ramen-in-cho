@@ -307,6 +307,12 @@ class FakeNotificationService implements NotificationService {
   @override
   Future<bool?> isPermitted() async => permitted;
 
+  /// スマホの設定で止められている種類（Android）。
+  Set<NotificationKind> blocked = {};
+
+  @override
+  Future<Set<NotificationKind>> blockedKinds() async => blocked;
+
   final tapController = StreamController<String>.broadcast();
   String? launchPayload;
 

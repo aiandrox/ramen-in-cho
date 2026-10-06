@@ -80,4 +80,36 @@ void main() {
         .setEnabled(NotificationKind.checkin, true);
     expect(NotificationSettingsStore(directory).load().disabled, isEmpty);
   });
+
+  group('年の振り返り・年始の願掛け・行事の日を「季節のお知らせ」にまとめる前の設定', () {
+    NotificationSettings load(String json) {
+      final directory = createTempDirectory();
+      File(p.join(directory.path, NotificationSettingsStore.fileName))
+          .writeAsStringSync(json);
+      return NotificationSettingsStore(directory).load();
+    }
+
+    test('3つとも止めていたら、季節のお知らせも止める', () {
+      final settings = load(
+        '{"disabled":["year_review","new_year_wish","event","streak"]}',
+      );
+      expect(settings.disabled, {
+        NotificationKind.seasonal,
+        NotificationKind.streak,
+      });
+    });
+
+    test('1つでもオンなら、季節のお知らせはオン', () {
+      expect(load('{"disabled":["year_review","event"]}').disabled, isEmpty);
+      expect(load('{"disabled":["new_year_wish"]}').disabled, isEmpty);
+    });
+
+    test('保存し直すと、新しい名前だけが残る', () {
+      final settings = load(
+        '{"disabled":["year_review","new_year_wish","event"]}',
+      );
+      expect(settings.toJson()['disabled'], ['seasonal']);
+      expect(NotificationSettings.fromJson(settings.toJson()), settings);
+    });
+  });
 }

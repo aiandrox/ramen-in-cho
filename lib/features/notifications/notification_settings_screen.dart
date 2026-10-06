@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../settings/system_settings.dart';
+import 'notification_channels.dart';
 import 'notification_labels.dart';
 import 'notification_scheduler.dart';
 import 'notification_service.dart';
 import 'notification_settings.dart';
 
-/// 通知の設定。種類ごとのオン・オフと、連続記録を知らせる曜日・時刻を選ぶ。
+/// 通知の設定。連続記録を知らせる曜日・時刻と、夜は知らせないかを選ぶ。
+/// 種類ごとのオン・オフは、iOS ではここで、Android ではスマホの設定（通知のカテゴリ）で切り替える。
 class NotificationSettingsScreen extends ConsumerStatefulWidget {
   const NotificationSettingsScreen({super.key});
 
@@ -71,7 +73,20 @@ class _NotificationSettingsScreenState
     final l10n = AppLocalizations.of(context);
     final settings = ref.watch(notificationSettingsProvider);
     final controller = ref.read(notificationSettingsProvider.notifier);
-    final streakOn = settings.isEnabled(NotificationKind.streak);
+    final systemCategories = ref.watch(
+      usesSystemNotificationCategoriesProvider,
+    );
+    final streakOn =
+        ref
+            .watch(effectiveNotificationSettingsProvider)
+            ?.isEnabled(NotificationKind.streak) ??
+        false;
+    final streakTime = _StreakTimePicker(
+      settings: settings,
+      onWeekday: (weekday) =>
+          controller.update(settings.copyWith(streakWeekday: weekday)),
+      onPickTime: () => _pickStreakTime(settings),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.notificationSettings)),
@@ -94,24 +109,22 @@ class _NotificationSettingsScreenState
                 onTap: _allow,
               ),
             ),
-          for (final kind in NotificationKind.values) ...[
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(notificationKindLabel(l10n, kind)),
-              subtitle: Text(notificationKindNote(l10n, kind)),
-              value: settings.isEnabled(kind),
-              onChanged: (on) => controller.setEnabled(kind, on),
-            ),
-            if (kind == NotificationKind.streak && streakOn)
-              _StreakTimePicker(
-                settings: settings,
-                onWeekday: (weekday) => controller.update(
-                  settings.copyWith(streakWeekday: weekday),
-                ),
-                onPickTime: () => _pickStreakTime(settings),
+          if (systemCategories && streakOn) streakTime,
+          if (!systemCategories)
+            for (final kind in NotificationKind.values) ...[
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(notificationKindLabel(l10n, kind)),
+                subtitle: switch (notificationKindNote(l10n, kind)) {
+                  final note? => Text(note),
+                  null => null,
+                },
+                value: settings.isEnabled(kind),
+                onChanged: (on) => controller.setEnabled(kind, on),
               ),
-          ],
-          const Divider(height: 24),
+              if (kind == NotificationKind.streak && streakOn) streakTime,
+            ],
+          if (!systemCategories || streakOn) const Divider(height: 24),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.notificationQuietNight),
@@ -123,14 +136,13 @@ class _NotificationSettingsScreenState
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.notificationOsSettings),
-            subtitle: Text(l10n.notificationOsSettingsNote),
+            subtitle: Text(
+              systemCategories
+                  ? l10n.notificationOsSettingsKindsNote
+                  : l10n.notificationOsSettingsNote,
+            ),
             trailing: const Icon(Icons.open_in_new),
             onTap: openNotificationSettings,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.notificationDailyCapNote,
-            style: Theme.of(context).textTheme.bodySmall,
           ),
           if (kDebugMode) const _PlannedNotificationsDebug(),
         ],

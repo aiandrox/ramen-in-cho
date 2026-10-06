@@ -223,12 +223,12 @@ void main() {
       List<VisitWithShop>? visits,
       Set<int> reviewed = const {},
     }) => planNotifications(
-      settings: _only(NotificationKind.yearReview),
+      settings: _only(NotificationKind.seasonal),
       streak: Streak.none,
       now: now,
       visits: visits ?? [_visit(DateTime(2026, 3, 1, 12))],
       reviewedYears: reviewed,
-    );
+    ).whereType<YearReviewNotice>().toList();
 
     test('12月26日と30日の夜に、その年の振り返りを勧める', () {
       expect(plan(thursday), [
@@ -265,11 +265,11 @@ void main() {
       DateTime now, {
       List<Wish> wishes = const [],
     }) => planNotifications(
-      settings: _only(NotificationKind.newYearWish),
+      settings: _only(NotificationKind.seasonal),
       streak: Streak.none,
       now: now,
       wishes: wishes,
-    );
+    ).whereType<NewYearWishNotice>().toList();
 
     test('1月1日と5日に勧める。120日より先は予約しない', () {
       final december = DateTime(2026, 12, 1);
@@ -351,10 +351,10 @@ void main() {
 
     test('年をまたいで、120日先までを予約する', () {
       final plans = planNotifications(
-        settings: _only(NotificationKind.event),
+        settings: _only(NotificationKind.seasonal),
         streak: Streak.none,
         now: DateTime(2026, 12, 25),
-      );
+      ).whereType<EventNotice>();
       expect(plans, [
         EventNotice(DateTime(2026, 12, 31, 17), event: RamenEvent.newYearsEve),
         EventNotice(DateTime(2027, 2, 14, 11, 30), event: RamenEvent.valentine),
@@ -411,15 +411,47 @@ void main() {
       );
     });
 
+    test('季節のお知らせどうしも1日1件。年の振り返り・年始の願掛けを行事の日より残す', () {
+      final day = DateTime(2026, 12, 31);
+      DateTime at(int hour) => day.add(Duration(hours: hour));
+      expect(
+        applyDailyCap([
+          EventNotice(at(17), event: RamenEvent.newYearsEve),
+          YearReviewNotice(at(20), year: 2026),
+        ]),
+        [YearReviewNotice(at(20), year: 2026)],
+      );
+      expect(
+        applyDailyCap([
+          NewYearWishNotice(at(11)),
+          EventNotice(at(9), event: RamenEvent.valentine),
+        ]),
+        [NewYearWishNotice(at(11))],
+      );
+    });
+
+    test('季節のお知らせを止めると、年の振り返り・年始の願掛け・行事の日をどれも予約しない', () {
+      final plans = planNotifications(
+        settings: NotificationSettings.defaults.withEnabled(
+          NotificationKind.seasonal,
+          false,
+        ),
+        streak: Streak.none,
+        now: DateTime(2026, 12, 1),
+        visits: [_visit(DateTime(2026, 3, 1, 12))],
+      );
+      expect(
+        plans.where((plan) => plan.kind == NotificationKind.seasonal),
+        isEmpty,
+      );
+      expect(plans, isNotEmpty);
+    });
+
     test('今日すでに届いた通知があれば、今日はもう届けない', () {
       // 2026-10-20（火）10時に連続記録が届いたあと、同じ日の「今月の一杯」（19時）は出さない。
       final plans = planNotifications(
         settings: const NotificationSettings(
-          disabled: {
-            NotificationKind.event,
-            NotificationKind.yearReview,
-            NotificationKind.newYearWish,
-          },
+          disabled: {NotificationKind.seasonal},
           streakWeekday: DateTime.tuesday,
           streakHour: 10,
         ),

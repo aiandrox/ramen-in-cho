@@ -16,7 +16,9 @@ import 'package:ramen_in_cho/features/record/record_draft.dart';
 import 'package:ramen_in_cho/features/record/record_screen.dart';
 import 'package:ramen_in_cho/theme/washi_buttons.dart';
 import 'package:ramen_in_cho/features/map/map_screen.dart';
+import 'package:ramen_in_cho/features/notifications/notification_channels.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
+import 'package:ramen_in_cho/features/notifications/notification_settings.dart';
 import 'package:ramen_in_cho/features/onboarding/onboarding_store.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
@@ -48,6 +50,7 @@ void main() {
     WidgetTester tester,
     List<VisitWithShop> visits, {
     DateTime? now,
+    bool? systemNotificationCategories,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -62,6 +65,10 @@ void main() {
           locationServiceProvider.overrideWithValue(FakeLocationService()),
           showOnboardingOnLaunchProvider.overrideWithValue(false),
           if (now != null) clockProvider.overrideWithValue(() => now),
+          if (systemNotificationCategories != null)
+            usesSystemNotificationCategoriesProvider.overrideWithValue(
+              systemNotificationCategories,
+            ),
         ],
         child: const RamenInChoApp(),
       ),
@@ -489,12 +496,17 @@ void main() {
       expect(notifications.replaceCount, greaterThan(0));
     });
 
-    testWidgets('通知の設定で連続記録をオフにすると予約を取り消し、オンに戻すと予約し直す', (tester) async {
+    testWidgets('iOS: 通知の設定で連続記録をオフにすると予約を取り消し、オンに戻すと予約し直す', (tester) async {
       notifications.permitted = false;
-      await pumpApp(tester, [
-        eatenAt(DateTime(2026, 9, 22, 12)),
-        eatenAt(DateTime(2026, 9, 15, 12)),
-      ], now: thursday);
+      await pumpApp(
+        tester,
+        [
+          eatenAt(DateTime(2026, 9, 22, 12)),
+          eatenAt(DateTime(2026, 9, 15, 12)),
+        ],
+        now: thursday,
+        systemNotificationCategories: false,
+      );
       expect(notifications.streakReminders, [DateTime(2026, 10, 4, 18)]);
 
       await tester.tap(find.text(ja.navShugyo));
@@ -521,6 +533,42 @@ void main() {
       await tester.tap(find.text(ja.weekdayShort('6')));
       await tester.pumpAndSettle();
       expect(notifications.streakReminders, [DateTime(2026, 10, 3, 18)]);
+      expect(find.text(ja.notificationKindSeasonal), findsOneWidget);
+      expect(find.text(ja.notificationOsSettingsKindsNote), findsNothing);
+    });
+
+    testWidgets('Android: 種類ごとのスイッチは出さず、スマホの設定で止めた連続記録は曜日と時刻も隠す', (
+      tester,
+    ) async {
+      await pumpApp(
+        tester,
+        [
+          eatenAt(DateTime(2026, 9, 22, 12)),
+          eatenAt(DateTime(2026, 9, 15, 12)),
+        ],
+        now: thursday,
+        systemNotificationCategories: true,
+      );
+      await tester.tap(find.text(ja.navShugyo));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip(ja.settingsSection));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.notificationSettings));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SwitchListTile), findsOneWidget);
+      expect(find.text(ja.notificationQuietNight), findsOneWidget);
+      expect(find.text(ja.notificationKindStreak), findsNothing);
+      expect(find.text(ja.notificationKindSeasonal), findsNothing);
+      expect(find.text(ja.notificationOsSettingsKindsNote), findsOneWidget);
+      expect(find.text(ja.notificationStreakTime), findsOneWidget);
+
+      notifications.blocked = {NotificationKind.streak};
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.text(ja.notificationStreakTime), findsNothing);
+      expect(notifications.streakReminders, isEmpty);
     });
   });
 

@@ -87,7 +87,7 @@ class YearReviewNotice extends PlannedNotification {
   final int year;
 
   @override
-  NotificationKind get kind => NotificationKind.yearReview;
+  NotificationKind get kind => NotificationKind.seasonal;
 
   @override
   int get id => _dateId(3, at);
@@ -106,7 +106,7 @@ class NewYearWishNotice extends PlannedNotification {
   const NewYearWishNotice(super.at);
 
   @override
-  NotificationKind get kind => NotificationKind.newYearWish;
+  NotificationKind get kind => NotificationKind.seasonal;
 
   @override
   int get id => _dateId(4, at);
@@ -143,7 +143,7 @@ class EventNotice extends PlannedNotification {
   final RamenEvent event;
 
   @override
-  NotificationKind get kind => NotificationKind.event;
+  NotificationKind get kind => NotificationKind.seasonal;
 
   @override
   int get id => _dateId(6, at);
@@ -238,12 +238,13 @@ DateTime avoidQuietNight(DateTime at, NotificationSettings settings) {
 const planningHorizon = Duration(days: 120);
 
 /// 1日に届く通知の数を絞るときの優先順（小さいほど大事）。★の付け忘れは別枠。
-int _priority(NotificationKind kind) => switch (kind) {
-  NotificationKind.yearReview || NotificationKind.newYearWish => 0,
-  NotificationKind.streak => 1,
-  NotificationKind.monthly => 2,
-  NotificationKind.event => 3,
-  NotificationKind.rating || NotificationKind.checkin => -1,
+/// 季節のお知らせのうち、年の振り返りと年始の願掛けは行事の日より大事にする。
+int _priority(PlannedNotification plan) => switch (plan) {
+  YearReviewNotice() || NewYearWishNotice() => 0,
+  StreakNotice() => 1,
+  MonthlyNotice() => 2,
+  EventNotice() => 3,
+  RatingNotice() => -1,
 };
 
 /// 1日に届くのは、★の付け忘れ（自分の記録への返事なので別枠）と、ほかの1件まで。
@@ -259,8 +260,8 @@ List<PlannedNotification> applyDailyCap(List<PlannedNotification> plans) {
     final day = DateTime(plan.at.year, plan.at.month, plan.at.day);
     final current = byDay[day];
     if (current == null ||
-        _priority(plan.kind) < _priority(current.kind) ||
-        (_priority(plan.kind) == _priority(current.kind) &&
+        _priority(plan) < _priority(current) ||
+        (_priority(plan) == _priority(current) &&
             plan.at.isBefore(current.at))) {
       byDay[day] = plan;
     }
@@ -290,7 +291,7 @@ List<PlannedNotification> planNotifications({
 
   add(NotificationKind.rating, [?_ratingNotice(visits, settings)]);
 
-  add(NotificationKind.yearReview, [
+  add(NotificationKind.seasonal, [
     for (var year = today.year; year <= until.year; year++)
       if (!reviewedYears.contains(year) &&
           visits.any(
@@ -302,7 +303,7 @@ List<PlannedNotification> planNotifications({
           YearReviewNotice(at, year: year),
   ]);
 
-  add(NotificationKind.newYearWish, [
+  add(NotificationKind.seasonal, [
     for (var year = today.year; year <= until.year; year++)
       if (!wishes.any(
         (wish) => !wish.createdAt.isBefore(newYearWishWindowStart(year)),
@@ -339,7 +340,7 @@ List<PlannedNotification> planNotifications({
           MonthlyNotice(monthlyReminderAt(month.year, month.month)),
   ]);
 
-  add(NotificationKind.event, [
+  add(NotificationKind.seasonal, [
     for (final (event, at) in ramenEventsBetween(today, until))
       EventNotice(at, event: event),
   ]);
