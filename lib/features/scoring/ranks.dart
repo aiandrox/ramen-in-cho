@@ -6,7 +6,7 @@ import 'points.dart';
 /// 免許皆伝はおよそ140杯で届く。点の多い1杯でも上がるのは1つだけ（rank_history.dart）。
 enum AdventurerRank {
   apprentice(0),
-  kyu5(20),
+  kyu5(15),
   kyu4(65),
   kyu3(115),
   kyu2(185),

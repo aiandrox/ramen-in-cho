@@ -87,7 +87,7 @@ void main() {
     expect(seal(ja.rankApprentice), findsOneWidget);
     expect(find.text(ja.rankHistoryNoRecord), findsOneWidget);
     expect(seal(ja.rankKyu('五')), findsOneWidget);
-    expect(find.text(ja.rankHistoryRemaining(20)), findsOneWidget);
+    expect(find.text(ja.rankHistoryRemaining(15)), findsOneWidget);
     expect(seal(ja.rankHistoryHidden), findsNWidgets(15));
   });
 
