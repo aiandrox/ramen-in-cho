@@ -624,7 +624,7 @@ class _Pin extends StatelessWidget {
         button: true,
         label: pin.shop.name,
         // 丸い印の頭に格の字を入れ、細い足の先を店の場所にする（字が場所に重ならないように）。
-        // 行った店は朱で塗った印に、店ランク（易・厳・難・極）の字を入れる。
+        // 行った店は朱で塗った印に、店ランク（良・秀・妙・極）の字を入れる。
         child: MapSealPin(
           color: rank == null ? Washi.faded : Washi.shu,
           filled: true,

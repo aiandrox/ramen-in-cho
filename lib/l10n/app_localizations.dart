@@ -2173,19 +2173,19 @@ abstract class AppLocalizations {
   /// No description provided for @shopRankA.
   ///
   /// In ja, this message translates to:
-  /// **'難'**
+  /// **'妙'**
   String get shopRankA;
 
   /// No description provided for @shopRankB.
   ///
   /// In ja, this message translates to:
-  /// **'厳'**
+  /// **'秀'**
   String get shopRankB;
 
   /// No description provided for @shopRankC.
   ///
   /// In ja, this message translates to:
-  /// **'易'**
+  /// **'良'**
   String get shopRankC;
 
   /// No description provided for @inkanRetry.
@@ -2833,7 +2833,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingShareBody.
   ///
   /// In ja, this message translates to:
-  /// **'刻んだ一杯は、このような印となって帳面に並ぶ。長く並んだ一杯ほど、攻め難い店ほど、印は格を増していく。\n\n写真と印と店の名を一枚の絵にまとめ、同じ道を行く者に見せることもできる。'**
+  /// **'刻んだ一杯は、このような印となって帳面に並ぶ。長く並び、遠くまで足を運び、通い詰めた一杯ほど、修行点は高くなり、印は格を増していく。\n\n写真と印と店の名を一枚の絵にまとめ、同じ道を行く者に見せることもできる。'**
   String get onboardingShareBody;
 
   /// No description provided for @onboardingShareButton.
