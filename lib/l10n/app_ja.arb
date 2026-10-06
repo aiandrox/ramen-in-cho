@@ -583,7 +583,7 @@
     }
   },
   "mapListButton": "地図の店の一覧",
-  "mapListTitle": "地図の店 {count}軒",
+  "mapListTitle": "画面に見えている店 {count}軒",
   "@mapListTitle": {"placeholders": {"count": {"type": "int"}}},
   "mapClusterTitle": "このあたりの店 {count}軒",
   "@mapClusterTitle": {"placeholders": {"count": {"type": "int"}}},

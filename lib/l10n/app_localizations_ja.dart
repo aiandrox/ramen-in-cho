@@ -1253,7 +1253,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String mapListTitle(int count) {
-    return '地図の店 $count軒';
+    return '画面に見えている店 $count軒';
   }
 
   @override
