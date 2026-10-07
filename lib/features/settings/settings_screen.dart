@@ -48,16 +48,16 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => open(const NotificationSettingsScreen()),
           ),
-          for (final (title, screen) in [
-            (l10n.backupTitle, const BackupScreen()),
-            (l10n.onboardingReplay, const OnboardingScreen()),
-            (l10n.creditsTitle, const CreditsScreen()),
+          for (final (title, onTap) in [
+            (l10n.backupTitle, () => open(const BackupScreen())),
+            (l10n.onboardingReplay, () => showOnboarding(context, ref)),
+            (l10n.creditsTitle, () => open(const CreditsScreen())),
           ])
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(title),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => open(screen),
+              onTap: onTap,
             ),
           ListTile(
             contentPadding: EdgeInsets.zero,

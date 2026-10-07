@@ -373,9 +373,7 @@ final List<_Screen> _screens = [
     checkin: null,
     visit: (tester, audit) async {
       for (final next in [
-        ja.onboardingWelcomeRecord,
-        ja.onboardingLater,
-        ja.onboardingLater,
+        ja.onboardingNext,
         ja.onboardingHomeBaseLater,
         null,
       ]) {

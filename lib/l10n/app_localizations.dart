@@ -2974,126 +2974,6 @@ abstract class AppLocalizations {
   /// **'先へ進む'**
   String get onboardingNext;
 
-  /// No description provided for @onboardingWelcomeTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'門を叩く'**
-  String get onboardingWelcomeTitle;
-
-  /// No description provided for @onboardingWelcomeBody.
-  ///
-  /// In ja, this message translates to:
-  /// **'麺印帳は、麺の道を歩む者のための修行の帳面である。\n食べた一杯ごとに印を授かり、並んだ時間も、遠い店への道のりも、すべて修行点として刻まれていく。\n\n始め方は三つある。'**
-  String get onboardingWelcomeBody;
-
-  /// No description provided for @onboardingWelcomeRecord.
-  ///
-  /// In ja, this message translates to:
-  /// **'写真から一杯を刻む'**
-  String get onboardingWelcomeRecord;
-
-  /// No description provided for @onboardingWelcomeQueue.
-  ///
-  /// In ja, this message translates to:
-  /// **'いま行列に並んでいる'**
-  String get onboardingWelcomeQueue;
-
-  /// No description provided for @onboardingWelcomeBackup.
-  ///
-  /// In ja, this message translates to:
-  /// **'前の帳面を引き継ぐ（バックアップ）'**
-  String get onboardingWelcomeBackup;
-
-  /// No description provided for @onboardingRecordTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'最初の一杯を刻む'**
-  String get onboardingRecordTitle;
-
-  /// No description provided for @onboardingRecordBody.
-  ///
-  /// In ja, this message translates to:
-  /// **'撮りためた一杯の写真が一枚あれば足りる。撮影した日時と場所から、店の候補を探し出す。\n\n次の画面で「ギャラリーから選ぶ」を押し、店を選んで「着丼！」を押す。これで一杯目が刻まれる。'**
-  String get onboardingRecordBody;
-
-  /// No description provided for @onboardingRecordButton.
-  ///
-  /// In ja, this message translates to:
-  /// **'写真を選んで刻む'**
-  String get onboardingRecordButton;
-
-  /// No description provided for @onboardingShareTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'一杯目の印'**
-  String get onboardingShareTitle;
-
-  /// No description provided for @onboardingShareBody.
-  ///
-  /// In ja, this message translates to:
-  /// **'刻んだ一杯は、このような印となって帳面に並ぶ。長く並び、遠くまで足を運び、通い詰めた一杯ほど、修行点は高くなり、印は格を増していく。\n\n写真と印と店の名を一枚の絵にまとめ、同じ道を行く者に見せることもできる。'**
-  String get onboardingShareBody;
-
-  /// No description provided for @onboardingShareButton.
-  ///
-  /// In ja, this message translates to:
-  /// **'絵にして分かち合う'**
-  String get onboardingShareButton;
-
-  /// No description provided for @onboardingWishTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'次なる一杯に願を掛ける'**
-  String get onboardingWishTitle;
-
-  /// No description provided for @onboardingWishBody.
-  ///
-  /// In ja, this message translates to:
-  /// **'行きたい店を願掛け帳に記しておけば、その店で食べた日に願が成就する。\n\n地図の右下の「探す」を押すと、近くのまだ訪れていない店が灰色の印で現れる。気になる店に触れ、「願を掛ける」を押す。'**
-  String get onboardingWishBody;
-
-  /// No description provided for @onboardingWishNotYet.
-  ///
-  /// In ja, this message translates to:
-  /// **'まだ願は掛かっていない。店の名からも掛けられる。'**
-  String get onboardingWishNotYet;
-
-  /// No description provided for @onboardingWishMap.
-  ///
-  /// In ja, this message translates to:
-  /// **'地図で近くの店を探す'**
-  String get onboardingWishMap;
-
-  /// No description provided for @onboardingWishByName.
-  ///
-  /// In ja, this message translates to:
-  /// **'店の名で願を掛ける'**
-  String get onboardingWishByName;
-
-  /// No description provided for @onboardingFinishTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'あとは精進あるのみ'**
-  String get onboardingFinishTitle;
-
-  /// No description provided for @onboardingFinishBody.
-  ///
-  /// In ja, this message translates to:
-  /// **'「修行」では、段位、型と秘伝、修行録、一年の振り返りを見ることができる。\n\n一杯ごとに印は増え、段位は上がっていく。\nいざ、麺の道へ。'**
-  String get onboardingFinishBody;
-
-  /// No description provided for @onboardingFinishShugyo.
-  ///
-  /// In ja, this message translates to:
-  /// **'修行の間をのぞく'**
-  String get onboardingFinishShugyo;
-
-  /// No description provided for @onboardingFinishRecords.
-  ///
-  /// In ja, this message translates to:
-  /// **'印帳を開く'**
-  String get onboardingFinishRecords;
-
   /// No description provided for @onboardingReplay.
   ///
   /// In ja, this message translates to:
@@ -3112,28 +2992,58 @@ abstract class AppLocalizations {
   /// **'其の一　入門'**
   String get onboardingWelcomeChapter;
 
-  /// No description provided for @onboardingRecordChapter.
+  /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In ja, this message translates to:
-  /// **'其の二　初陣'**
-  String get onboardingRecordChapter;
+  /// **'門を叩く'**
+  String get onboardingWelcomeTitle;
 
-  /// No description provided for @onboardingShareChapter.
+  /// No description provided for @onboardingWelcomeBody.
   ///
   /// In ja, this message translates to:
-  /// **'其の三　授印'**
-  String get onboardingShareChapter;
+  /// **'麺印帳は、麺の道を歩む者のための修行の帳面である。'**
+  String get onboardingWelcomeBody;
 
-  /// No description provided for @onboardingWishChapter.
+  /// No description provided for @onboardingWelcomeSealTitle.
   ///
   /// In ja, this message translates to:
-  /// **'其の四　願掛'**
-  String get onboardingWishChapter;
+  /// **'一杯ごとに印を授かる'**
+  String get onboardingWelcomeSealTitle;
+
+  /// No description provided for @onboardingWelcomeSealBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'食べた一杯を刻むと、このような印が帳面に並ぶ。難しい一杯ほど、印は格を増していく。'**
+  String get onboardingWelcomeSealBody;
+
+  /// No description provided for @onboardingWelcomePointsTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'修行点を積み、段位を上げる'**
+  String get onboardingWelcomePointsTitle;
+
+  /// No description provided for @onboardingWelcomePointsBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'長く並んだ一杯、限定の一杯、遠い店への道のり。攻略の難しさが修行点となり、積み重ねるほど段位が上がる。'**
+  String get onboardingWelcomePointsBody;
+
+  /// No description provided for @onboardingWelcomeWishTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'次なる一杯に願を掛ける'**
+  String get onboardingWelcomeWishTitle;
+
+  /// No description provided for @onboardingWelcomeWishBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'行きたい店は願掛け帳に記しておく。その店で食べた日に、願が成就する。'**
+  String get onboardingWelcomeWishBody;
 
   /// No description provided for @onboardingHomeBaseChapter.
   ///
   /// In ja, this message translates to:
-  /// **'其の五　拠点'**
+  /// **'其の二　拠点'**
   String get onboardingHomeBaseChapter;
 
   /// No description provided for @onboardingHomeBaseTitle.
@@ -3148,11 +3058,17 @@ abstract class AppLocalizations {
   /// **'ふだん暮らす駅や街を、修行の拠点と定める。\n\n拠点から80km以上離れた店で食べた一杯は「遠征」となり、修行点が上乗せされる。拠点はあとから設定で変えられ、変えた日から後の一杯にだけ効く。'**
   String get onboardingHomeBaseBody;
 
-  /// No description provided for @onboardingHomeBaseButton.
+  /// No description provided for @onboardingHomeBaseHere.
   ///
   /// In ja, this message translates to:
-  /// **'拠点を決める'**
-  String get onboardingHomeBaseButton;
+  /// **'現在地を拠点にする'**
+  String get onboardingHomeBaseHere;
+
+  /// No description provided for @onboardingHomeBaseMap.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図で選ぶ'**
+  String get onboardingHomeBaseMap;
 
   /// No description provided for @onboardingHomeBaseLater.
   ///
@@ -3160,11 +3076,47 @@ abstract class AppLocalizations {
   /// **'あとで決める'**
   String get onboardingHomeBaseLater;
 
-  /// No description provided for @onboardingFinishChapter.
+  /// No description provided for @onboardingStartChapter.
   ///
   /// In ja, this message translates to:
-  /// **'其の六　精進'**
-  String get onboardingFinishChapter;
+  /// **'其の三　始め方'**
+  String get onboardingStartChapter;
+
+  /// No description provided for @onboardingStartTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'いざ、麺の道へ'**
+  String get onboardingStartTitle;
+
+  /// No description provided for @onboardingStartBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'支度は整った。どこから始めるかを選ぶがよい。\n\n刻んだ一杯は印帳に並び、段位や型と秘伝は「修行」で見ることができる。'**
+  String get onboardingStartBody;
+
+  /// No description provided for @onboardingStartRecord.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真から一杯を刻む'**
+  String get onboardingStartRecord;
+
+  /// No description provided for @onboardingStartQueue.
+  ///
+  /// In ja, this message translates to:
+  /// **'いま並んでいる'**
+  String get onboardingStartQueue;
+
+  /// No description provided for @onboardingStartBackup.
+  ///
+  /// In ja, this message translates to:
+  /// **'前の帳面を引き継ぐ'**
+  String get onboardingStartBackup;
+
+  /// No description provided for @onboardingStartBrowse.
+  ///
+  /// In ja, this message translates to:
+  /// **'まずは見てまわる'**
+  String get onboardingStartBrowse;
 
   /// No description provided for @locationBlockedTitle.
   ///
