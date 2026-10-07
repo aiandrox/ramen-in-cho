@@ -21,7 +21,7 @@ import 'wishes.dart';
 import '../../theme/washi_buttons.dart';
 import '../analytics/analytics_events.dart';
 
-/// すべらせて消した願。データベースから消えて一覧が更新されるまでの間も、すぐ隠すため。
+/// 消した願。データベースから消えて一覧が更新されるまでの間も、すぐ隠すため。
 final _removedWishIdsProvider = NotifierProvider<_RemovedWishIds, Set<String>>(
   _RemovedWishIds.new,
 );
@@ -31,6 +31,8 @@ class _RemovedWishIds extends Notifier<Set<String>> {
   Set<String> build() => const {};
 
   void add(String id) => state = {...state, id};
+
+  void remove(String id) => state = {...state}..remove(id);
 }
 
 /// 願掛け帳。行きたい店（まだの願）と、食べに行けた店（叶った願）を分けて見せる。
@@ -179,13 +181,32 @@ class _PendingWishCard extends ConsumerWidget {
     return confirmed == true;
   }
 
-  void _delete(WidgetRef ref) {
-    ref.read(_removedWishIdsProvider.notifier).add(status.wish.id);
-    ref.read(wishRepositoryProvider).deleteWish(status.wish.id);
+  /// 確かめたあとで消す。窓を開いている間に行が消えても消せるよう、先に取り出しておいたものを使う。
+  Future<void> _delete(
+    _RemovedWishIds removed,
+    WishRepository repository,
+    ScaffoldMessengerState messenger,
+    String failed,
+  ) async {
+    final id = status.wish.id;
+    removed.add(id);
+    try {
+      await repository.deleteWish(id);
+    } catch (e, st) {
+      reportError(e, st, reason: 'Wish delete failed');
+      removed.remove(id);
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 
   Future<void> _deleteFromMenu(BuildContext context, WidgetRef ref) async {
-    if (await _confirmDelete(context)) _delete(ref);
+    final removed = ref.read(_removedWishIdsProvider.notifier);
+    final repository = ref.read(wishRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).wishDeleteFailed;
+    if (await _confirmDelete(context)) {
+      await _delete(removed, repository, messenger, failed);
+    }
   }
 
   @override
@@ -193,13 +214,17 @@ class _PendingWishCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final wish = status.wish;
-    // 店名ときっかけだけ。メモはタップして開く編集で見る。
-    // 消すときは横にすべらせるか、右の「…」から（すべらせる操作に気づけない人もいるため）。
+    // 店名ときっかけだけ。メモはタップして開く編集で見る。消すときは横にすべらせるか、右の「…」から。
     return Dismissible(
       key: ValueKey(wish.id),
       direction: DismissDirection.endToStart,
       confirmDismiss: (_) => _confirmDelete(context),
-      onDismissed: (_) => _delete(ref),
+      onDismissed: (_) => _delete(
+        ref.read(_removedWishIdsProvider.notifier),
+        ref.read(wishRepositoryProvider),
+        ScaffoldMessenger.of(context),
+        l10n.wishDeleteFailed,
+      ),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),

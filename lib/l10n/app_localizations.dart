@@ -1468,6 +1468,12 @@ abstract class AppLocalizations {
   /// **'願を消す'**
   String get wishDeleteAction;
 
+  /// No description provided for @wishDeleteFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'願を消せませんでした。もう一度お試しください'**
+  String get wishDeleteFailed;
+
   /// No description provided for @wishDeleteConfirm.
   ///
   /// In ja, this message translates to:
