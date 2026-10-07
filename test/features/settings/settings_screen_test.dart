@@ -26,7 +26,7 @@ void main() {
     opens = true;
   });
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(WidgetTester tester, {String build = '45'}) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.5;
     addTearDown(tester.view.reset);
@@ -36,7 +36,7 @@ void main() {
           homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
           locationAccessServiceProvider.overrideWithValue(_GrantedAccess()),
           appVersionProvider.overrideWith(
-            (ref) async => (version: '1.2.3', build: '45'),
+            (ref) async => (version: '1.2.3', build: build),
           ),
           externalPageOpenerProvider.overrideWithValue((uri) async {
             opened.add(uri);
@@ -54,6 +54,12 @@ void main() {
 
     expect(find.text(ja.appVersion('1.2.3', '45')), findsOneWidget);
     expect(ja.appVersion('1.2.3', '45'), '版 1.2.3（45）');
+  });
+
+  testWidgets('ビルド番号が取れなければ、版数だけを出す', (tester) async {
+    await pump(tester, build: '');
+
+    expect(find.text(ja.appVersionOnly('1.2.3')), findsOneWidget);
   });
 
   testWidgets('「プライバシーポリシー」で、外のブラウザでポリシーのページを開く', (tester) async {

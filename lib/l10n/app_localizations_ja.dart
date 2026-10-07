@@ -1976,6 +1976,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String appVersionOnly(String version) {
+    return '版 $version';
+  }
+
+  @override
   String get contactSupport => '不具合を知らせる';
 
   @override

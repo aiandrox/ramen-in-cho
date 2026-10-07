@@ -90,7 +90,9 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                l10n.appVersion(version.version, version.build),
+                version.build.isEmpty
+                    ? l10n.appVersionOnly(version.version)
+                    : l10n.appVersion(version.version, version.build),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall,
               ),

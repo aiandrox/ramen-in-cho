@@ -3490,6 +3490,12 @@ abstract class AppLocalizations {
   /// **'版 {version}（{build}）'**
   String appVersion(String version, String build);
 
+  /// No description provided for @appVersionOnly.
+  ///
+  /// In ja, this message translates to:
+  /// **'版 {version}'**
+  String appVersionOnly(String version);
+
   /// No description provided for @contactSupport.
   ///
   /// In ja, this message translates to:

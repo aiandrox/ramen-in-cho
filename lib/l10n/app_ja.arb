@@ -887,6 +887,8 @@
   "privacyPolicyOpenFailed": "ブラウザを開けませんでした",
   "appVersion": "版 {version}（{build}）",
   "@appVersion": {"placeholders": {"version": {"type": "String"}, "build": {"type": "String"}}},
+  "appVersionOnly": "版 {version}",
+  "@appVersionOnly": {"placeholders": {"version": {"type": "String"}}},
   "contactSupport": "不具合を知らせる",
   "contactSupportNote": "メールアプリで運営者に送ります",
   "contactConfirmBody": "メールアプリが開きます。困ったことや、そのときの操作を書いて送ってください。",

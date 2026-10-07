@@ -1,7 +1,8 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+
+import '../settings/app_about.dart';
 
 /// 不具合の知らせに添えるアプリ・端末の情報。取れなかった項目は null。
 class SupportEnvironment {
@@ -36,12 +37,9 @@ final supportEnvironmentReaderProvider =
     );
 
 Future<String?> _appVersionLabel() async {
-  try {
-    final info = await PackageInfo.fromPlatform();
-    return '${info.version} (${info.buildNumber})';
-  } catch (_) {
-    return null;
-  }
+  final app = await readAppVersion();
+  if (app == null) return null;
+  return '${app.version} (${app.build})';
 }
 
 String? get _osName => switch (defaultTargetPlatform) {
