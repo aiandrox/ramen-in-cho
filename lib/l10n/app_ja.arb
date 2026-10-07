@@ -26,6 +26,7 @@
   "shopSearchFailed": "店を検索できませんでした。店名を入力してください",
   "shopSearchPartial": "店を検索できなかったため、記録済みの店だけを表示しています",
   "shopNoCandidates": "近くに候補が見つかりませんでした。店名を入力してください",
+  "shopPickHint": "候補をタップして店を選んでください（無ければ店名を入力）",
   "shopSearchAfterPhoto": "写真を選ぶと、近くの店を探します",
   "shopNameLabel": "店名を入力",
   "shopNameHint": "候補にないときはここに入力",

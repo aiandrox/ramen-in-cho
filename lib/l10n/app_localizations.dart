@@ -250,6 +250,12 @@ abstract class AppLocalizations {
   /// **'近くに候補が見つかりませんでした。店名を入力してください'**
   String get shopNoCandidates;
 
+  /// No description provided for @shopPickHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'候補をタップして店を選んでください（無ければ店名を入力）'**
+  String get shopPickHint;
+
   /// No description provided for @shopSearchAfterPhoto.
   ///
   /// In ja, this message translates to:
