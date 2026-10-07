@@ -265,7 +265,9 @@ void main() {
     await openMenu(tester, ja.delete);
     await tester.pumpAndSettle();
     expect(find.text(ja.deleteConfirmTitle), findsOneWidget);
-    expect(find.textContaining(ja.deleteConfirmLastOfShop), findsOneWidget);
+    expect(find.textContaining(ja.deleteConfirmOnlyThis), findsOneWidget);
+    // 店に覚え書きも名店の印も無ければ、店のことは書かない。
+    expect(find.textContaining(ja.deleteConfirmLastOfShop), findsNothing);
     expect(find.textContaining(ja.deleteConfirmPhoto), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, ja.cancel));
@@ -324,6 +326,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(ja.deleteRetreatConfirmTitle), findsOneWidget);
+    expect(find.text(ja.deleteConfirmTitle), findsNothing);
+  });
+
+  testWidgets('店の最後の記録を消すときは、店の覚え書きも消えると伝える', (tester) async {
+    final memoShop = buildShop(name: '麺屋テスト', strategyMemo: '開店30分前');
+    await pumpDetail(tester, [
+      VisitWithShop(
+        shop: memoShop,
+        visit: buildVisit(id: 'v', shopId: memoShop.id),
+      ),
+    ], 'v');
+
+    await openMenu(tester, ja.delete);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining(ja.deleteConfirmLastOfShop), findsOneWidget);
   });
 
   testWidgets('削除に失敗したら知らせて、画面に残る', (tester) async {

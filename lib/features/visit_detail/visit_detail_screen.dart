@@ -51,10 +51,13 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
   Future<void> _delete(VisitWithShop entry, {required int otherVisits}) async {
     final l10n = AppLocalizations.of(context);
     final visitId = entry.visit.id;
+    final shop = entry.shop;
     final message = [
-      otherVisits > 0
-          ? l10n.deleteConfirmOthersKept(otherVisits)
-          : l10n.deleteConfirmLastOfShop,
+      l10n.deleteConfirmOnlyThis,
+      if (otherVisits > 0) l10n.deleteConfirmOthersKept(otherVisits),
+      // 店の記録が0件になると店も消すので、店に書いたものがあれば伝える。
+      if (otherVisits == 0 && (shop.strategyMemo.isNotEmpty || shop.isFamous))
+        l10n.deleteConfirmLastOfShop,
       if (entry.visit.photoPath != null) l10n.deleteConfirmPhoto,
       l10n.deleteConfirmIrreversible,
     ].join('\n');

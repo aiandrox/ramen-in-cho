@@ -214,12 +214,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deleteRetreatConfirmTitle => 'この撤退の記録を削除しますか？';
 
   @override
+  String get deleteConfirmOnlyThis => '消えるのはこの記録だけです。';
+
+  @override
   String deleteConfirmOthersKept(int count) {
-    return '消えるのはこの記録だけです。この店のほかの記録（$count件）は残ります。';
+    return 'この店のほかの記録（$count件）は残ります。';
   }
 
   @override
-  String get deleteConfirmLastOfShop => 'この店の記録はこれだけなので、店の覚え書きなども一緒に消えます。';
+  String get deleteConfirmLastOfShop => 'この店の記録はこれだけなので、店の覚え書きと名店の印も一緒に消えます。';
 
   @override
   String get deleteConfirmPhoto => 'アプリに保存した写真も消えます。スマホの写真アプリにある写真は消えません。';
