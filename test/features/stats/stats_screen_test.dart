@@ -7,6 +7,8 @@ import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
+import 'package:ramen_in_cho/features/scoring/points.dart';
+import 'package:ramen_in_cho/features/stats/stats.dart';
 import 'package:ramen_in_cho/features/stats/stats_screen.dart';
 import 'package:ramen_in_cho/features/visit_detail/visit_detail_screen.dart';
 
@@ -141,9 +143,9 @@ void main() {
     });
 
     testWidgets('店ランクは最高ポイントの1杯', (tester) async {
-      // 店名はよく行く店にも出るので、後ろ（店ランク）の行を押す。
+      final best = rankedShops(scoreVisits([first, limited, last])).single;
       final row = find.ancestor(
-        of: find.text('よく行く麺屋').last,
+        of: find.text(ja.statsBestPoints(best.bestPoints)),
         matching: find.byType(ListTile),
       );
       expect(await openFrom(tester, row), limited.visit.id);

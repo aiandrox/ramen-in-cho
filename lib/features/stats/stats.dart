@@ -27,8 +27,6 @@ class FrequentShop {
 
   final Shop shop;
   final int count;
-
-  /// 店のページを開くときに選んでおく1杯（いちばん新しい1杯）。
   final String lastVisitId;
 }
 
@@ -43,8 +41,6 @@ class RankedShop {
 
   final Shop shop;
   final ShopRank rank;
-
-  /// 最高ポイントを得た1杯。店のページを開くときに選んでおく。
   final String bestVisitId;
 
   /// その店で1杯に得た最高ポイント。

@@ -80,7 +80,6 @@ class StatsSections extends ConsumerWidget {
   }
 }
 
-/// 店のページ（その店の印を並べる詳細）を、[visitId] の1杯を選んだ状態で開く。
 void _openShop(BuildContext context, String visitId) => Navigator.of(context)
     .push(
       MaterialPageRoute<void>(
@@ -88,7 +87,6 @@ void _openShop(BuildContext context, String visitId) => Navigator.of(context)
       ),
     );
 
-/// 押せる行の右端。数字のあとに矢印を添える。
 class _Value extends StatelessWidget {
   const _Value(this.value);
 
