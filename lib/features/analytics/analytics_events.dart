@@ -353,7 +353,7 @@ abstract final class AnalyticsEvents {
   static AnalyticsEvent homeBaseEdited({required String change}) =>
       AnalyticsEvent('home_base_edited', {'change': change});
 
-  /// [start] は最後に選んだ始め方（record・checkin・backup・browse）か、「また今度」なら later。選ばずに閉じたら null。
+  /// [start] は最後に選んだ始め方（record・checkin・backup・browse）。選ばずに閉じたら null。
   static AnalyticsEvent onboardingFinished({
     required String? start,
     required String step,
@@ -361,6 +361,10 @@ abstract final class AnalyticsEvents {
     'start': start ?? 'closed',
     'step': step,
   });
+
+  /// 「また今度」で閉じた（終えたことにせず、次に開いたときにまた出す）。
+  static AnalyticsEvent onboardingPostponed({required String step}) =>
+      AnalyticsEvent('onboarding_postponed', {'step': step});
 
   static const onboardingHomeBaseLater = AnalyticsEvent(
     'onboarding_home_base_later',

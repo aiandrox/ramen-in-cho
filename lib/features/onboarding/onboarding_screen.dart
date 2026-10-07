@@ -106,10 +106,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void dispose() {
     unawaited(
       _analytics.log(
-        AnalyticsEvents.onboardingFinished(
-          start: _chosenStart?.name ?? (_postponed ? 'later' : null),
-          step: snake(_step.name),
-        ),
+        _postponed
+            ? AnalyticsEvents.onboardingPostponed(step: snake(_step.name))
+            : AnalyticsEvents.onboardingFinished(
+                start: _chosenStart?.name,
+                step: snake(_step.name),
+              ),
       ),
     );
     // ×・始め方を選ぶで閉じたら、次からは起動時に出さない。設定から見直せる。
