@@ -58,5 +58,15 @@ npm ci
 npm test          # テスト
 npm run typecheck # 型の確認
 npm run seed      # 正本から D1 に入れる SQL（seed.sql）を作る
-npx wrangler pages dev  # 手元で動かす（--local の D1 を使う）
+
+# 手元で動かす（D1 は手元の .wrangler/ に作る。本番の D1 には触らない）
+npx wrangler d1 migrations apply ramen-in-cho --local
+npx wrangler d1 execute ramen-in-cho --local --file seed.sql
+npx wrangler pages dev                                     # http://localhost:8788
+npx wrangler pages dev --binding APP_CHECK_ENFORCE=false   # App Check のトークン無しで API を試す
+
+# 本番のログを見る（Functions の console.log）
+npx wrangler pages deployment tail --project-name ramen-in-cho --format pretty
 ```
+
+wrangler は v4。`npx wrangler` で `node_modules` の版が使われる（グローバルに入れた古い版は使わない）。
