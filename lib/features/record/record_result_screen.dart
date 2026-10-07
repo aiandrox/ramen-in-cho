@@ -69,11 +69,12 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
     }
   }
 
+  late final NotificationService _notifications;
+
   @override
   void initState() {
     super.initState();
-    // 連続記録が途切れそうなときに知らせるため、記録したこのときに通知の許可を尋ねる。
-    ref.read(notificationServiceProvider).requestPermission();
+    _notifications = ref.read(notificationServiceProvider);
   }
 
   @override
@@ -127,43 +128,50 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
       ),
     );
 
-    return Theme(
-      data: night,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text(l10n.resultTitle),
-        ),
-        body: switch (outcome) {
-          final outcome? => _ResultBody(outcome: outcome),
-          null when visitsState.hasError => Center(
-            child: Text(l10n.homeLoadFailed),
+    // 連続記録が途切れそうなときに知らせるため、記録したあとに通知の許可を尋ねる。
+    // 演出に許可の窓が重ならないよう、この画面を閉じるときに尋ねる。
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) _notifications.requestPermission();
+      },
+      child: Theme(
+        data: night,
+        child: Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: Text(l10n.resultTitle),
           ),
-          null => const Center(child: CircularProgressIndicator()),
-        },
-        // 共有は、結果を見ているどの時点でも押せるよう、下に固定して「印帳にもどる」と並べる。
-        bottomNavigationBar: SafeBottomBar(
-          child: FudaRow(
-            height: 56,
-            children: [
-              if (outcome != null)
-                AiFuda(
-                  night: true,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          ShareScreen(visitId: outcome.scored.visit.id),
+          body: switch (outcome) {
+            final outcome? => _ResultBody(outcome: outcome),
+            null when visitsState.hasError => Center(
+              child: Text(l10n.homeLoadFailed),
+            ),
+            null => const Center(child: CircularProgressIndicator()),
+          },
+          // 共有は、結果を見ているどの時点でも押せるよう、下に固定して「印帳にもどる」と並べる。
+          bottomNavigationBar: SafeBottomBar(
+            child: FudaRow(
+              height: 56,
+              children: [
+                if (outcome != null)
+                  AiFuda(
+                    night: true,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            ShareScreen(visitId: outcome.scored.visit.id),
+                      ),
                     ),
+                    icon: const Icon(Icons.ios_share),
+                    child: Text(l10n.resultShare),
                   ),
-                  icon: const Icon(Icons.ios_share),
-                  child: Text(l10n.resultShare),
+                SumiFuda(
+                  night: true,
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.resultOk),
                 ),
-              SumiFuda(
-                night: true,
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(l10n.resultOk),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
