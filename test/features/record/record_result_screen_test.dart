@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/home/app_tab.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/inkan/inkan_stamp.dart';
 import 'package:ramen_in_cho/features/journal/journal.dart';
@@ -327,4 +328,55 @@ void main() {
     // 連続記録のお知らせのため、閉じたときに通知の許可を尋ねる。
     expect(notifications.permissionRequests, 1);
   });
+
+  for (final how in ['button', 'system']) {
+    testWidgets('閉じると印帳のタブのいちばん上に戻る（$how）', (tester) async {
+      tester.view.physicalSize = const Size(1080, 4800);
+      tester.view.devicePixelRatio = 2.5;
+      addTearDown(tester.view.reset);
+      final entry = buildEntry(eatenAt: day(1));
+      final container = ProviderContainer(
+        overrides: [
+          visitsProvider.overrideWithValue(AsyncData([entry])),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
+          wishesProvider.overrideWithValue(const AsyncData([])),
+          notificationServiceProvider.overrideWithValue(notifications),
+          prefectureIndexProvider.overrideWithValue(prefectures),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(appTabProvider.notifier).select(AppTab.map);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: localizedApp(
+            home: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => RecordResultScreen(visitId: entry.visit.id),
+                  ),
+                ),
+                child: const Text('開く'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('開く'));
+      await tester.pumpAndSettle();
+      expect(container.read(appTabProvider), AppTab.map);
+      expect(container.read(ledgerTopRequestProvider), 0);
+
+      if (how == 'button') {
+        await tester.tap(find.text(ja.resultOk));
+      } else {
+        await tester.binding.handlePopRoute();
+      }
+      await tester.pumpAndSettle();
+      expect(find.byType(RecordResultScreen), findsNothing);
+      expect(container.read(appTabProvider), AppTab.records);
+      expect(container.read(ledgerTopRequestProvider), 1);
+    });
+  }
 }

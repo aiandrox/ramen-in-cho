@@ -88,6 +88,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    ref.listenManual(ledgerTopRequestProvider, (_, _) {
+      if (_scroll.hasClients) _scroll.jumpTo(0);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _recoverLostPhoto().then((_) => _receiveShared());
       _lifecycle;

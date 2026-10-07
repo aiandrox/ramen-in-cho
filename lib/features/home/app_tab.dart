@@ -13,3 +13,15 @@ class AppTabNotifier extends Notifier<AppTab> {
 
   void select(AppTab tab) => state = tab;
 }
+
+/// 印帳をいちばん上（新しい1杯）まで戻してほしいときに数を進める。
+final ledgerTopRequestProvider = NotifierProvider<LedgerTopRequest, int>(
+  LedgerTopRequest.new,
+);
+
+class LedgerTopRequest extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void request() => state++;
+}

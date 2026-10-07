@@ -62,11 +62,11 @@ class _AppShellState extends ConsumerState<AppShell> {
     super.initState();
     _locationBlocks = locationBlocks.stream.listen(_explainLocationBlock);
     final analytics = ref.read(analyticsProvider);
-    ref.listenManual(
-      appTabProvider,
-      (_, tab) => unawaited(analytics.logScreen(tab.name)),
-      fireImmediately: true,
-    );
+    ref.listenManual(appTabProvider, (previous, tab) {
+      // 別の画面からタブを切り替えたときも、前のタブで開いていた窓を残さない。
+      if (previous != null) _sheetHost.currentState?.close();
+      unawaited(analytics.logScreen(tab.name));
+    }, fireImmediately: true);
     ref.listenManual(analyticsUserPropertiesProvider, (previous, next) {
       if (next != null && !mapEquals(previous, next)) {
         unawaited(analytics.setUserProperties(next));

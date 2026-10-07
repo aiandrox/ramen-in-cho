@@ -9,6 +9,7 @@ import '../analytics/analytics_events.dart';
 import '../inkan/inkan.dart';
 import '../../l10n/app_localizations.dart';
 import '../home_base/home_base_repository.dart';
+import '../home/app_tab.dart';
 import '../notifications/notification_service.dart';
 import '../quests/quest_seal.dart';
 import '../quests/quests.dart';
@@ -70,11 +71,15 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
   }
 
   late final NotificationService _notifications;
+  late final AppTabNotifier _tabs;
+  late final LedgerTopRequest _ledgerTop;
 
   @override
   void initState() {
     super.initState();
     _notifications = ref.read(notificationServiceProvider);
+    _tabs = ref.read(appTabProvider.notifier);
+    _ledgerTop = ref.read(ledgerTopRequestProvider.notifier);
   }
 
   @override
@@ -130,9 +135,13 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
 
     // 連続記録が途切れそうなときに知らせるため、記録したあとに通知の許可を尋ねる。
     // 演出に許可の窓が重ならないよう、この画面を閉じるときに尋ねる。
+    // 地図などから記録を始めても、いま保存した1杯が見えるよう印帳のタブに戻す。
     return PopScope(
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop) _notifications.requestPermission();
+        if (!didPop) return;
+        _notifications.requestPermission();
+        _tabs.select(AppTab.records);
+        _ledgerTop.request();
       },
       child: Theme(
         data: night,
