@@ -99,21 +99,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   late final AnalyticsService _analytics;
   OnboardingStart? _chosenStart;
 
+  /// 「また今度」で閉じたか。このときは終えたことにせず、記録が0件のうちは次に開いたときにまた出す。
+  var _postponed = false;
+
   @override
   void dispose() {
     unawaited(
       _analytics.log(
         AnalyticsEvents.onboardingFinished(
-          start: _chosenStart?.name,
+          start: _chosenStart?.name ?? (_postponed ? 'later' : null),
           step: snake(_step.name),
         ),
       ),
     );
-    // 閉じたら（×・「また今度」・始め方を選ぶ）、次からは起動時に出さない。設定から見直せる。
-    // アプリごと閉じたときはここを通らないので、次に開いたときに残した段階から続く。
-    _store.markCompleted(_clock()).catchError((Object e, StackTrace st) {
-      reportError(e, st, reason: 'Onboarding completion save failed');
-    });
+    // ×・始め方を選ぶで閉じたら、次からは起動時に出さない。設定から見直せる。
+    // 「また今度」やアプリごと閉じたときは、次に開いたときに残した段階から続く。
+    if (!_postponed) {
+      _store.markCompleted(_clock()).catchError((Object e, StackTrace st) {
+        reportError(e, st, reason: 'Onboarding completion save failed');
+      });
+    }
     super.dispose();
   }
 
@@ -128,6 +133,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _skipHomeBase() {
     unawaited(_analytics.log(AnalyticsEvents.onboardingHomeBaseLater));
     _advance();
+  }
+
+  void _later() {
+    _postponed = true;
+    Navigator.of(context).pop();
   }
 
   void _close([OnboardingStart? start]) {
@@ -193,7 +203,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: _advance,
             child: Text(l10n.onboardingNext),
           ),
-          FudeLink(onPressed: _close, child: Text(l10n.onboardingLater)),
+          FudeLink(onPressed: _later, child: Text(l10n.onboardingLater)),
         ],
       ),
       OnboardingStep.homeBase => switch (ref.watch(currentHomeBaseProvider)) {
