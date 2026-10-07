@@ -776,6 +776,46 @@ void main() {
       expect(eaten.shopId, retreat.shopId);
       expect(await repository.allShops(), hasLength(1));
     });
+
+    test('並ばずに撤退を残せる。並んでいる店があっても、その並びは続く', () async {
+      await repository.checkIn(shop: shop, at: checkedInAt);
+
+      await repository.saveRetreatAt(
+        shop: const ShopInput(name: '閉まっていた店'),
+        memo: '臨時休業',
+        wishTrigger: '撤退した店',
+        now: checkedInAt,
+      );
+
+      final entry = (await repository.watchVisits().first).single;
+      expect(entry.visit.result, VisitResult.retreated);
+      expect(entry.visit.checkedInAt, isNull);
+      expect(entry.visit.memo, '臨時休業');
+      expect(entry.shop.name, '閉まっていた店');
+      expect((await repository.activeCheckin())!.name, '麺屋');
+      final wish = (await WishRepository(database).watchWishes().first).single;
+      expect(wish.name, '閉まっていた店');
+      expect(wish.shopId, entry.shop.id);
+    });
+
+    test('願の店を選んで撤退すると、願を増やさずその願を店に結び付ける', () async {
+      final wishes = WishRepository(database);
+      final wish = await wishes.addWish(
+        shop: const ShopInput(name: '願の店'),
+        now: checkedInAt,
+      );
+
+      final retreat = await repository.saveRetreatAt(
+        shop: ShopInput(name: '願の店', wishId: wish.id),
+        wishTrigger: '撤退した店',
+        now: checkedInAt,
+      );
+
+      final saved = (await wishes.watchWishes().first).single;
+      expect(saved.id, wish.id);
+      expect(saved.shopId, retreat.shopId);
+      expect(saved.fulfilledVisitId, isNull);
+    });
   });
 
   group('updateVisit で店を選び直す', () {

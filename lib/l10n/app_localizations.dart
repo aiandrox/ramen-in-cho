@@ -178,6 +178,36 @@ abstract class AppLocalizations {
   /// **'並び始めから着丼までの時間を測ります'**
   String get startQueueBody;
 
+  /// No description provided for @startRetreatTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'食べられなかった（撤退）'**
+  String get startRetreatTitle;
+
+  /// No description provided for @startRetreatBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'売り切れ・休みだった店を記録する'**
+  String get startRetreatBody;
+
+  /// No description provided for @retreatPickTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'撤退した店を選ぶ'**
+  String get retreatPickTitle;
+
+  /// No description provided for @retreatPickHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'撤退した店をタップしてください（無ければ店名を入力）'**
+  String get retreatPickHint;
+
+  /// No description provided for @retreatManualButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'この店名で撤退を記録'**
+  String get retreatManualButton;
+
   /// No description provided for @recordTitle.
   ///
   /// In ja, this message translates to:

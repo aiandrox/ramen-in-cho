@@ -173,6 +173,7 @@ class FakeRecordRepository implements RecordRepository {
 
   final checkins = <ShopInput>[];
   final retreatMemos = <String>[];
+  final retreatShops = <ShopInput>[];
   final retreatWishTriggers = <String?>[];
   int cancelCount = 0;
 
@@ -238,6 +239,29 @@ class FakeRecordRepository implements RecordRepository {
       shopId: 'shop',
       result: VisitResult.retreated,
       checkedInAt: checkin.checkedInAt,
+      eatenAt: now,
+      isLimited: false,
+      memo: memo,
+      createdAt: now,
+    );
+  }
+
+  @override
+  Future<Visit> saveRetreatAt({
+    required ShopInput shop,
+    String memo = '',
+    String? wishTrigger,
+    required DateTime now,
+  }) async {
+    final error = this.error;
+    if (error != null) throw error;
+    retreatShops.add(shop);
+    retreatMemos.add(memo);
+    retreatWishTriggers.add(wishTrigger);
+    return Visit(
+      id: 'retreat',
+      shopId: 'shop',
+      result: VisitResult.retreated,
       eatenAt: now,
       isLimited: false,
       memo: memo,

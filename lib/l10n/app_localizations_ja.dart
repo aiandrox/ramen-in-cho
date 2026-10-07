@@ -52,6 +52,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get startQueueBody => '並び始めから着丼までの時間を測ります';
 
   @override
+  String get startRetreatTitle => '食べられなかった（撤退）';
+
+  @override
+  String get startRetreatBody => '売り切れ・休みだった店を記録する';
+
+  @override
+  String get retreatPickTitle => '撤退した店を選ぶ';
+
+  @override
+  String get retreatPickHint => '撤退した店をタップしてください（無ければ店名を入力）';
+
+  @override
+  String get retreatManualButton => 'この店名で撤退を記録';
+
+  @override
   String get recordTitle => '記録する';
 
   @override

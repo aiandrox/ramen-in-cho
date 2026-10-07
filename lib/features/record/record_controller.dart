@@ -661,28 +661,8 @@ class RecordController extends Notifier<RecordState> {
         .firstOrNull;
   }
 
-  /// 店名を打っているときの候補。まだの願の店（位置のわからない店も）を先に出す。
-  List<ShopCandidate> _nameMatches(String query) {
-    final wished = [
-      for (final wish in _pendingWishes)
-        if (normalizeShopName(wish.name).contains(query))
-          ShopCandidate(
-            shopId: wish.shopId,
-            osmId: wish.osmId,
-            name: wish.name,
-            location: wishLocation(wish),
-            dataSource: wish.dataSource,
-            wishId: wish.id,
-          ),
-    ];
-    final known = [
-      for (final shop in _knownShops)
-        if (normalizeShopName(shop.name).contains(query) &&
-            !wished.any((w) => w.shopId == shop.id))
-          ShopCandidate.fromShop(shop),
-    ];
-    return [...wished, ...known].take(maxShopCandidates).toList();
-  }
+  List<ShopCandidate> _nameMatches(String query) =>
+      shopNameMatches(query, wishes: _pendingWishes, knownShops: _knownShops);
 
   /// 手入力の店の場所を地図で指す。nullで外す。
   void setPinnedLocation(GeoPoint? location) =>

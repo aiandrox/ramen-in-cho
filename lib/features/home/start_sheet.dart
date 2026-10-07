@@ -5,11 +5,11 @@ import '../../theme/washi.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
 
-enum StartChoice { eaten, queue }
+enum StartChoice { eaten, queue, retreat }
 
 const startSheetTag = #startSheet;
 
-/// 真ん中の「麺」を押したときに、記録するか並び始めるかを選ぶ窓。
+/// 真ん中の「麺」を押したときに、記録するか・並び始めるか・撤退を残すかを選ぶ窓。
 Future<StartChoice?> showStartSheet(
   BuildContext context, {
   ShellSheetHostState? host,
@@ -37,6 +37,13 @@ Future<StartChoice?> showStartSheet(
             title: l10n.startQueueTitle,
             body: l10n.startQueueBody,
             onPressed: () => closeWashiSheet(context, StartChoice.queue),
+          ),
+          const SizedBox(height: 16),
+          StartChoiceButton(
+            icon: Icons.do_not_disturb_on_outlined,
+            title: l10n.startRetreatTitle,
+            body: l10n.startRetreatBody,
+            onPressed: () => closeWashiSheet(context, StartChoice.retreat),
           ),
         ],
       ),

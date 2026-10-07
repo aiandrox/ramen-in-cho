@@ -196,34 +196,73 @@ class RecordRepository {
     String memo = '',
     String? wishTrigger,
     required DateTime now,
+  }) => _saveRetreat(
+    _shopInputOf(checkin),
+    checkedInAt: checkin.checkedInAt,
+    endsCheckin: true,
+    memo: memo,
+    wishTrigger: wishTrigger,
+    now: now,
+  );
+
+  /// 並ばずに撤退を残す（着いたら閉まっていた・売り切れだったなど）。並んでいれば、その並びはそのまま。
+  Future<Visit> saveRetreatAt({
+    required ShopInput shop,
+    String memo = '',
+    String? wishTrigger,
+    required DateTime now,
+  }) => _saveRetreat(
+    shop,
+    checkedInAt: null,
+    endsCheckin: false,
+    memo: memo,
+    wishTrigger: wishTrigger,
+    now: now,
+  );
+
+  Future<Visit> _saveRetreat(
+    ShopInput shop, {
+    required DateTime? checkedInAt,
+    required bool endsCheckin,
+    required String memo,
+    required String? wishTrigger,
+    required DateTime now,
   }) {
     return _db.transaction(() async {
-      final shopId = await _resolveShop(_shopInputOf(checkin), now);
+      final shopId = await _resolveShop(shop, now);
       final visit = Visit(
         id: _uuid.v4(),
         shopId: shopId,
         result: VisitResult.retreated,
-        checkedInAt: checkin.checkedInAt,
+        checkedInAt: checkedInAt,
         eatenAt: now,
         isLimited: false,
         memo: memo,
         createdAt: now,
       );
       await _insertVisit(visit);
-      await cancelCheckin();
+      if (endsCheckin) await cancelCheckin();
       if (wishTrigger != null) {
-        await _wishAfterRetreat(checkin, shopId, wishTrigger, now);
+        await _wishAfterRetreat(shop, shopId, wishTrigger, now);
       }
       return visit;
     });
   }
 
   Future<void> _wishAfterRetreat(
-    Checkin checkin,
+    ShopInput shop,
     String shopId,
     String trigger,
     DateTime now,
   ) async {
+    // 願の店を選んで撤退したら、新しい願は掛けず、その願を記録の店に結び付ける。
+    final wishId = shop.wishId;
+    if (wishId != null) {
+      await (_db.update(_db.wishes)
+            ..where((w) => w.id.equals(wishId) & w.fulfilledVisitId.isNull()))
+          .write(WishesCompanion(shopId: Value(shopId)));
+      return;
+    }
     final pending =
         await (_db.select(_db.wishes)
               ..where(
@@ -238,11 +277,11 @@ class RecordRepository {
           WishesCompanion.insert(
             id: _uuid.v4(),
             shopId: Value(shopId),
-            osmId: Value(checkin.osmId),
-            name: checkin.name.trim(),
-            latitude: Value(checkin.latitude),
-            longitude: Value(checkin.longitude),
-            dataSource: Value(checkin.dataSource),
+            osmId: Value(shop.osmId),
+            name: shop.name.trim(),
+            latitude: Value(shop.latitude),
+            longitude: Value(shop.longitude),
+            dataSource: Value(shop.dataSource),
             trigger: Value(trigger),
             createdAt: now,
           ),
