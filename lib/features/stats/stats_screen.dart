@@ -10,6 +10,7 @@ import '../scoring/rank_labels.dart';
 import '../scoring/ranks.dart';
 import '../scoring/scoring_providers.dart';
 import 'stats.dart';
+import '../visit_detail/visit_detail_screen.dart';
 import '../records/models.dart';
 import '../../theme/ink_wear.dart';
 import '../../theme/washi.dart';
@@ -40,7 +41,7 @@ class StatsSections extends ConsumerWidget {
           l10n.statsBowlsLine(thisYear, total),
           style: textTheme.titleMedium,
         ),
-        ..._bests(l10n, textTheme, personalBests(scored)),
+        ..._bests(context, l10n, textTheme, personalBests(scored)),
         const SizedBox(height: 24),
         SectionTitle(l10n.statsStyles),
         StyleBreakdown(shares: styleShares(scored)),
@@ -53,10 +54,10 @@ class StatsSections extends ConsumerWidget {
             contentPadding: EdgeInsets.zero,
             dense: true,
             title: Text(frequent.shop.name),
-            trailing: Text(
-              l10n.bowls(frequent.count),
-              style: textTheme.bodyLarge,
+            trailing: _Value(
+              Text(l10n.bowls(frequent.count), style: textTheme.bodyLarge),
             ),
+            onTap: () => _openShop(context, frequent.lastVisitId),
           ),
         const SizedBox(height: 24),
         SectionTitle(l10n.statsShopRanks),
@@ -66,17 +67,48 @@ class StatsSections extends ConsumerWidget {
             dense: true,
             leading: _RankBadge(rank: ranked.rank),
             title: Text(ranked.shop.name),
-            trailing: Text(
-              l10n.statsBestPoints(ranked.bestPoints),
-              style: textTheme.bodyMedium,
+            trailing: _Value(
+              Text(
+                l10n.statsBestPoints(ranked.bestPoints),
+                style: textTheme.bodyMedium,
+              ),
             ),
+            onTap: () => _openShop(context, ranked.bestVisitId),
           ),
       ],
     );
   }
 }
 
+/// 店のページ（その店の印を並べる詳細）を、[visitId] の1杯を選んだ状態で開く。
+void _openShop(BuildContext context, String visitId) => Navigator.of(context)
+    .push(
+      MaterialPageRoute<void>(
+        builder: (_) => VisitDetailScreen(visitId: visitId),
+      ),
+    );
+
+/// 押せる行の右端。数字のあとに矢印を添える。
+class _Value extends StatelessWidget {
+  const _Value(this.value);
+
+  final Widget value;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      value,
+      Icon(
+        Icons.chevron_right,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    ],
+  );
+}
+
 List<Widget> _bests(
+  BuildContext context,
   AppLocalizations l10n,
   TextTheme textTheme,
   PersonalBests bests,
@@ -91,7 +123,8 @@ List<Widget> _bests(
         formatDate(best.entry.visit.eatenAt),
       ),
     ),
-    trailing: Text(value, style: textTheme.titleMedium),
+    trailing: _Value(Text(value, style: textTheme.titleMedium)),
+    onTap: () => _openShop(context, best.entry.visit.id),
   );
   final rows = [
     if (bests.longestWait case final best?)

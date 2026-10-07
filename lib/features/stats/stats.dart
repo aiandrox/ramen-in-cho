@@ -19,10 +19,17 @@ class StyleShare {
 }
 
 class FrequentShop {
-  const FrequentShop({required this.shop, required this.count});
+  const FrequentShop({
+    required this.shop,
+    required this.count,
+    required this.lastVisitId,
+  });
 
   final Shop shop;
   final int count;
+
+  /// 店のページを開くときに選んでおく1杯（いちばん新しい1杯）。
+  final String lastVisitId;
 }
 
 class RankedShop {
@@ -31,10 +38,14 @@ class RankedShop {
     required this.rank,
     required this.bestPoints,
     required this.count,
+    required this.bestVisitId,
   });
 
   final Shop shop;
   final ShopRank rank;
+
+  /// 最高ポイントを得た1杯。店のページを開くときに選んでおく。
+  final String bestVisitId;
 
   /// その店で1杯に得た最高ポイント。
   final int bestPoints;
@@ -74,15 +85,15 @@ List<StyleShare> styleShares(List<ScoredVisit> scored) {
 /// 同数なら、最近行った店を先にする。
 List<FrequentShop> frequentShops(List<ScoredVisit> scored, {int limit = 5}) {
   final counts = <String, int>{};
-  final lastVisit = <String, DateTime>{};
+  final lastVisit = <String, Visit>{};
   final shops = <String, Shop>{};
   for (final entry in _eaten(scored)) {
     final shopId = entry.visit.shopId;
     counts.update(shopId, (count) => count + 1, ifAbsent: () => 1);
     shops[shopId] = entry.shop;
     final last = lastVisit[shopId];
-    if (last == null || entry.visit.eatenAt.isAfter(last)) {
-      lastVisit[shopId] = entry.visit.eatenAt;
+    if (last == null || entry.visit.eatenAt.isAfter(last.eatenAt)) {
+      lastVisit[shopId] = entry.visit;
     }
   }
   final ids =
@@ -91,23 +102,33 @@ List<FrequentShop> frequentShops(List<ScoredVisit> scored, {int limit = 5}) {
           if (value >= 2) key,
       ]..sort((a, b) {
         final byCount = counts[b]!.compareTo(counts[a]!);
-        return byCount != 0 ? byCount : lastVisit[b]!.compareTo(lastVisit[a]!);
+        return byCount != 0
+            ? byCount
+            : lastVisit[b]!.eatenAt.compareTo(lastVisit[a]!.eatenAt);
       });
   return [
     for (final id in ids.take(limit))
-      FrequentShop(shop: shops[id]!, count: counts[id]!),
+      FrequentShop(
+        shop: shops[id]!,
+        count: counts[id]!,
+        lastVisitId: lastVisit[id]!.id,
+      ),
   ];
 }
 
 /// 食べたことのある店を、ランクの高い順（同じランクなら最高ポイントの高い順）に返す。
 List<RankedShop> rankedShops(List<ScoredVisit> scored) {
   final best = <String, int>{};
+  final bestVisit = <String, String>{};
   final counts = <String, int>{};
   final shops = <String, Shop>{};
   for (final entry in _eaten(scored)) {
     final shopId = entry.visit.shopId;
     final points = entry.points.total;
-    if (points > (best[shopId] ?? -1)) best[shopId] = points;
+    if (points > (best[shopId] ?? -1)) {
+      best[shopId] = points;
+      bestVisit[shopId] = entry.visit.id;
+    }
     counts.update(shopId, (count) => count + 1, ifAbsent: () => 1);
     shops[shopId] = entry.shop;
   }
@@ -118,6 +139,7 @@ List<RankedShop> rankedShops(List<ScoredVisit> scored) {
         rank: shopRankFor(points),
         bestPoints: points,
         count: counts[shopId]!,
+        bestVisitId: bestVisit[shopId]!,
       ),
   ];
   ranked.sort((a, b) {

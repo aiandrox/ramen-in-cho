@@ -8,6 +8,7 @@ import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
 import 'package:ramen_in_cho/features/stats/stats_screen.dart';
+import 'package:ramen_in_cho/features/visit_detail/visit_detail_screen.dart';
 
 import '../../support/builders.dart';
 import '../../support/l10n.dart';
@@ -109,5 +110,51 @@ void main() {
     // 並んだ記録も撤退も無いので、その2つは出さない。
     expect(find.text(ja.bestLongestWait), findsNothing);
     expect(find.text(ja.bestMostRetreats), findsNothing);
+  });
+
+  group('行を押すと、その店のページを開く', () {
+    final often = buildShop(id: 'often', name: 'よく行く麺屋');
+    final first = buildEntry(shop: often, eatenAt: DateTime(2026, 9, 1, 12));
+    final limited = buildEntry(
+      shop: often,
+      eatenAt: DateTime(2026, 9, 2, 12),
+      isLimited: true,
+    );
+    final last = buildEntry(shop: often, eatenAt: DateTime(2026, 9, 3, 12));
+
+    Future<String> openFrom(WidgetTester tester, Finder row) async {
+      await pumpStats(tester, [first, limited, last]);
+      await tester.tap(row);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      return tester
+          .widget<VisitDetailScreen>(find.byType(VisitDetailScreen))
+          .visitId;
+    }
+
+    testWidgets('よく行く店はいちばん新しい1杯', (tester) async {
+      final row = find.ancestor(
+        of: find.text(ja.bowls(3)),
+        matching: find.byType(ListTile),
+      );
+      expect(await openFrom(tester, row), last.visit.id);
+    });
+
+    testWidgets('店ランクは最高ポイントの1杯', (tester) async {
+      // 店名はよく行く店にも出るので、後ろ（店ランク）の行を押す。
+      final row = find.ancestor(
+        of: find.text('よく行く麺屋').last,
+        matching: find.byType(ListTile),
+      );
+      expect(await openFrom(tester, row), limited.visit.id);
+    });
+
+    testWidgets('自己ベストはその1杯', (tester) async {
+      final row = find.ancestor(
+        of: find.text(ja.bestHighestPoints),
+        matching: find.byType(ListTile),
+      );
+      expect(await openFrom(tester, row), limited.visit.id);
+    });
   });
 }
