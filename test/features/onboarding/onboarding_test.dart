@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ramen_in_cho/features/database/app_database.dart';
+import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/onboarding/onboarding_flow.dart';
 import 'package:ramen_in_cho/features/onboarding/onboarding_screen.dart';
@@ -14,6 +15,7 @@ import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/location_service.dart';
 
+import '../../support/builders.dart';
 import '../../support/fakes.dart';
 import '../../support/l10n.dart';
 
@@ -48,7 +50,7 @@ void main() {
       final store = OnboardingStore(createTempDirectory());
       await store.saveStep(OnboardingStep.start);
       await store.markCompleted(DateTime(2026, 10, 4));
-      expect(await store.isCompleted(), isTrue);
+      expect((await store.load()).completed, isTrue);
       await store.saveStep(OnboardingStep.homeBase);
       expect(await store.load(), (
         completed: true,
@@ -61,7 +63,7 @@ void main() {
       final saving = store.saveStep(OnboardingStep.start);
       final completing = store.markCompleted(DateTime(2026, 10, 4));
       await Future.wait([saving, completing]);
-      expect(await store.isCompleted(), isTrue);
+      expect((await store.load()).completed, isTrue);
     });
 
     test('壊れた中身は初めからにする', () async {
@@ -84,6 +86,7 @@ void main() {
     Future<void> pumpOnboarding(
       WidgetTester tester, {
       OnboardingStep initialStep = OnboardingStep.welcome,
+      List<HomeBaseSetting> homeBases = const [],
     }) async {
       database = createTestDatabase();
       store = _MemoryOnboardingStore();
@@ -97,7 +100,7 @@ void main() {
           overrides: [
             appDatabaseProvider.overrideWithValue(database),
             visitsProvider.overrideWithValue(const AsyncData([])),
-            homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
+            homeBaseSettingsProvider.overrideWithValue(AsyncData(homeBases)),
             locationServiceProvider.overrideWithValue(location),
             onboardingStoreProvider.overrideWithValue(store),
             clockProvider.overrideWithValue(() => now),
@@ -162,6 +165,8 @@ void main() {
       await tapText(tester, ja.onboardingHomeBaseHere);
       expect(location.requests, [true]);
       expect(find.text(ja.homeBaseHidenGained), findsOneWidget);
+      // 秘伝を知らせている間にアプリを閉じても、次は始め方から続ける。
+      expect(store.steps, [OnboardingStep.start]);
       final settings = await HomeBaseRepository(database).allSettings();
       expect(settings.single.name, ja.homeBaseNameDefault);
       expect(settings.single.latitude, sapporo.latitude);
@@ -169,6 +174,20 @@ void main() {
       await tapText(tester, ja.homeBaseHidenOk);
       expect(find.text(ja.onboardingStartChapter), findsOneWidget);
       expect(closed, isFalse);
+    });
+
+    testWidgets('拠点がもう決まっていれば、現在地で上書きせずに先へ進めるだけにする', (tester) async {
+      await pumpOnboarding(
+        tester,
+        initialStep: OnboardingStep.homeBase,
+        homeBases: [buildHomeBase(name: '札幌市', setAt: DateTime(2026))],
+      );
+      expect(find.text(ja.homeBaseLine('札幌市')), findsOneWidget);
+      expect(find.text(ja.onboardingHomeBaseHere), findsNothing);
+
+      await tapText(tester, ja.onboardingNext);
+      expect(find.text(ja.onboardingStartChapter), findsOneWidget);
+      expect(location.requests, isEmpty);
     });
 
     testWidgets('現在地がわからなければ、その段にとどまる', (tester) async {

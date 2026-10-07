@@ -35,7 +35,7 @@ Future<void> showOnboarding(
       builder: (_) => OnboardingScreen(initialStep: initialStep),
     ),
   );
-  if (start == null) return;
+  if (start == null || start == OnboardingStart.browse) return;
   navigator.popUntil((route) => route.isFirst);
   tabs.select(AppTab.records);
   switch (start) {
@@ -57,7 +57,7 @@ Future<void> showOnboarding(
         MaterialPageRoute(builder: (_) => const BackupScreen()),
       );
     case OnboardingStart.browse:
-      break;
+      return;
   }
 }
 
@@ -79,6 +79,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   late final OnboardingStore _store;
   late final DateTime Function() _clock;
+  late final ScoredVisit _sample;
   late var _step = widget.initialStep;
   var _busy = false;
 
@@ -87,6 +88,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.initState();
     _store = ref.read(onboardingStoreProvider);
     _clock = ref.read(clockProvider);
+    _sample = _sampleSeal(_clock());
   }
 
   @override
@@ -112,7 +114,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _useHere() async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final repository = ref.read(homeBaseRepositoryProvider);
     setState(() => _busy = true);
     try {
       final here = await ref
@@ -125,23 +126,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         );
         return;
       }
-      final isFirst = (await repository.allSettings()).isEmpty;
-      final setting = await repository.setHomeBase(
+      await saveHomeBase(
+        context,
+        ref,
         name: l10n.homeBaseNameDefault,
-        latitude: here.latitude,
-        longitude: here.longitude,
-        now: _clock(),
+        location: here,
+        onSaved: () {
+          if (!mounted) return;
+          setState(() => _busy = false);
+          _advance();
+        },
       );
-      if (!mounted) return;
-      setState(() => _busy = false);
-      if (isFirst) await showHomeBaseHidenDialog(context, setting.setAt);
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.homeBaseSaved(setting.name))),
-      );
-      if (mounted) _advance();
-    } catch (e, st) {
-      reportError(e, st, reason: 'Home base save failed');
-      messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -162,7 +157,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         chapter: l10n.onboardingWelcomeChapter,
         title: l10n.onboardingWelcomeTitle,
         body: l10n.onboardingWelcomeBody,
-        hero: InkanStamp(scored: _sampleSeal(_clock()), size: 120),
+        hero: InkanStamp(scored: _sample, size: 120),
         points: [
           (l10n.onboardingWelcomeSealTitle, l10n.onboardingWelcomeSealBody),
           (l10n.onboardingWelcomePointsTitle, l10n.onboardingWelcomePointsBody),
@@ -177,34 +172,46 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           FudeLink(onPressed: _close, child: Text(l10n.onboardingLater)),
         ],
       ),
-      OnboardingStep.homeBase => _OnboardingPage(
-        chapter: l10n.onboardingHomeBaseChapter,
-        title: l10n.onboardingHomeBaseTitle,
-        body: l10n.onboardingHomeBaseBody,
-        note: switch (ref.watch(currentHomeBaseProvider)) {
-          final base? => l10n.homeBaseLine(base.name),
-          null => null,
-        },
-        busy: _busy,
-        actions: [
-          AiFuda(
-            expand: true,
-            icon: const Icon(Icons.my_location),
-            onPressed: _busy ? null : _useHere,
-            child: Text(l10n.onboardingHomeBaseHere),
-          ),
-          SumiFuda(
-            expand: true,
-            icon: const Icon(Icons.map_outlined),
-            onPressed: _busy ? null : _pickOnMap,
-            child: Text(l10n.onboardingHomeBaseMap),
-          ),
-          FudeLink(
-            onPressed: _busy ? null : _advance,
-            child: Text(l10n.onboardingHomeBaseLater),
-          ),
-        ],
-      ),
+      OnboardingStep.homeBase => switch (ref.watch(currentHomeBaseProvider)) {
+        // 設定から見直している人の拠点を、呼び名「このあたり」の現在地で黙って上書きしないよう、決めてあれば先へ進めるだけにする。
+        final base? => _OnboardingPage(
+          chapter: l10n.onboardingHomeBaseChapter,
+          title: l10n.onboardingHomeBaseTitle,
+          body: l10n.onboardingHomeBaseBody,
+          note: l10n.homeBaseLine(base.name),
+          actions: [
+            AiFuda(
+              expand: true,
+              onPressed: _advance,
+              child: Text(l10n.onboardingNext),
+            ),
+          ],
+        ),
+        null => _OnboardingPage(
+          chapter: l10n.onboardingHomeBaseChapter,
+          title: l10n.onboardingHomeBaseTitle,
+          body: l10n.onboardingHomeBaseBody,
+          busy: _busy,
+          actions: [
+            AiFuda(
+              expand: true,
+              icon: const Icon(Icons.my_location),
+              onPressed: _busy ? null : _useHere,
+              child: Text(l10n.onboardingHomeBaseHere),
+            ),
+            SumiFuda(
+              expand: true,
+              icon: const Icon(Icons.map_outlined),
+              onPressed: _busy ? null : _pickOnMap,
+              child: Text(l10n.onboardingHomeBaseMap),
+            ),
+            FudeLink(
+              onPressed: _busy ? null : _advance,
+              child: Text(l10n.onboardingHomeBaseLater),
+            ),
+          ],
+        ),
+      },
       OnboardingStep.start => _OnboardingPage(
         chapter: l10n.onboardingStartChapter,
         title: l10n.onboardingStartTitle,
@@ -232,36 +239,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ],
       ),
     };
-    return Scaffold(
-      backgroundColor: Washi.paper,
-      appBar: AppBar(
+    return PopScope(
+      canPop: !_busy,
+      child: Scaffold(
         backgroundColor: Washi.paper,
-        leading: IconButton(
-          tooltip: l10n.onboardingClose,
-          icon: const Icon(Icons.close),
-          onPressed: _close,
-        ),
-        centerTitle: true,
-        title: Text(
-          l10n.onboardingScroll,
-          style: const TextStyle(
-            fontFamily: Washi.brush,
-            fontSize: 18,
-            color: Washi.inkSoft,
-            letterSpacing: 4,
+        appBar: AppBar(
+          backgroundColor: Washi.paper,
+          leading: IconButton(
+            tooltip: l10n.onboardingClose,
+            icon: const Icon(Icons.close),
+            onPressed: _busy ? null : _close,
           ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: _StepMarks(current: _step.index),
+          centerTitle: true,
+          title: Text(
+            l10n.onboardingScroll,
+            style: const TextStyle(
+              fontFamily: Washi.brush,
+              fontSize: 18,
+              color: Washi.inkSoft,
+              letterSpacing: 4,
+            ),
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: KeyedSubtree(key: ValueKey(_step), child: page),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: _StepMarks(current: _step.index),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: KeyedSubtree(key: ValueKey(_step), child: page),
+          ),
         ),
       ),
     );

@@ -46,8 +46,6 @@ class OnboardingStore {
     }
   }
 
-  Future<bool> isCompleted() async => (await load()).completed;
-
   /// 終えたあと（設定から見直しているとき）は残さない。見直しはいつも其の一から。
   Future<void> saveStep(OnboardingStep step) => _serial(() async {
     if ((await load()).completed) return;

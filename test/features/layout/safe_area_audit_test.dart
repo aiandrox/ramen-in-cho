@@ -374,7 +374,8 @@ final List<_Screen> _screens = [
     visit: (tester, audit) async {
       for (final next in [
         ja.onboardingNext,
-        ja.onboardingHomeBaseLater,
+        // この監査では拠点が決まっているので、其の二も「先へ進む」になる。
+        ja.onboardingNext,
         null,
       ]) {
         await audit('${next ?? '終わり'}の前');
