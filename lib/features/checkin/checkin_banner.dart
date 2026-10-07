@@ -11,7 +11,6 @@ import '../records/models.dart';
 import '../records/record_repository.dart';
 import 'checkin_rules.dart';
 import 'retreat_dialog.dart';
-import '../words/words.dart';
 import '../../theme/washi_buttons.dart';
 import '../analytics/analytics.dart';
 import '../analytics/analytics_events.dart';
@@ -104,11 +103,7 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
         ),
       );
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            '${l10n.retreatSaved}\n${retreatConsolation(memo, visit.id)}',
-          ),
-        ),
+        SnackBar(content: Text(retreatSavedText(l10n, memo, visit.id))),
       );
     } catch (e, st) {
       reportError(e, st, reason: 'Retreat save failed');

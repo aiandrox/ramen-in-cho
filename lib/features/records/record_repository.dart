@@ -255,22 +255,31 @@ class RecordRepository {
     String trigger,
     DateTime now,
   ) async {
-    // 願の店を選んで撤退したら、新しい願は掛けず、その願を記録の店に結び付ける。
+    // 同じ店のまだの願があれば、新しい願は掛けず、その願を記録の店に結び付ける。
+    final osmId = shop.osmId;
     final wishId = shop.wishId;
-    if (wishId != null) {
-      await (_db.update(_db.wishes)
-            ..where((w) => w.id.equals(wishId) & w.fulfilledVisitId.isNull()))
-          .write(WishesCompanion(shopId: Value(shopId)));
-      return;
-    }
     final pending =
         await (_db.select(_db.wishes)
               ..where(
-                (w) => w.fulfilledVisitId.isNull() & w.shopId.equals(shopId),
+                (w) =>
+                    w.fulfilledVisitId.isNull() &
+                    (w.shopId.equals(shopId) |
+                        (wishId == null
+                            ? const Constant(false)
+                            : w.id.equals(wishId)) |
+                        (osmId == null
+                            ? const Constant(false)
+                            : w.osmId.equals(osmId))),
               )
               ..limit(1))
             .getSingleOrNull();
-    if (pending != null) return;
+    if (pending != null) {
+      if (pending.shopId == null) {
+        await (_db.update(_db.wishes)..where((w) => w.id.equals(pending.id)))
+            .write(WishesCompanion(shopId: Value(shopId)));
+      }
+      return;
+    }
     await _db
         .into(_db.wishes)
         .insert(

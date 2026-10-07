@@ -12,8 +12,8 @@ import '../analytics/analytics_user_properties.dart';
 import '../checkin/checkin_banner.dart';
 import '../checkin/checkin_controller.dart';
 import '../checkin/checkin_screen.dart';
+import '../checkin/retreat_dialog.dart';
 import '../checkin/retreat_screen.dart';
-import '../words/words.dart';
 import '../records/clock.dart';
 import '../map/map_screen.dart';
 import '../notifications/notification_plan.dart';
@@ -223,9 +223,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     if (saved == null || !mounted) return;
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          '${l10n.retreatSaved}\n${retreatConsolation(saved.memo, saved.visit.id)}',
-        ),
+        content: Text(retreatSavedText(l10n, saved.memo, saved.visit.id)),
       ),
     );
   }

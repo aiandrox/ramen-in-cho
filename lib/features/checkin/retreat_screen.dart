@@ -53,9 +53,12 @@ class _RetreatScreenState extends ConsumerState<RetreatScreen> {
   Future<void> _load() async {
     final search = ref.read(shopSearchServiceProvider);
     final analytics = ref.read(analyticsProvider);
+    final searching = search.search(requestPermission: true);
     try {
-      final known = await ref.read(recordRepositoryProvider).allShops();
-      final pending = await ref.read(wishRepositoryProvider).pendingWishes();
+      final (known, pending) = await (
+        ref.read(recordRepositoryProvider).allShops(),
+        ref.read(wishRepositoryProvider).pendingWishes(),
+      ).wait;
       if (mounted) {
         setState(() {
           _knownShops = known;
@@ -65,7 +68,7 @@ class _RetreatScreenState extends ConsumerState<RetreatScreen> {
     } catch (e) {
       debugPrint('Retreat shops load failed: $e');
     }
-    final result = await search.search(requestPermission: true);
+    final result = await searching;
     unawaited(
       analytics.log(
         AnalyticsEvents.shopSearch(purpose: 'retreat', result: result),
@@ -82,10 +85,14 @@ class _RetreatScreenState extends ConsumerState<RetreatScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final repository = ref.read(recordRepositoryProvider);
     final analytics = ref.read(analyticsProvider);
-    final now = ref.read(clockProvider)();
-    final memo = await showRetreatDialog(context);
-    if (memo == null || !mounted) return;
+    // 窓が開く前に続けて押されても、窓を2つ開かないようにする。
     setState(() => _isSaving = true);
+    final memo = await showRetreatDialog(context);
+    if (!mounted) return;
+    if (memo == null) {
+      setState(() => _isSaving = false);
+      return;
+    }
     try {
       final visit = await repository.saveRetreatAt(
         shop: ShopInput(
@@ -99,14 +106,14 @@ class _RetreatScreenState extends ConsumerState<RetreatScreen> {
         ),
         memo: memo,
         wishTrigger: l10n.wishTriggerRetreat,
-        now: now,
+        now: ref.read(clockProvider)(),
       );
       unawaited(
         analytics.log(
           AnalyticsEvents.retreatRecorded(shopSource: shopSourceOf(shop)),
         ),
       );
-      navigator.pop<RetreatSaved>((visit: visit, memo: memo));
+      if (mounted) navigator.pop<RetreatSaved>((visit: visit, memo: memo));
     } catch (e, st) {
       reportError(e, st, reason: 'Retreat save failed');
       if (mounted) setState(() => _isSaving = false);
@@ -126,6 +133,27 @@ class _RetreatScreenState extends ConsumerState<RetreatScreen> {
         : shopNameMatches(query, wishes: _wishes, knownShops: _knownShops);
     final message = _message(l10n, result);
 
+    return PopScope(
+      canPop: !_isSaving,
+      child: _buildScaffold(
+        l10n,
+        textTheme,
+        result,
+        candidates,
+        matches,
+        message,
+      ),
+    );
+  }
+
+  Widget _buildScaffold(
+    AppLocalizations l10n,
+    TextTheme textTheme,
+    ShopSearchResult? result,
+    List<ShopCandidate> candidates,
+    List<ShopCandidate> matches,
+    String? message,
+  ) {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.retreatPickTitle)),
       body: ListView(
