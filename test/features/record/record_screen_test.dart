@@ -15,6 +15,7 @@ import 'package:ramen_in_cho/features/map/washi_map.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
 import 'package:ramen_in_cho/features/record/record_draft.dart';
+import 'package:ramen_in_cho/features/record/batch_result_screen.dart';
 import 'package:ramen_in_cho/features/record/record_result_screen.dart';
 import 'package:ramen_in_cho/features/record/record_screen.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
@@ -404,6 +405,73 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
   }
+
+  Future<void> saveWithName(
+    WidgetTester tester,
+    String name,
+    String label,
+  ) async {
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.shopNameLabel),
+      name,
+    );
+    await tester.pump();
+    await tester.runAsync(() async {
+      await tester.tap(find.widgetWithText(AiFuda, label));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+  }
+
+  testWidgets('ギャラリーで何枚も選ぶと1枚ずつ記録し、最後にまとめた結果を見せる', (tester) async {
+    picker.galleryPaths = [_photoFile(), _photoFile(), _photoFile()];
+    await pumpScreen(tester);
+    await tester.tap(find.text(ja.pickFromGallery));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.batchPosition(1, 3)), findsOneWidget);
+    await saveWithName(tester, '架空軒', ja.saveAndNext);
+
+    expect(find.byType(RecordScreen), findsOneWidget);
+    expect(find.text(ja.batchPosition(2, 3)), findsOneWidget);
+    expect(find.text('架空軒'), findsNothing);
+
+    await tester.runAsync(() async {
+      await tester.tap(find.text(ja.batchSkip));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pumpAndSettle();
+    expect(find.text(ja.batchPosition(3, 3)), findsOneWidget);
+    expect(find.widgetWithText(AiFuda, ja.save), findsOneWidget);
+
+    await saveWithName(tester, '架空亭', ja.save);
+
+    expect(find.byType(RecordScreen), findsNothing);
+    expect(find.byType(BatchResultScreen), findsOneWidget);
+    final visits = await tester.runAsync(
+      () => RecordRepository(database).watchVisits().first,
+    );
+    expect(visits!.map((e) => e.shop.name).toSet(), {'架空軒', '架空亭'});
+  });
+
+  testWidgets('何枚も選んで途中でやめると、残りの写真のことを伝え、記録した分を見せる', (tester) async {
+    picker.galleryPaths = [_photoFile(), _photoFile(), _photoFile()];
+    await pumpScreen(tester);
+    await tester.tap(find.text(ja.pickFromGallery));
+    await tester.pumpAndSettle();
+    await saveWithName(tester, '架空軒', ja.saveAndNext);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.textContaining(ja.leaveBatchRemaining(1)), findsOneWidget);
+    await tester.tap(find.widgetWithText(KeshiFuda, ja.leaveRecordDiscard));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(RecordScreen), findsNothing);
+    expect(find.byType(RecordResultScreen), findsOneWidget);
+  });
 
   testWidgets('何も入れていなければ、戻ると確かめずに閉じる', (tester) async {
     await pumpScreen(tester);

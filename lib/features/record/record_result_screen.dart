@@ -110,28 +110,7 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
       _logOutcome(outcome, visits);
     }
 
-    final base = Theme.of(context);
-    final night = base.copyWith(
-      scaffoldBackgroundColor: Washi.ink,
-      colorScheme: base.colorScheme.copyWith(
-        primary: Washi.aiLight,
-        onPrimary: Washi.ink,
-        surface: Washi.ink,
-        onSurface: Washi.paper,
-        onSurfaceVariant: Washi.nightSoft,
-      ),
-      textTheme: base.textTheme.apply(
-        bodyColor: Washi.paper,
-        displayColor: Washi.paper,
-      ),
-      appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: Washi.ink,
-        foregroundColor: Washi.paper,
-        titleTextStyle: base.appBarTheme.titleTextStyle?.copyWith(
-          color: Washi.paper,
-        ),
-      ),
-    );
+    final night = resultNightTheme(Theme.of(context));
 
     // 連続記録が途切れそうなときに知らせるため、記録したあとに通知の許可を尋ねる。
     // 演出に許可の窓が重ならないよう、この画面を閉じるときに尋ねる。
@@ -188,6 +167,29 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
   }
 }
 
+/// 結果の画面の、墨色の地の配色。
+ThemeData resultNightTheme(ThemeData base) => base.copyWith(
+  scaffoldBackgroundColor: Washi.ink,
+  colorScheme: base.colorScheme.copyWith(
+    primary: Washi.aiLight,
+    onPrimary: Washi.ink,
+    surface: Washi.ink,
+    onSurface: Washi.paper,
+    onSurfaceVariant: Washi.nightSoft,
+  ),
+  textTheme: base.textTheme.apply(
+    bodyColor: Washi.paper,
+    displayColor: Washi.paper,
+  ),
+  appBarTheme: base.appBarTheme.copyWith(
+    backgroundColor: Washi.ink,
+    foregroundColor: Washi.paper,
+    titleTextStyle: base.appBarTheme.titleTextStyle?.copyWith(
+      color: Washi.paper,
+    ),
+  ),
+);
+
 /// 着丼直後の演出の段取り（演出の始まりから数える）。印を押し、点を数え、内訳を1行ずつ出し、
 /// 修行点の帯を伸ばし、知らせを順に出し、最後に道中記を1文ずつ出して余韻にする。
 /// どこをタップしても最後の状態まで飛ばせる。下の「印帳にもどる」はいつでも押せる。
@@ -230,15 +232,15 @@ class _ResultBody extends StatelessWidget {
 
     final notices = <Widget Function(Duration at)>[
       if (wish != null)
-        (at) => _WishFulfilledBanner(
+        (at) => WishFulfilledBanner(
           wish: wish,
           eatenAt: scored.visit.eatenAt,
           revealAt: at,
         ),
       if (outcome.revealsHealthyLife)
-        (at) => _HealthyLifeRevealBanner(revealAt: at),
+        (at) => HealthyLifeRevealBanner(revealAt: at),
       for (final levelUp in outcome.questLevelUps)
-        (at) => _QuestAchievedBanner(levelUp: levelUp, revealAt: at),
+        (at) => QuestAchievedBanner(levelUp: levelUp, revealAt: at),
     ];
     Duration later(Duration a, Duration b) => a > b ? a : b;
     // 段位が上がるときは、段位の印を押し終えてから知らせを出す（震えが重ならないように）。
@@ -369,8 +371,12 @@ class _StampedPage extends StatelessWidget {
   }
 }
 
-class _QuestAchievedBanner extends StatelessWidget {
-  const _QuestAchievedBanner({required this.levelUp, required this.revealAt});
+class QuestAchievedBanner extends StatelessWidget {
+  const QuestAchievedBanner({
+    super.key,
+    required this.levelUp,
+    required this.revealAt,
+  });
 
   final QuestLevelUp levelUp;
   final Duration revealAt;
@@ -434,8 +440,9 @@ class _QuestAchievedBanner extends StatelessWidget {
   }
 }
 
-class _WishFulfilledBanner extends StatelessWidget {
-  const _WishFulfilledBanner({
+class WishFulfilledBanner extends StatelessWidget {
+  const WishFulfilledBanner({
+    super.key,
     required this.wish,
     required this.eatenAt,
     required this.revealAt,
@@ -543,8 +550,8 @@ class _KanaiSeal extends StatelessWidget {
 }
 
 /// 隠し要素「毎日ラーメン健康生活」が出現したときの知らせ。
-class _HealthyLifeRevealBanner extends StatelessWidget {
-  const _HealthyLifeRevealBanner({required this.revealAt});
+class HealthyLifeRevealBanner extends StatelessWidget {
+  const HealthyLifeRevealBanner({super.key, required this.revealAt});
 
   final Duration revealAt;
 

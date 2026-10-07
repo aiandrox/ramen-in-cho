@@ -1,3 +1,4 @@
+import '../scoring/batch_outcome.dart';
 import '../scoring/points.dart';
 import '../scoring/ranks.dart';
 import '../scoring/record_outcome.dart';
@@ -409,6 +410,44 @@ List<AnalyticsEvent> recordOutcomeEvents(
     if (wish != null)
       AnalyticsEvents.wishFulfilled(
         daysWaited: eatenAt.difference(wish.createdAt).inDays,
+      ),
+    if (outcome.revealsHealthyLife)
+      AnalyticsEvents.healthyLifeRevealed(totalBowls: totalBowls),
+  ];
+}
+
+/// 何枚もまとめて記録したあとに送るイベント。1杯ずつの保存と点の内訳に、まとめた昇段・型と秘伝・願成就を添える。
+/// [summaries]は記録のIDごとの入力の様子。
+List<AnalyticsEvent> batchOutcomeEvents(
+  BatchOutcome outcome, {
+  Map<String, RecordSaveSummary> summaries = const {},
+  required int totalBowls,
+  required DateTime firstRecordAt,
+}) {
+  final last = outcome.scored.last.visit.eatenAt;
+  return [
+    for (final scored in outcome.scored) ...[
+      if (summaries[scored.visit.id] case final summary?)
+        AnalyticsEvents.recordSaved(
+          summary,
+          scored: scored,
+          totalBowls: totalBowls,
+        ),
+      AnalyticsEvents.recordBonuses(scored),
+    ],
+    if (outcome.isRankUp)
+      AnalyticsEvents.rankUp(
+        rank: outcome.rankAfter,
+        totalBowls: totalBowls,
+        daysSinceFirstRecord: last.difference(firstRecordAt).inDays,
+      ),
+    for (final levelUp in outcome.questLevelUps)
+      AnalyticsEvents.questAchieved(levelUp, totalBowls: totalBowls),
+    for (final scored in outcome.wishFulfillments)
+      AnalyticsEvents.wishFulfilled(
+        daysWaited: scored.visit.eatenAt
+            .difference(scored.fulfilledWish!.createdAt)
+            .inDays,
       ),
     if (outcome.revealsHealthyLife)
       AnalyticsEvents.healthyLifeRevealed(totalBowls: totalBowls),

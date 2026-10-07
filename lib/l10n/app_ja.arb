@@ -22,6 +22,41 @@
   "recordTitle": "記録する",
   "recordSaveFailed": "保存できませんでした。もう一度お試しください",
   "save": "着丼！",
+  "saveAndNext": "着丼！（次へ）",
+  "batchPosition": "写真 {position}/{total}",
+  "@batchPosition": {
+    "placeholders": {
+      "position": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "batchSkip": "この写真は飛ばす",
+  "leaveBatchRemaining": "まだ開いていない写真 {count}枚は記録しません。ギャラリーから選び直せます",
+  "@leaveBatchRemaining": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "batchBowls": "{count}杯",
+  "@batchBowls": {
+    "placeholders": {
+      "count": {"type": "String"}
+    }
+  },
+  "batchPointsGained": "合計 +{points}点",
+  "@batchPointsGained": {
+    "placeholders": {
+      "points": {"type": "int"}
+    }
+  },
+  "batchRankSteps": "{before}から{after}へ、段位が{count}つ上がった",
+  "@batchRankSteps": {
+    "placeholders": {
+      "count": {"type": "String"},
+      "before": {"type": "String"},
+      "after": {"type": "String"}
+    }
+  },
   "takePhoto": "カメラで撮る",
   "retakePhoto": "撮り直す",
   "pickFromGallery": "ギャラリーから選ぶ",

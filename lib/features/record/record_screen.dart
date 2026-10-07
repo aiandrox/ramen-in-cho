@@ -25,6 +25,7 @@ import '../shop_search/shop_tile.dart';
 import 'record_controller.dart';
 import '../wishes/shared_wish.dart';
 import 'record_draft.dart';
+import 'batch_result_screen.dart';
 import 'record_result_screen.dart';
 import 'record_state.dart';
 import 'star_rating.dart';
@@ -65,6 +66,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   final _memoController = TextEditingController();
   final _shopMemoController = TextEditingController();
   final _waitController = TextEditingController();
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -130,6 +132,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     _memoController.dispose();
     _shopMemoController.dispose();
     _waitController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -137,7 +140,9 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     final controller = ref.read(recordControllerProvider.notifier);
     final visitId = await controller.save();
     if (!mounted) return;
-    if (visitId != null) {
+    if (visitId != null && ref.read(recordControllerProvider).batch != null) {
+      await _continueBatch();
+    } else if (visitId != null) {
       final summary = controller.lastSaveSummary;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
@@ -152,13 +157,64 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     }
   }
 
-  Future<void> _confirmDiscardDraft() async {
-    if (!await _askStartOver() || !mounted) return;
+  /// 何枚も選んで記録している最中に、次の写真へ進む。最後の1枚なら、記録した分をまとめて見せる。
+  Future<void> _continueBatch() async {
+    final batch = ref.read(recordControllerProvider).batch;
+    if (batch == null) return;
+    if (!batch.hasNext) {
+      _finishBatch(batch.savedVisitIds);
+      return;
+    }
+    _clearInputs();
+    if (_scrollController.hasClients) _scrollController.jumpTo(0);
+    await ref.read(recordControllerProvider.notifier).nextInBatch();
+  }
+
+  Future<void> _skipInBatch() async {
+    await ref.read(recordControllerProvider.notifier).skipInBatch();
+    if (!mounted) return;
+    await _continueBatch();
+  }
+
+  /// 1杯だけならいつもの結果の画面、何杯もならまとめた結果の画面にする。1杯も記録していなければ閉じる。
+  void _finishBatch(List<String> visitIds) {
+    final navigator = Navigator.of(context);
+    final summaries = ref
+        .read(recordControllerProvider.notifier)
+        .batchSaveSummaries
+        .toList();
+    if (visitIds.isEmpty) {
+      navigator.pop();
+    } else if (visitIds.length == 1) {
+      navigator.pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => RecordResultScreen(
+            visitId: visitIds.single,
+            saveSummary: summaries.firstOrNull,
+          ),
+        ),
+      );
+    } else {
+      navigator.pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              BatchResultScreen(visitIds: visitIds, saveSummaries: summaries),
+        ),
+      );
+    }
+  }
+
+  void _clearInputs() {
     _nameController.clear();
     _memoController.clear();
     _shopMemoController.clear();
     _waitController.clear();
     FocusScope.of(context).unfocus();
+  }
+
+  Future<void> _confirmDiscardDraft() async {
+    if (!await _askStartOver() || !mounted) return;
+    _clearInputs();
     await ref.read(recordControllerProvider.notifier).discardDraft();
   }
 
@@ -193,7 +249,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     });
     final state = ref.watch(recordControllerProvider);
     return PopScope(
-      canPop: RecordDraft.fromState(state).isEmpty,
+      canPop: RecordDraft.fromState(state).isEmpty && state.batch == null,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _confirmLeave();
       },
@@ -204,11 +260,17 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   /// 入力したまま閉じようとしたら、下書きに残すか破棄するかを選んでもらう。
   Future<void> _confirmLeave() async {
     final l10n = AppLocalizations.of(context);
+    final batch = ref.read(recordControllerProvider).batch;
+    final remaining = batch?.pending.length ?? 0;
     final choice = await showDialog<_LeaveChoice>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.leaveRecordTitle),
-        content: Text(l10n.leaveRecordMessage),
+        content: Text(
+          remaining > 0
+              ? '${l10n.leaveRecordMessage}\n\n${l10n.leaveBatchRemaining(remaining)}'
+              : l10n.leaveRecordMessage,
+        ),
         // 札の字が長く横に並ぶと窮屈なので、同じ大きさの札を縦に積む。
         actions: [
           FudaRow(
@@ -241,7 +303,13 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
       unawaited(ref.read(analyticsProvider).log(AnalyticsEvents.draftKept));
     }
     // 入力は変えるたびに下書きへ書いてあるので、残すときはそのまま閉じる。
-    navigator.pop();
+    // 何枚も選んで記録していた途中なら、それまでに記録した分を見せる。
+    final saved = batch?.savedVisitIds ?? const <String>[];
+    if (saved.isNotEmpty && mounted) {
+      _finishBatch(saved);
+    } else {
+      navigator.pop();
+    }
   }
 
   void _showShopSection() {
@@ -261,8 +329,16 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.recordTitle)),
       body: ListView(
+        controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
+          if (state.batch case final batch?)
+            _BatchHeader(
+              batch: batch,
+              onSkip: state.isSaving ? null : _skipInBatch,
+            )
+          else
+            const SizedBox.shrink(),
           // 下の部品の並びがずれないよう、消えても場所を1つ取っておく。
           if (state.resumedFromDraft)
             _DraftNotice(onDiscard: _confirmDiscardDraft)
@@ -326,7 +402,11 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
                       dimension: 24,
                       child: CircularProgressIndicator(strokeWidth: 3),
                     )
-                  : Text(l10n.save),
+                  : Text(
+                      state.batch?.hasNext ?? false
+                          ? l10n.saveAndNext
+                          : l10n.save,
+                    ),
             ),
           ),
         ),
@@ -336,6 +416,37 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
 }
 
 enum _LeaveChoice { keepDraft, discard }
+
+class _BatchHeader extends StatelessWidget {
+  const _BatchHeader({required this.batch, required this.onSkip});
+
+  final PhotoBatch batch;
+  final VoidCallback? onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        children: [
+          Text(
+            l10n.batchPosition(batch.position, batch.total),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          FudeLink(
+            onPressed: onSkip,
+            icon: const Icon(Icons.skip_next),
+            child: Text(l10n.batchSkip),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _DraftNotice extends StatelessWidget {
   const _DraftNotice({required this.onDiscard});

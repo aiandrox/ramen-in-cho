@@ -21,6 +21,7 @@ import 'package:ramen_in_cho/features/onboarding/onboarding_store.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
 import 'package:ramen_in_cho/features/record/record_draft.dart';
+import 'package:ramen_in_cho/features/record/batch_result_screen.dart';
 import 'package:ramen_in_cho/features/record/record_result_screen.dart';
 import 'package:ramen_in_cho/features/record/record_screen.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
@@ -236,6 +237,13 @@ final List<_Screen> _screens = [
   (
     name: '保存直後の画面',
     home: const RecordResultScreen(visitId: 'v0'),
+    tab: null,
+    checkin: null,
+    visit: null,
+  ),
+  (
+    name: 'まとめて記録した直後の画面',
+    home: const BatchResultScreen(visitIds: ['v0', 'v3']),
     tab: null,
     checkin: null,
     visit: null,

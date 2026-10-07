@@ -9,6 +9,40 @@ enum ShopSearchStatus { idle, searching, done }
 
 const _unset = Object();
 
+/// ギャラリーで何枚も選んで、1枚ずつ記録しているときの進み具合。
+class PhotoBatch {
+  const PhotoBatch({
+    required this.pending,
+    required this.position,
+    required this.total,
+    this.savedVisitIds = const [],
+  });
+
+  /// まだ開いていない写真（選んだときの一時ファイル）。
+  final List<String> pending;
+
+  /// 今の写真が何枚目か（1から）。
+  final int position;
+  final int total;
+  final List<String> savedVisitIds;
+
+  bool get hasNext => pending.isNotEmpty;
+
+  PhotoBatch withSaved(String visitId) => PhotoBatch(
+    pending: pending,
+    position: position,
+    total: total,
+    savedVisitIds: [...savedVisitIds, visitId],
+  );
+
+  PhotoBatch advance() => PhotoBatch(
+    pending: pending.sublist(1),
+    position: position + 1,
+    total: total,
+    savedVisitIds: savedVisitIds,
+  );
+}
+
 class RecordState {
   const RecordState({
     this.photoPath,
@@ -39,6 +73,7 @@ class RecordState {
     this.chosenEatenAt,
     this.isSaving = false,
     this.resumedFromDraft = false,
+    this.batch,
   });
 
   /// 写真のパス。ふつうは下書き用のフォルダに写したもの（record_draft.dart）。
@@ -101,6 +136,9 @@ class RecordState {
 
   /// 前に保存せずに閉じたときの入力から再開したか。
   final bool resumedFromDraft;
+
+  /// 何枚も選んだ写真を1枚ずつ記録している最中なら、その進み具合。
+  final PhotoBatch? batch;
 
   /// 並んでいる店を選んでいるか。このときだけ待ち時間を記録する。
   bool get isCheckinShopSelected {
@@ -171,6 +209,7 @@ class RecordState {
     Object? chosenEatenAt = _unset,
     bool? isSaving,
     bool? resumedFromDraft,
+    Object? batch = _unset,
   }) {
     return RecordState(
       photoPath: photoPath == _unset ? this.photoPath : photoPath as String?,
@@ -215,6 +254,7 @@ class RecordState {
           : chosenEatenAt as DateTime?,
       isSaving: isSaving ?? this.isSaving,
       resumedFromDraft: resumedFromDraft ?? this.resumedFromDraft,
+      batch: batch == _unset ? this.batch : batch as PhotoBatch?,
     );
   }
 }
