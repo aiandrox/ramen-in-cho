@@ -54,8 +54,9 @@ class StatsSections extends ConsumerWidget {
             contentPadding: EdgeInsets.zero,
             dense: true,
             title: Text(frequent.shop.name),
-            trailing: _Value(
-              Text(l10n.bowls(frequent.count), style: textTheme.bodyLarge),
+            trailing: Text(
+              l10n.bowls(frequent.count),
+              style: textTheme.bodyLarge,
             ),
             onTap: () => _openShop(context, frequent.lastVisitId),
           ),
@@ -67,11 +68,9 @@ class StatsSections extends ConsumerWidget {
             dense: true,
             leading: _RankBadge(rank: ranked.rank),
             title: Text(ranked.shop.name),
-            trailing: _Value(
-              Text(
-                l10n.statsBestPoints(ranked.bestPoints),
-                style: textTheme.bodyMedium,
-              ),
+            trailing: Text(
+              l10n.statsBestPoints(ranked.bestPoints),
+              style: textTheme.bodyMedium,
             ),
             onTap: () => _openShop(context, ranked.bestVisitId),
           ),
@@ -86,24 +85,6 @@ void _openShop(BuildContext context, String visitId) => Navigator.of(context)
         builder: (_) => VisitDetailScreen(visitId: visitId),
       ),
     );
-
-class _Value extends StatelessWidget {
-  const _Value(this.value);
-
-  final Widget value;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      value,
-      Icon(
-        Icons.chevron_right,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-    ],
-  );
-}
 
 List<Widget> _bests(
   BuildContext context,
@@ -121,7 +102,7 @@ List<Widget> _bests(
         formatDate(best.entry.visit.eatenAt),
       ),
     ),
-    trailing: _Value(Text(value, style: textTheme.titleMedium)),
+    trailing: Text(value, style: textTheme.titleMedium),
     onTap: () => _openShop(context, best.entry.visit.id),
   );
   final rows = [
