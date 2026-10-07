@@ -161,6 +161,46 @@ void main() {
     expect(repository.deleted, ['b']);
     expect(find.text('麺屋ふじみち'), findsNothing);
   });
+  testWidgets('願の「…」の「願を消す」でも、確かめてから消す。やめれば残す', (tester) async {
+    final repository = FakeWishRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          wishRepositoryProvider.overrideWithValue(repository),
+          homeBaseSettingsProvider.overrideWithValue(const AsyncData([])),
+          wishesProvider.overrideWithValue(
+            AsyncData([
+              Wish(id: 'b', name: '麺屋ふじみち', createdAt: DateTime(2026, 9, 28)),
+            ]),
+          ),
+          visitsProvider.overrideWithValue(const AsyncData([])),
+          clockProvider.overrideWithValue(() => DateTime(2026, 10, 3, 18)),
+        ],
+        child: localizedApp(home: const WishListScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip(ja.moreActions));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ja.wishDeleteAction));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.wishDeleteConfirm('麺屋ふじみち')), findsOneWidget);
+    await tester.tap(find.text(ja.cancel));
+    await tester.pumpAndSettle();
+    expect(repository.deleted, isEmpty);
+    expect(find.text('麺屋ふじみち'), findsOneWidget);
+
+    await tester.tap(find.byTooltip(ja.moreActions));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(ja.wishDeleteAction));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(KeshiFuda, ja.delete));
+    await tester.pumpAndSettle();
+
+    expect(repository.deleted, ['b']);
+    expect(find.text('麺屋ふじみち'), findsNothing);
+  });
 }
 
 class _WishesTab extends AppTabNotifier {

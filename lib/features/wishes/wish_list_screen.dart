@@ -179,20 +179,27 @@ class _PendingWishCard extends ConsumerWidget {
     return confirmed == true;
   }
 
+  void _delete(WidgetRef ref) {
+    ref.read(_removedWishIdsProvider.notifier).add(status.wish.id);
+    ref.read(wishRepositoryProvider).deleteWish(status.wish.id);
+  }
+
+  Future<void> _deleteFromMenu(BuildContext context, WidgetRef ref) async {
+    if (await _confirmDelete(context)) _delete(ref);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final wish = status.wish;
-    // 店名ときっかけだけ。メモはタップして開く編集で見る。外すときは横にすべらせる。
+    // 店名ときっかけだけ。メモはタップして開く編集で見る。
+    // 消すときは横にすべらせるか、右の「…」から（すべらせる操作に気づけない人もいるため）。
     return Dismissible(
       key: ValueKey(wish.id),
       direction: DismissDirection.endToStart,
       confirmDismiss: (_) => _confirmDelete(context),
-      onDismissed: (_) {
-        ref.read(_removedWishIdsProvider.notifier).add(wish.id);
-        ref.read(wishRepositoryProvider).deleteWish(wish.id);
-      },
+      onDismissed: (_) => _delete(ref),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
@@ -220,12 +227,28 @@ class _PendingWishCard extends ConsumerWidget {
                       Text(l10n.wishTriggerLine(wish.trigger)),
                   ],
                 ),
+          trailing: PopupMenuButton<_WishAction>(
+            tooltip: l10n.moreActions,
+            onSelected: (action) => switch (action) {
+              _WishAction.edit => _edit(context, ref),
+              _WishAction.delete => _deleteFromMenu(context, ref),
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(value: _WishAction.edit, child: Text(l10n.edit)),
+              PopupMenuItem(
+                value: _WishAction.delete,
+                child: Text(l10n.wishDeleteAction),
+              ),
+            ],
+          ),
           onTap: () => _edit(context, ref),
         ),
       ),
     );
   }
 }
+
+enum _WishAction { edit, delete }
 
 class _FulfilledWishCard extends StatelessWidget {
   const _FulfilledWishCard({required this.status});

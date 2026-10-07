@@ -375,6 +375,7 @@
   "wishAdded": "{name} に願を掛けました",
   "@wishAdded": {"placeholders": {"name": {"type": "String"}}},
   "wishSaveFailed": "願を書き留められませんでした",
+  "wishDeleteAction": "願を消す",
   "wishDeleteConfirm": "{name} の願を消しますか？",
   "@wishDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
   "wishFulfilled": "願成就",

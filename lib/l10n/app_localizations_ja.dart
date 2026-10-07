@@ -778,6 +778,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wishSaveFailed => '願を書き留められませんでした';
 
   @override
+  String get wishDeleteAction => '願を消す';
+
+  @override
   String wishDeleteConfirm(String name) {
     return '$name の願を消しますか？';
   }
