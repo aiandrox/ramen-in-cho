@@ -48,13 +48,25 @@ class VisitDetailScreen extends ConsumerStatefulWidget {
 class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
   late String _visitId = widget.visitId;
 
-  Future<void> _delete(String visitId) async {
+  Future<void> _delete(VisitWithShop entry, {required int otherVisits}) async {
     final l10n = AppLocalizations.of(context);
+    final visitId = entry.visit.id;
+    final message = [
+      otherVisits > 0
+          ? l10n.deleteConfirmOthersKept(otherVisits)
+          : l10n.deleteConfirmLastOfShop,
+      if (entry.visit.photoPath != null) l10n.deleteConfirmPhoto,
+      l10n.deleteConfirmIrreversible,
+    ].join('\n');
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.deleteConfirmTitle),
-        content: Text(l10n.deleteConfirmMessage),
+        title: Text(
+          entry.visit.result == VisitResult.retreated
+              ? l10n.deleteRetreatConfirmTitle
+              : l10n.deleteConfirmTitle,
+        ),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -259,7 +271,16 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                   builder: (_) => VisitEditScreen(entry: entry),
                 ),
               ),
-              _DetailAction.delete => _delete(visit.id),
+              _DetailAction.delete => _delete(
+                entry,
+                otherVisits: visits
+                    .where(
+                      (e) =>
+                          e.visit.shopId == entry.shop.id &&
+                          e.visit.id != visit.id,
+                    )
+                    .length,
+              ),
             },
             itemBuilder: (context) => [
               PopupMenuItem(
