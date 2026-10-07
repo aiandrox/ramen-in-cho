@@ -13,7 +13,6 @@ import '../records/models.dart';
 import '../records/photo_rotation.dart';
 import '../records/photo_storage.dart';
 import '../records/record_repository.dart';
-import '../records/wait_time.dart';
 import '../shop_search/found_shop.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/location_service.dart';
@@ -162,7 +161,10 @@ class RecordController extends Notifier<RecordState> {
     // 下書きに前の「着」が残っていれば、そちらの時刻を使う（そのときに着丼していたため）。
     final arrives =
         arrivedAt != null && state.checkin != null && state.arrivedAt == null;
-    if (arrives) state = state.copyWith(arrivedAt: arrivedAt);
+    // 「着」を押したら、下書きで直した日時よりその時刻を使う。
+    if (arrives) {
+      state = state.copyWith(arrivedAt: arrivedAt, chosenEatenAt: null);
+    }
     _draftReady = true;
     // カメラの最中にアプリが終わらされても「着」の時刻が残るよう、先に下書きへ書く。
     if (arrives) {
@@ -382,6 +384,7 @@ class RecordController extends Notifier<RecordState> {
           : draft.shopFamousOriginal,
       manualWaitMinutes: draft.manualWaitMinutes,
       arrivedAt: draft.arrivedAt,
+      chosenEatenAt: draft.chosenEatenAt,
       resumedFromDraft: true,
     );
   }
@@ -527,6 +530,8 @@ class RecordController extends Notifier<RecordState> {
       photoDateFromPhoto: takenAt != null,
       photoLocation: metadata.location,
       photoFromCamera: fromCamera,
+      // 写真を選び直したら、その写真の日時に戻す。
+      chosenEatenAt: null,
     );
     _photoFromDraft = false;
     // 写真を選ぶたびに、撮影場所（無ければ現在地）で探し直す。並んだ店などを選んでいれば、選んだままにする。
@@ -703,6 +708,9 @@ class RecordController extends Notifier<RecordState> {
 
   void setShopFamous(bool value) => state = state.copyWith(shopFamous: value);
 
+  void setEatenAt(DateTime eatenAt) =>
+      state = state.copyWith(chosenEatenAt: eatenAt);
+
   void setWaitMinutes(int? minutes) =>
       state = state.copyWith(manualWaitMinutes: minutes);
 
@@ -720,13 +728,7 @@ class RecordController extends Notifier<RecordState> {
       }
       final now = ref.read(clockProvider)();
       // 別の店を選んだときは「着」の時刻を使わない（並んでいる間に別の記録をすることもあるため）。
-      final atCheckinShop = draft.isCheckinShopSelected;
-      final times = recordTimes(
-        now: now,
-        photoTakenAt: draft.photoTakenAt,
-        arrivedAt: atCheckinShop ? draft.arrivedAt : null,
-        checkedInAt: atCheckinShop ? draft.checkin?.checkedInAt : null,
-      );
+      final times = draft.timesAt(now);
       final eatenAt = times.eatenAt;
       final queuedAt = times.checkedInAt;
       final manualWait = draft.manualWaitMinutes;

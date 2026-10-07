@@ -1368,8 +1368,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopStamps => 'この道場の印';
 
   @override
-  String recordPhotoDate(String date) {
-    return '食べた日時: $date（写真の撮影日時）';
+  String recordEatenAtFromPhoto(String date) {
+    return '$date（写真の撮影日時）';
+  }
+
+  @override
+  String recordEatenAtArrived(String date) {
+    return '$date（「着」を押した時刻）';
+  }
+
+  @override
+  String recordEatenAtNow(String date) {
+    return '今（$date）';
   }
 
   @override

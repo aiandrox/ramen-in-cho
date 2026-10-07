@@ -92,6 +92,28 @@ void main() {
       expect(times.checkedInAt, isNull);
     });
 
+    test('食べた日時を直していれば、「着」や写真の時刻より優先し、待ち時間もそこから数える', () {
+      final chosen = DateTime(2026, 10, 5, 11, 30);
+      final times = recordTimes(
+        now: now,
+        photoTakenAt: DateTime(2026, 10, 5, 12, 10),
+        arrivedAt: arrivedAt,
+        checkedInAt: checkedInAt,
+        chosenEatenAt: chosen,
+      );
+      expect(times.eatenAt, chosen);
+      expect(times.eatenAt.difference(times.checkedInAt!).inMinutes, 30);
+    });
+
+    test('並ぶ前の日時に直したら待ち時間をつけない', () {
+      final times = recordTimes(
+        now: now,
+        checkedInAt: checkedInAt,
+        chosenEatenAt: DateTime(2026, 10, 4, 19),
+      );
+      expect(times.checkedInAt, isNull);
+    });
+
     test('並んだ店を選んでいなければ（並んだ時刻を渡さなければ）待ち時間は無い', () {
       expect(recordTimes(now: now).checkedInAt, isNull);
     });

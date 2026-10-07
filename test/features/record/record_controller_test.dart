@@ -280,6 +280,29 @@ void main() {
       expect(waitMinutes(visit), 25);
     });
 
+    test('食べた日時を直すと、その日時で保存し、待ち時間もその日時から数える', () async {
+      final chosen = DateTime(2026, 9, 1, 19, 5);
+      await controller().start();
+      controller().setManualName('日時を直した店');
+      controller().setEatenAt(chosen);
+      controller().setWaitMinutes(25);
+      await controller().save();
+
+      final visit = (await visits()).single.visit;
+      expect(visit.eatenAt, chosen);
+      expect(visit.checkedInAt, chosen.subtract(const Duration(minutes: 25)));
+    });
+
+    test('食べた日時を直したあとで写真を選び直すと、写真の日時に戻る', () async {
+      await controller().start();
+      controller().setEatenAt(DateTime(2026, 9, 1, 19, 5));
+      await controller().takePhoto();
+      await pumpEventQueue();
+
+      expect(state().chosenEatenAt, isNull);
+      expect(state().timesAt(DateTime(2030)).eatenAt, _photoTime);
+    });
+
     test('空にすれば待ち時間なし', () async {
       await controller().start();
       await controller().takePhoto();
@@ -653,6 +676,23 @@ void main() {
       expect(await controller().save(), isNotNull);
 
       expect(waitMinutes((await visits()).single.visit), 10);
+      expect(
+        await container.read(recordRepositoryProvider).activeCheckin(),
+        isNotNull,
+      );
+    });
+
+    test('並んだ店で食べた日時を3時間より後に直すと、待ち時間をつけず並びも続く', () async {
+      await checkIn();
+
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      final queuedAt = state().checkin!.checkedInAt;
+      controller().setEatenAt(queuedAt.add(const Duration(hours: 4)));
+      await controller().save();
+
+      expect((await visits()).single.visit.checkedInAt, isNull);
       expect(
         await container.read(recordRepositoryProvider).activeCheckin(),
         isNotNull,
