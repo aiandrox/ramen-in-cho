@@ -362,6 +362,10 @@ abstract final class AnalyticsEvents {
     'step': step,
   });
 
+  /// 「また今度」で閉じた（終えたことにせず、次に開いたときにまた出す）。
+  static AnalyticsEvent onboardingPostponed({required String step}) =>
+      AnalyticsEvent('onboarding_postponed', {'step': step});
+
   static const onboardingHomeBaseLater = AnalyticsEvent(
     'onboarding_home_base_later',
   );

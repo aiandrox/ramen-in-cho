@@ -198,11 +198,26 @@ void main() {
       expect(find.text(ja.onboardingHomeBaseChapter), findsOneWidget);
     });
 
-    testWidgets('「また今度」で閉じると、次からは出さない', (tester) async {
+    testWidgets('「また今度」で閉じても終えたことにせず、記録が0件なら次に開いたときにまた出す', (tester) async {
       await pumpOnboarding(tester);
       await tapText(tester, ja.onboardingLater);
       expect(closed, isTrue);
       expect(result, isNull);
+      expect(store.completed, isFalse);
+      expect(
+        shouldShowOnboarding(
+          completed: (await store.load()).completed,
+          visitCount: 0,
+        ),
+        isTrue,
+      );
+    });
+
+    testWidgets('×で閉じると、次からは出さない', (tester) async {
+      await pumpOnboarding(tester);
+      await tester.tap(find.byTooltip(ja.onboardingClose));
+      await tester.pumpAndSettle();
+      expect(closed, isTrue);
       expect(store.completed, isTrue);
     });
   });
