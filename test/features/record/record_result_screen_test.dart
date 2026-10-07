@@ -330,7 +330,10 @@ void main() {
   });
 
   for (final how in ['button', 'system']) {
-    testWidgets('閉じると印帳のタブに戻る（$how）', (tester) async {
+    testWidgets('閉じると印帳のタブのいちばん上に戻る（$how）', (tester) async {
+      tester.view.physicalSize = const Size(1080, 4800);
+      tester.view.devicePixelRatio = 2.5;
+      addTearDown(tester.view.reset);
       final entry = buildEntry(eatenAt: day(1));
       final container = ProviderContainer(
         overrides: [
@@ -363,6 +366,7 @@ void main() {
       await tester.tap(find.text('開く'));
       await tester.pumpAndSettle();
       expect(container.read(appTabProvider), AppTab.map);
+      expect(container.read(ledgerTopRequestProvider), 0);
 
       if (how == 'button') {
         await tester.tap(find.text(ja.resultOk));
@@ -372,6 +376,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(RecordResultScreen), findsNothing);
       expect(container.read(appTabProvider), AppTab.records);
+      expect(container.read(ledgerTopRequestProvider), 1);
     });
   }
 }

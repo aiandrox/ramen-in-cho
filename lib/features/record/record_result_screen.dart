@@ -72,12 +72,14 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
 
   late final NotificationService _notifications;
   late final AppTabNotifier _tabs;
+  late final LedgerTopRequest _ledgerTop;
 
   @override
   void initState() {
     super.initState();
     _notifications = ref.read(notificationServiceProvider);
     _tabs = ref.read(appTabProvider.notifier);
+    _ledgerTop = ref.read(ledgerTopRequestProvider.notifier);
   }
 
   @override
@@ -139,6 +141,7 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
         if (!didPop) return;
         _notifications.requestPermission();
         _tabs.select(AppTab.records);
+        _ledgerTop.request();
       },
       child: Theme(
         data: night,
