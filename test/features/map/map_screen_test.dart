@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ramen_in_cho/features/credits/source_credit.dart';
 
 import 'package:ramen_in_cho/features/map/journey.dart';
 import 'package:ramen_in_cho/features/map/map_camera.dart';
@@ -88,6 +89,59 @@ void main() {
     expect(find.text(ja.mapEmpty), findsOneWidget);
     expect(find.byTooltip(ja.mapSearchHere), findsOneWidget);
     expect(location.requests, [true]);
+  });
+
+  testWidgets('丸いボタンに何のボタンかを字で添え、字を押しても同じことをする', (tester) async {
+    await pumpMap(tester, [
+      buildEntry(
+        shop: buildShop(
+          id: 'visited',
+          osmId: 'node/1',
+          latitude: 35.001,
+          longitude: 139.0,
+        ),
+      ),
+    ]);
+
+    expect(find.text(ja.mapListLabel), findsOneWidget);
+    expect(find.text(ja.mapMyLocation), findsOneWidget);
+    expect(find.text(ja.journeyToggle), findsOneWidget);
+
+    await tester.tap(find.text(ja.mapSearchHereLabel));
+    await tester.pumpAndSettle();
+
+    expect(overpass.radii, [nearbySearchRadiusMeters]);
+  });
+
+  testWidgets('添えた字は、地図の出典に重ならない', (tester) async {
+    await pumpMap(tester, [
+      buildEntry(
+        shop: buildShop(
+          id: 'visited',
+          osmId: 'node/1',
+          latitude: 35.001,
+          longitude: 139.0,
+        ),
+      ),
+    ]);
+    await tester.tap(find.text(ja.mapSearchHereLabel));
+    await tester.pumpAndSettle();
+    // 出典が長くなる（Yahoo! も出す）検索のあとに、スマホの幅にする。
+    tester.view.physicalSize = const Size(400, 800);
+    await tester.pumpAndSettle();
+
+    final credit = tester.getRect(find.byType(SourceCredit));
+    for (final label in [
+      ja.mapSearchHereLabel,
+      ja.mapMyLocation,
+      ja.mapListLabel,
+    ]) {
+      expect(
+        tester.getRect(find.text(label)).overlaps(credit),
+        isFalse,
+        reason: label,
+      );
+    }
   });
 
   testWidgets('「このあたりを探す」で1km以内を探し、まだ行っていない店だけをピンで出す', (tester) async {

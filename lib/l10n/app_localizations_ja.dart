@@ -1241,10 +1241,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mapLocating => '現在地を確かめています…';
 
   @override
-  String get mapEmpty => '行った店はまだ地図にありません。「このあたりのラーメン店を探す」で、まわりの店を探せます';
+  String get mapEmpty => '行った店はまだ地図にありません。右下の「このあたりを探す」のボタンで、まわりの店を探せます';
 
   @override
   String get mapSearchHere => 'このあたりのラーメン店を探す';
+
+  @override
+  String get mapSearchHereLabel => 'このあたりを探す';
+
+  @override
+  String get mapListLabel => '一覧';
 
   @override
   String get mapMyLocation => '現在地';
