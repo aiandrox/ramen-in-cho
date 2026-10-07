@@ -4,14 +4,21 @@ name: Native Build Check
 # ネイティブ側だけで起きる不具合を検知できないため追加する。
 # 署名は行わず（Android: デバッグ署名、iOS: --no-codesign）ビルドの成否のみ見る。
 #
-# 頻度を抑えるため、Androidはネイティブビルドに影響しうる変更をmainへマージした時のみ、
-# iOSは手動実行（workflow_dispatch）時のみ走らせる。
+# Androidはネイティブビルドに影響しうる変更をmainへマージした時、
+# iOSはiOSに影響しうる変更のPRで走らせる（どちらも手動実行でも走る）。
 
 on:
   push:
     branches: [main]
     paths:
       - "android/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/native-build-check.yml"
+      - ".github/actions/setup-flutter/**"
+  pull_request:
+    paths:
+      - "ios/**"
       - "pubspec.yaml"
       - "pubspec.lock"
       - ".github/workflows/native-build-check.yml"
@@ -27,6 +34,7 @@ concurrency:
 
 jobs:
   android-build:
+    if: github.event_name != 'pull_request'
     # ubuntu-latest が 2026-10-19 から Ubuntu 26 に変わっても急に壊れないよう、版を固定する（#285）
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -39,11 +47,11 @@ jobs:
 
       - run: flutter build apk --debug
 
-  # macOSランナーはLinuxの10倍の分数を消費し、Actions全体の消費の大半を占めていたため
-  # 手動実行時のみにする。
+  # 公開リポジトリでは macOS の標準ランナーも無料（#291）。
+  # PRで自動で走るので、macos-latest の切り替わりで急に壊れないよう版を固定する
   ios-build:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: macos-latest
+    if: github.event_name != 'push'
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
