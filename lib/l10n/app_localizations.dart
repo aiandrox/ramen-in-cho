@@ -514,6 +514,24 @@ abstract class AppLocalizations {
   /// **'保存'**
   String get editSave;
 
+  /// No description provided for @editLeaveTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'変更を保存せずに戻りますか？'**
+  String get editLeaveTitle;
+
+  /// No description provided for @editLeaveDiscard.
+  ///
+  /// In ja, this message translates to:
+  /// **'戻る（変更を捨てる）'**
+  String get editLeaveDiscard;
+
+  /// No description provided for @editLeaveContinue.
+  ///
+  /// In ja, this message translates to:
+  /// **'編集を続ける'**
+  String get editLeaveContinue;
+
   /// No description provided for @editSaveFailed.
   ///
   /// In ja, this message translates to:
