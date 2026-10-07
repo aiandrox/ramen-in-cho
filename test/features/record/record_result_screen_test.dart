@@ -119,8 +119,8 @@ void main() {
     expect(find.text(ja.questLevelReached('限定ハンター', '一')), findsOneWidget);
     expect(find.text(ja.questLevelReached('大物討伐', '一')), findsOneWidget);
 
-    // 連続記録のお知らせのため、記録したときに通知の許可を尋ねる。
-    expect(notifications.permissionRequests, 1);
+    // 演出に許可の窓が重ならないよう、表示している間は通知の許可を尋ねない。
+    expect(notifications.permissionRequests, 0);
   });
 
   testWidgets('ランクが上がったら知らせる', (tester) async {
@@ -319,9 +319,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(tester.hasRunningAnimations, isTrue);
     expect(find.byType(RecordResultScreen), findsOneWidget);
+    expect(notifications.permissionRequests, 0);
 
     await tester.tap(find.text(ja.resultOk));
     await tester.pumpAndSettle();
     expect(find.byType(RecordResultScreen), findsNothing);
+    // 連続記録のお知らせのため、閉じたときに通知の許可を尋ねる。
+    expect(notifications.permissionRequests, 1);
   });
 }
