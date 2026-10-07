@@ -33,6 +33,7 @@ import '../shop_search/geo.dart';
 import '../shop_search/shop_name_search_sheet.dart';
 import 'visit_edit_screen.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics_events.dart';
 
 /// 1つの店のページ。開いた1杯を大きく見せ、この店で集めた印をタップすると切り替わる。
 class VisitDetailScreen extends ConsumerStatefulWidget {
@@ -232,6 +233,7 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
         longitude: entry.shop.longitude,
         dataSource: entry.shop.dataSource,
       ),
+      source: WishSource.shopPage,
     );
 
     return Scaffold(

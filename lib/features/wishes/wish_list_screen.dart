@@ -19,6 +19,7 @@ import 'wish_providers.dart';
 import 'wish_repository.dart';
 import 'wishes.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics_events.dart';
 
 /// すべらせて消した願。データベースから消えて一覧が更新されるまでの間も、すぐ隠すため。
 final _removedWishIdsProvider = NotifierProvider<_RemovedWishIds, Set<String>>(
@@ -101,7 +102,8 @@ class WishListScreen extends ConsumerWidget {
           ),
           child: EmaFab(
             tooltip: l10n.wishAddTitle,
-            onPressed: () => addWishByName(context, ref),
+            onPressed: () =>
+                addWishByName(context, ref, source: WishSource.wishBook),
           ),
         ),
       ),

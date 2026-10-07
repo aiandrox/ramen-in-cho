@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- 近くのラーメン店の検索（Overpass API）用。 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- アプリ使用中の現在地のみ。バックグラウンドの位置情報は使わない。 -->
@@ -6,10 +7,22 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- 予約した通知（連続記録のお知らせ）を、端末を再起動したあとも届けるため。 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Firebase Analytics が足す広告 ID の権限を外す（広告 ID は使わない）。 -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
     <application
         android:label="麺印帳"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- 使い方の統計（Firebase Analytics）で、広告 ID と端末の ID（SSAID）を集めず、広告に使わせない。 -->
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_ssaid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_default_allow_ad_personalization_signals"
+            android:value="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +13,8 @@ import 'openpoi_client.dart';
 import 'ramen_in_cho_api.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 店名で全国の店を探し、選んだ店を返す。やめたらnull。
 /// [onPickOnMap]があれば、結果の下に「地図で場所を指す」を出し、押されたら窓を閉じて呼ぶ。
@@ -66,6 +70,12 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
     super.dispose();
   }
 
+  void _log(String via, List<FoundShop>? results) => unawaited(
+    ref
+        .read(analyticsProvider)
+        .log(AnalyticsEvents.shopNameSearch(via: via, results: results)),
+  );
+
   Future<void> _search() async {
     final name = _controller.text.trim();
     if (name.isEmpty) return;
@@ -87,11 +97,13 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
         try {
           final shops = await api.searchByName(name, near: widget.near);
           if (!mounted || generation != _generation) return;
+          final results = nearestFirst(
+            mergeFoundShops(curated, shops),
+            widget.near,
+          );
+          _log('server', results);
           setState(() {
-            _results = nearestFirst(
-              mergeFoundShops(curated, shops),
-              widget.near,
-            );
+            _results = results;
             _isSearching = false;
           });
           return;
@@ -136,6 +148,7 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
         widget.near,
       );
       if (!mounted || generation != _generation) return;
+      _log('device', results);
       setState(() {
         _results = results;
         _isSearching = false;
@@ -143,6 +156,7 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
     } catch (e) {
       debugPrint('Shop name search failed: $e');
       if (!mounted || generation != _generation) return;
+      _log('device', null);
       setState(() {
         _failed = true;
         _isSearching = false;

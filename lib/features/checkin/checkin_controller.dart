@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../error_reporting/error_reporting.dart';
@@ -7,6 +9,8 @@ import '../records/record_repository.dart';
 import '../shop_search/shop_candidate.dart';
 import '../shop_search/shop_search_service.dart';
 import 'checkin_rules.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 並んでいる最中のチェックイン。3時間を超えていたら取り消してnullにする。
 final activeCheckinProvider = StreamProvider<Checkin?>((ref) {
@@ -14,7 +18,11 @@ final activeCheckinProvider = StreamProvider<Checkin?>((ref) {
   final clock = ref.watch(clockProvider);
   return repository.watchActiveCheckin().asyncMap((checkin) async {
     if (checkin == null || !isCheckinExpired(checkin, clock())) return checkin;
-    await repository.cancelCheckin();
+    final analytics = ref.read(analyticsProvider);
+    // 並びの帯のタイマーが先に取り消していれば数えない。
+    if (await repository.cancelCheckin() > 0) {
+      unawaited(analytics.log(AnalyticsEvents.checkinAutoCanceled));
+    }
     return null;
   });
 });
@@ -52,6 +60,11 @@ class CheckinController extends Notifier<CheckinState> {
         .read(shopSearchServiceProvider)
         .search(requestPermission: true);
     if (!ref.mounted) return;
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.shopSearch(purpose: 'checkin', result: result)),
+    );
     state = CheckinState(result: result);
   }
 
@@ -59,6 +72,7 @@ class CheckinController extends Notifier<CheckinState> {
   Future<bool> checkIn(ShopCandidate shop) {
     if (!canCheckIn(shop.distanceMeters)) return Future.value(false);
     return _checkIn(
+      shopSourceOf(shop),
       ShopInput(
         shopId: shop.shopId,
         osmId: shop.osmId,
@@ -74,17 +88,24 @@ class CheckinController extends Notifier<CheckinState> {
     final here = state.result?.here;
     if (here == null || name.trim().isEmpty) return Future.value(false);
     return _checkIn(
+      ShopSourceKind.manual,
       ShopInput(name: name, latitude: here.latitude, longitude: here.longitude),
     );
   }
 
-  Future<bool> _checkIn(ShopInput shop) async {
+  Future<bool> _checkIn(ShopSourceKind source, ShopInput shop) async {
     if (state.isSaving) return false;
     state = CheckinState(result: state.result, isSaving: true);
+    final analytics = ref.read(analyticsProvider);
     try {
       await ref
           .read(recordRepositoryProvider)
           .checkIn(shop: shop, at: ref.read(clockProvider)());
+      unawaited(
+        analytics.log(
+          AnalyticsEvents.checkinStarted(via: 'screen', shopSource: source),
+        ),
+      );
       return true;
     } catch (e, st) {
       reportError(e, st, reason: 'Checkin failed');

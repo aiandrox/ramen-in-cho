@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -17,6 +18,8 @@ import '../records/record_repository.dart';
 import '../scoring/scoring_providers.dart';
 import 'share_card.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 1杯を1枚の絵にして、OSの共有画面で送る。写真・道中記・修行点を入れるかは送る前に選べる。
 class ShareScreen extends ConsumerStatefulWidget {
@@ -35,6 +38,22 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
   bool _includeJournal = true;
   bool _includePoints = true;
   bool _isSharing = false;
+
+  void _log(String result) {
+    if (!mounted) return;
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(
+            AnalyticsEvents.shareCard(
+              result: result,
+              includePhoto: _includePhoto,
+              includeJournal: _includeJournal,
+              includePoints: _includePoints,
+            ),
+          ),
+    );
+  }
 
   Future<void> _share() async {
     final l10n = AppLocalizations.of(context);
@@ -58,14 +77,16 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
         p.join(directory.path, 'ramen-in-cho-${widget.visitId}.png'),
       );
       await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
-      await SharePlus.instance.share(
+      final result = await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path, mimeType: 'image/png')],
           sharePositionOrigin: origin,
         ),
       );
+      _log(snake(result.status.name));
     } catch (e, st) {
       reportError(e, st, reason: 'Share failed');
+      _log('failed');
       messenger.showSnackBar(SnackBar(content: Text(l10n.shareFailed)));
     } finally {
       if (mounted) setState(() => _isSharing = false);

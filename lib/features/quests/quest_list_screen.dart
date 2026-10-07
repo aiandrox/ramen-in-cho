@@ -10,6 +10,8 @@ import 'quest_seal.dart';
 import 'quests.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 型と秘伝の一覧。修行タブの中に並べる。
 class QuestSections extends ConsumerWidget {
@@ -171,10 +173,13 @@ class _SpotSeal extends StatelessWidget {
   Widget build(BuildContext context) {
     final quest = progress.quest;
     return InkWell(
-      onTap: () => showWashiSheet<void>(
-        context: context,
-        builder: (_) => _SpotDetails(progress: progress),
-      ),
+      onTap: () {
+        logAnalytics(context, AnalyticsEvents.featureOpened('hiden_detail'));
+        showWashiSheet<void>(
+          context: context,
+          builder: (_) => _SpotDetails(progress: progress),
+        );
+      },
       child: SizedBox(
         width: width,
         child: Padding(

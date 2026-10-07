@@ -34,6 +34,8 @@ import 'washi_map.dart';
 import 'shop_pins.dart';
 import '../../theme/washi_buttons.dart';
 import '../../theme/washi_sheet.dart';
+import '../analytics/analytics_events.dart';
+import '../analytics/analytics.dart';
 
 /// 「このあたりを探す」で探す半径。記録のときの候補（300m）より広く、歩いて行ける範囲。
 const nearbySearchRadiusMeters = 1000;
@@ -141,6 +143,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
         eatenShops: visited.values.toList(),
       );
       setState(() => _nearby = nearby);
+      _log(
+        AnalyticsEvents.mapNearbySearch(succeeded: true, count: nearby.length),
+      );
       _showMessage(
         nearby.isEmpty
             ? l10n.mapNearbyNone
@@ -148,10 +153,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
       );
     } catch (e) {
       debugPrint('Nearby search failed: $e');
+      _log(AnalyticsEvents.mapNearbySearch(succeeded: false, count: 0));
       if (mounted) _showMessage(l10n.mapSearchFailed);
     } finally {
       if (mounted) setState(() => _isSearching = false);
     }
+  }
+
+  /// 探している間に画面を閉じると ref が使えないので、閉じたあとは送らない。
+  void _log(AnalyticsEvent event) {
+    if (mounted) unawaited(ref.read(analyticsProvider).log(event));
   }
 
   void _toggleJourney(List<JourneyStop> stops) {
@@ -178,6 +189,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void _replay(List<JourneyStop> stops) {
     _stopReplay();
     if (stops.isEmpty) return;
+    _log(AnalyticsEvents.journeyReplay);
     if (MediaQuery.disableAnimationsOf(context)) {
       _fitTo(stops);
       setState(() {});
@@ -280,6 +292,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   /// まとめた印をタップしたら、中の店がおさまるまで寄る。もう寄れなければ、中の店を一覧で見せる。
   void _openCluster(PinCluster<MapPlace> cluster) {
+    _log(AnalyticsEvents.mapClusterTap);
     final camera = _controller.camera;
     final fitted = CameraFit.coordinates(
       coordinates: [
@@ -307,6 +320,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     required String title,
     required bool withFilters,
   }) {
+    if (withFilters) _log(AnalyticsEvents.mapListOpened);
     final center = _controller.camera.center;
     showWashiSheet<void>(
       context: context,
@@ -316,6 +330,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
         title: title,
         withFilters: withFilters,
         onSelect: _focusPlace,
+        onFilter: (filter) => _log(AnalyticsEvents.mapFilter(filter.name)),
       ),
     );
   }
@@ -803,8 +818,10 @@ class _PlaceListSheet extends StatefulWidget {
     required this.title,
     required this.withFilters,
     required this.onSelect,
+    required this.onFilter,
   });
 
+  final ValueChanged<MapListFilter> onFilter;
   final List<MapPlace> places;
   final GeoPoint center;
   final String title;
@@ -857,7 +874,10 @@ class _PlaceListSheetState extends State<_PlaceListSheet> {
                       ChoiceChip(
                         label: Text(_filterLabel(l10n, filter)),
                         selected: _filter == filter,
-                        onSelected: (_) => setState(() => _filter = filter),
+                        onSelected: (_) {
+                          widget.onFilter(filter);
+                          setState(() => _filter = filter);
+                        },
                       ),
                   ],
                 ),
@@ -1035,6 +1055,7 @@ class _UnvisitedDetails extends ConsumerWidget {
                     longitude: shop.location.longitude,
                     dataSource: shop.dataSource,
                   ),
+                  source: WishSource.map,
                 );
               },
             ),

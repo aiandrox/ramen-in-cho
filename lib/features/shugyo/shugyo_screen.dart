@@ -14,6 +14,8 @@ import '../settings/settings_action.dart';
 import '../stats/stats_screen.dart';
 import '../streak/healthy_life_card.dart';
 import '../streak/streak_line.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 修行の記録をひとまとめにした画面。段位 → 型と秘伝 → 数字の順に並べ、設定は右上の歯車から開く。
 class ShugyoScreen extends ConsumerWidget {
@@ -49,7 +51,13 @@ class ShugyoScreen extends ConsumerWidget {
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.shugyorokuOpen),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => open(const ShugyorokuScreen()),
+            onTap: () {
+              logAnalytics(
+                context,
+                AnalyticsEvents.featureOpened('shugyoroku'),
+              );
+              open(const ShugyorokuScreen());
+            },
           ),
           const PrefectureBookEntry(),
           const YearReviewEntry(),

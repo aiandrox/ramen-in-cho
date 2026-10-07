@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,6 +20,8 @@ import '../scoring/points.dart';
 import '../shop_search/location_service.dart';
 import 'onboarding_flow.dart';
 import 'onboarding_store.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 案内を開き、最後に選んだ始め方の画面へ移る。案内の上に積んだ画面（設定など）は閉じて、印帳から始める。
 Future<void> showOnboarding(
@@ -89,10 +93,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _store = ref.read(onboardingStoreProvider);
     _clock = ref.read(clockProvider);
     _sample = _sampleSeal(_clock());
+    _analytics = ref.read(analyticsProvider);
   }
+
+  late final AnalyticsService _analytics;
+  OnboardingStart? _chosenStart;
 
   @override
   void dispose() {
+    unawaited(
+      _analytics.log(
+        AnalyticsEvents.onboardingFinished(
+          start: _chosenStart?.name,
+          step: snake(_step.name),
+        ),
+      ),
+    );
     // 閉じたら（×・「また今度」・始め方を選ぶ）、次からは起動時に出さない。設定から見直せる。
     // アプリごと閉じたときはここを通らないので、次に開いたときに残した段階から続く。
     _store.markCompleted(_clock()).catchError((Object e, StackTrace st) {
@@ -109,7 +125,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
   }
 
-  void _close([OnboardingStart? start]) => Navigator.of(context).pop(start);
+  void _skipHomeBase() {
+    unawaited(_analytics.log(AnalyticsEvents.onboardingHomeBaseLater));
+    _advance();
+  }
+
+  void _close([OnboardingStart? start]) {
+    _chosenStart = start;
+    Navigator.of(context).pop(start);
+  }
 
   Future<void> _useHere() async {
     final l10n = AppLocalizations.of(context);
@@ -206,7 +230,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Text(l10n.onboardingHomeBaseMap),
             ),
             FudeLink(
-              onPressed: _busy ? null : _advance,
+              onPressed: _busy ? null : _skipHomeBase,
               child: Text(l10n.onboardingHomeBaseLater),
             ),
           ],

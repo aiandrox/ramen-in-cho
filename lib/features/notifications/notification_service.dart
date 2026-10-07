@@ -10,10 +10,17 @@ import '../checkin/checkin_rules.dart';
 import '../error_reporting/error_reporting.dart';
 import 'notification_labels.dart';
 import 'notification_settings.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
-final notificationServiceProvider = Provider<NotificationService>(
-  (ref) => LocalNotificationService(),
-);
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  final analytics = ref.watch(analyticsProvider);
+  return LocalNotificationService(
+    onPermissionDenied: () => unawaited(
+      analytics.log(AnalyticsEvents.permissionDenied('notification')),
+    ),
+  );
+});
 
 abstract class NotificationService {
   /// 並んでいる間の通知。Androidでは消えない通知にして経過時間を数え続ける。
@@ -104,6 +111,11 @@ int? _remainingUntilTimeout(DateTime checkedInAt) {
 }
 
 class LocalNotificationService implements NotificationService {
+  LocalNotificationService({this.onPermissionDenied});
+
+  /// 通知の許可を尋ねて断られた（前に断っていたときも）ときに呼ぶ。
+  final void Function()? onPermissionDenied;
+
   final _plugin = FlutterLocalNotificationsPlugin();
   Future<void>? _initialization;
 
@@ -158,16 +170,17 @@ class LocalNotificationService implements NotificationService {
 
   /// 許可は、初めて通知を出すとき（並んだとき）に尋ねる。起動しただけでは尋ねない。
   Future<void> _requestPermission() => _permissionRequest ??= () async {
-    await _plugin
+    final android = await _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >()
         ?.requestNotificationsPermission();
-    await _plugin
+    final ios = await _plugin
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin
         >()
         ?.requestPermissions(alert: true);
+    if (android == false || ios == false) onPermissionDenied?.call();
   }();
 
   @override

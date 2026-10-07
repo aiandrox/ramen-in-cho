@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 import '../checkin/checkin_rules.dart';
 import '../error_reporting/error_reporting.dart';
 import '../records/clock.dart';
@@ -63,6 +65,17 @@ class RecordController extends Notifier<RecordState> {
   /// この画面を開くときに「着」を押した時刻。
   DateTime? _tappedArrivedAt;
 
+  /// 統計に送る、記録を始めたきっかけと時刻。
+  RecordEntry _entry = RecordEntry.plain;
+  DateTime? _startedAt;
+  bool _sharedPhoto = false;
+
+  /// 選んでいる店を「店名から探す」で見つけたか。
+  bool _pickedByNameSearch = false;
+
+  /// 保存できた記録の入力の様子（統計に送る）。
+  RecordSaveSummary? lastSaveSummary;
+
   @override
   RecordState build() {
     listenSelf((_, next) => _writeDraft(next));
@@ -119,6 +132,15 @@ class RecordController extends Notifier<RecordState> {
     SharedWish? sharedPlace,
   }) async {
     _tappedArrivedAt = arrivedAt;
+    _startedAt = ref.read(clockProvider)();
+    _sharedPhoto = sharedPhoto;
+    _entry = arrivedAt != null
+        ? RecordEntry.arrival
+        : sharedPlace != null
+        ? RecordEntry.shareMap
+        : recoveredPhotoPath != null
+        ? (sharedPhoto ? RecordEntry.sharePhoto : RecordEntry.recovered)
+        : RecordEntry.plain;
     _knownShopsLoad = _loadKnownShops();
     await _loadCheckin();
     if (!ref.mounted) return;
@@ -128,6 +150,15 @@ class RecordController extends Notifier<RecordState> {
       await _restoreDraft();
     }
     if (!ref.mounted) return;
+    final analytics = ref.read(analyticsProvider);
+    unawaited(
+      analytics.log(
+        AnalyticsEvents.recordStarted(
+          entry: _entry,
+          resumedDraft: state.resumedFromDraft,
+        ),
+      ),
+    );
     // 下書きに前の「着」が残っていれば、そちらの時刻を使う（そのときに着丼していたため）。
     final arrives =
         arrivedAt != null && state.checkin != null && state.arrivedAt == null;
@@ -183,10 +214,7 @@ class RecordController extends Notifier<RecordState> {
     if (name.isEmpty || _keepsChosenShop) return;
     final address = shared.address;
     final location =
-        shared.location ??
-        (address == null
-            ? null
-            : await ref.read(addressGeocoderProvider)(address));
+        shared.location ?? (address == null ? null : await _geocode(address));
     await _knownShopsLoad;
     // 調べている間に店を選んだり打ったりしていれば、そちらを優先する。
     if (!ref.mounted || _keepsChosenShop) return;
@@ -224,6 +252,13 @@ class RecordController extends Notifier<RecordState> {
     } else {
       setManualName(name);
     }
+  }
+
+  Future<GeoPoint?> _geocode(String address) async {
+    final analytics = ref.read(analyticsProvider);
+    final location = await ref.read(addressGeocoderProvider)(address);
+    unawaited(analytics.log(AnalyticsEvents.geocode(found: location != null)));
+    return location;
   }
 
   /// 位置情報を許可済みなら、店名で探すときの基準に現在地を黙って取っておく（店は探さない）。
@@ -354,6 +389,12 @@ class RecordController extends Notifier<RecordState> {
   /// 下書きを捨てて、何も入れていない状態からやり直す。
   /// 開いたときに渡された写真（共有された写真など）は、新しい記録に使うので残す。
   Future<void> discardDraft() async {
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.draftDiscarded('restart')),
+    );
+    _pickedByNameSearch = false;
     final previous = state;
     final keepPhoto =
         _incomingPhoto != null && previous.photoPath == _incomingPhoto;
@@ -404,6 +445,9 @@ class RecordController extends Notifier<RecordState> {
 
   /// 記録をやめるときに、下書きと下書きの写真を消す。このあとの入力は下書きに書かない。
   Future<void> abandonDraft() async {
+    unawaited(
+      ref.read(analyticsProvider).log(AnalyticsEvents.draftDiscarded('leave')),
+    );
     _draftClosed = true;
     await _clearDraftStore();
   }
@@ -517,6 +561,11 @@ class RecordController extends Notifier<RecordState> {
               .where((c) => _sameSavedShop(c, restored))
               .firstOrNull
         : null;
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.shopSearch(purpose: 'record', result: result)),
+    );
     state = state.copyWith(
       searchStatus: ShopSearchStatus.done,
       searchFailure: result.failure,
@@ -544,6 +593,7 @@ class RecordController extends Notifier<RecordState> {
 
   /// 店を選び替えたら、店の覚え書きと名店の印はその店のものに入れ替える（前の店に書きかけた分は捨てる）。
   void selectShop(ShopCandidate shop) {
+    _pickedByNameSearch = false;
     final memo = _shopMemoOf(shop);
     final famous = _shopFamousOf(shop);
     state = state.copyWith(
@@ -571,11 +621,15 @@ class RecordController extends Notifier<RecordState> {
         '';
   }
 
+  /// 選んだ店を「店名から探す」で見つけたこと（統計に送る）。
+  void markPickedByNameSearch() => _pickedByNameSearch = true;
+
   /// 店名を打っている間、覚え書きに触っていなければ、同じ名前の記録済みの店の覚え書きを入れておく
   /// （保存で同じ店とわかったときに、見ていない覚え書きを上書きしないため）。
   void setManualName(String name) {
     final query = normalizeShopName(name);
     final deselects = query.isNotEmpty && state.selectedShop != null;
+    if (deselects) _pickedByNameSearch = false;
     final refills =
         deselects || (state.selectedShop == null && !state.shopMemoEdited);
     final memo = refills ? _knownShopByName(query)?.strategyMemo ?? '' : null;
@@ -699,6 +753,7 @@ class RecordController extends Notifier<RecordState> {
             newShopFamous: draft.shopFamous,
             now: now,
           );
+      lastSaveSummary = _saveSummary(draft, now);
       _draftClosed = true;
       await _clearDraftStore();
       return visit.id;
@@ -712,6 +767,36 @@ class RecordController extends Notifier<RecordState> {
       if (ref.mounted) state = state.copyWith(isSaving: false);
       return null;
     }
+  }
+
+  RecordSaveSummary _saveSummary(RecordState draft, DateTime now) {
+    final startedAt = _startedAt;
+    final photoPath = draft.photoPath;
+    return RecordSaveSummary(
+      entry: _entry,
+      photoSource: photoPath == null
+          ? PhotoSource.none
+          : draft.photoFromCamera
+          ? PhotoSource.camera
+          : photoPath == _incomingPhoto
+          ? (_sharedPhoto ? PhotoSource.shared : PhotoSource.recovered)
+          : PhotoSource.gallery,
+      shopSource: shopSourceOf(draft.selectedShop),
+      usedNameSearch: _pickedByNameSearch && draft.selectedShop != null,
+      hasRating: draft.rating != null,
+      hasStyle: draft.style != null,
+      isLimited: draft.isLimited,
+      hasManualWait: draft.manualWaitMinutes != null,
+      hasMemo: draft.memo.trim().isNotEmpty,
+      shopMemoEdited: draft.shopMemoEdited,
+      famousChanged: draft.shopFamousEdited,
+      photoRotated: draft.photoQuarterTurns != 0,
+      pinnedLocation:
+          draft.selectedShop == null && draft.pinnedLocation != null,
+      resumedDraft: draft.resumedFromDraft,
+      atCheckinShop: draft.isCheckinShopSelected,
+      elapsed: startedAt == null ? Duration.zero : now.difference(startedAt),
+    );
   }
 
   /// 回した写真は回して書く。回せない写真（読めない形式など）は、記録を止めずにもとの向きで残す。

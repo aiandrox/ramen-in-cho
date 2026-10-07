@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,8 @@ import '../error_reporting/error_reporting.dart';
 import '../records/clock.dart';
 import 'backup_service.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
@@ -37,16 +41,22 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       final result = await SharePlus.instance.share(
         ShareParams(files: [XFile(file.path)], sharePositionOrigin: origin),
       );
+      _log(AnalyticsEvents.backupExported(result: snake(result.status.name)));
       // ドライブの「マイドライブ」などは画面を出さずに保存するので、送ったことを知らせる。
       if (result.status == ShareResultStatus.success) {
         messenger.showSnackBar(SnackBar(content: Text(l10n.backupExportSent)));
       }
     } catch (e, st) {
       reportError(e, st, reason: 'Backup export failed');
+      _log(AnalyticsEvents.backupExported(result: 'failed'));
       messenger.showSnackBar(SnackBar(content: Text(l10n.backupExportFailed)));
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
+  }
+
+  void _log(AnalyticsEvent event) {
+    if (mounted) unawaited(ref.read(analyticsProvider).log(event));
   }
 
   Future<void> _import() async {
@@ -108,6 +118,8 @@ Future<RestoreSummary?> pickAndRestoreBackup(
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final service = ref.read(backupServiceProvider);
+  final analytics = ref.read(analyticsProvider);
+  void log(AnalyticsEvent event) => unawaited(analytics.log(event));
   final file = await openFile(
     acceptedTypeGroups: [
       XTypeGroup(
@@ -121,6 +133,9 @@ Future<RestoreSummary?> pickAndRestoreBackup(
   if (file == null) return null;
   try {
     final summary = await service.restoreBackup(file.path);
+    log(
+      AnalyticsEvents.backupImported(result: 'ok', added: summary.addedVisits),
+    );
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -131,9 +146,11 @@ Future<RestoreSummary?> pickAndRestoreBackup(
     return summary;
   } on FormatException catch (e) {
     debugPrint('Backup import rejected: $e');
+    log(AnalyticsEvents.backupImported(result: 'invalid'));
     messenger.showSnackBar(SnackBar(content: Text(l10n.backupImportInvalid)));
   } catch (e, st) {
     reportError(e, st, reason: 'Backup import failed');
+    log(AnalyticsEvents.backupImported(result: 'failed'));
     messenger.showSnackBar(SnackBar(content: Text(l10n.backupImportFailed)));
   }
   return null;

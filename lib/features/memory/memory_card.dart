@@ -13,6 +13,7 @@ import '../wishes/wish_providers.dart';
 import '../words/words.dart';
 import 'memory.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics_events.dart';
 
 /// 一覧の上に、何年か前の今日の1杯をそっと出す。×で閉じる（アプリを開き直すとまた出る）。
 class MemoryCard extends ConsumerStatefulWidget {
@@ -105,6 +106,7 @@ class _MemoryCardState extends ConsumerState<MemoryCard> {
                               longitude: shop.longitude,
                               dataSource: shop.dataSource,
                             ),
+                            source: WishSource.memory,
                           ),
                         ),
                       ),

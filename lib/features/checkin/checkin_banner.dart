@@ -13,6 +13,8 @@ import 'checkin_rules.dart';
 import 'retreat_dialog.dart';
 import '../words/words.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 並んでいる店と経過時間。取り消しと撤退ができる。
 class CheckinBanner extends ConsumerStatefulWidget {
@@ -43,7 +45,10 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
     setState(() {});
     if (!isCheckinExpired(widget.checkin, ref.read(clockProvider)())) return;
     try {
-      await ref.read(recordRepositoryProvider).cancelCheckin();
+      final analytics = ref.read(analyticsProvider);
+      if (await ref.read(recordRepositoryProvider).cancelCheckin() > 0) {
+        unawaited(analytics.log(AnalyticsEvents.checkinAutoCanceled));
+      }
     } catch (e) {
       debugPrint('Checkin auto-cancel failed: $e');
     }
@@ -69,7 +74,11 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
         ],
       ),
     );
-    if (confirmed == true) await repository.cancelCheckin();
+    if (confirmed != true || !mounted) return;
+    // 取り消すと並びの帯が消えて ref が使えなくなるので、先に取っておく。
+    final analytics = ref.read(analyticsProvider);
+    await repository.cancelCheckin();
+    unawaited(analytics.log(AnalyticsEvents.checkinCanceled));
   }
 
   Future<void> _retreat() async {
@@ -77,6 +86,7 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
     final messenger = ScaffoldMessenger.of(context);
     final repository = ref.read(recordRepositoryProvider);
     final clock = ref.read(clockProvider);
+    final analytics = ref.read(analyticsProvider);
     final memo = await showRetreatDialog(context);
     if (memo == null) return;
     try {
@@ -85,6 +95,13 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
         memo: memo,
         wishTrigger: l10n.wishTriggerRetreat,
         now: clock(),
+      );
+      unawaited(
+        analytics.log(
+          AnalyticsEvents.checkinRetreated(
+            waitedMinutes: checkinElapsedMinutes(widget.checkin, clock()),
+          ),
+        ),
       );
       messenger.showSnackBar(
         SnackBar(

@@ -7,6 +7,7 @@ import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/ramen_in_cho_api.dart';
 import 'package:ramen_in_cho/features/wishes/wish_dialog.dart';
 import 'package:ramen_in_cho/features/wishes/wish_repository.dart';
+import 'package:ramen_in_cho/features/analytics/analytics_events.dart';
 
 import '../../support/fakes.dart';
 import '../../support/l10n.dart';
@@ -35,6 +36,7 @@ void main() {
                 onPressed: () => addWishByName(
                   context,
                   ref,
+                  source: WishSource.share,
                   name: name,
                   trigger: trigger,
                   link: link,
