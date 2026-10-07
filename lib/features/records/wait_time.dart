@@ -11,13 +11,15 @@ int? waitMinutes(Visit visit) {
 /// 記録画面で保存するときの、食べた時刻と並んだ時刻。
 /// 「着」を押した時刻（[arrivedAt]）があれば、写真をいつ撮っても（撮らなくても）それを食べた時刻にする。
 /// [checkedInAt]は並んだ店を選んでいるときだけ渡す。並ぶ前に食べた（昔の写真の）記録には待ち時間をつけない。
+/// [chosenEatenAt]は記録画面で食べた日時を直したときの日時で、何よりも優先する。
 ({DateTime eatenAt, DateTime? checkedInAt}) recordTimes({
   required DateTime now,
   DateTime? photoTakenAt,
   DateTime? arrivedAt,
   DateTime? checkedInAt,
+  DateTime? chosenEatenAt,
 }) {
-  final eatenAt = arrivedAt ?? photoTakenAt ?? now;
+  final eatenAt = chosenEatenAt ?? arrivedAt ?? photoTakenAt ?? now;
   return (
     eatenAt: eatenAt,
     checkedInAt: checkedInAt == null || eatenAt.isBefore(checkedInAt)

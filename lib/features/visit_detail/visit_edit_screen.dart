@@ -11,6 +11,7 @@ import '../record/photo_picker.dart';
 import '../record/star_rating.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
+import '../records/date_time_picker.dart';
 import '../records/models.dart';
 import '../records/photo_round_button.dart';
 import '../records/photo_storage.dart';
@@ -183,31 +184,12 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   }
 
   Future<void> _pickEatenAt() async {
-    final now = ref.read(clockProvider)();
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _eatenAt,
-      firstDate: DateTime(2000),
-      lastDate: now.isAfter(_eatenAt) ? now : _eatenAt,
+    final picked = await pickDateTime(
+      context,
+      initial: _eatenAt,
+      now: ref.read(clockProvider)(),
     );
-    if (date == null || !mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_eatenAt),
-    );
-    if (time == null || !mounted) return;
-    final picked = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
-    // 選び直さずに閉じたときは、秒を落として日時を変えたことにしない。
-    if (picked ==
-        _eatenAt.copyWith(second: 0, millisecond: 0, microsecond: 0)) {
-      return;
-    }
+    if (picked == null || !mounted) return;
     setState(() => _eatenAt = picked);
   }
 

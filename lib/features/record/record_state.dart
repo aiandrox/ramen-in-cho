@@ -1,4 +1,5 @@
 import '../records/models.dart';
+import '../records/wait_time.dart';
 import '../shop_search/geo.dart';
 import '../shop_search/shop_candidate.dart';
 import '../shop_search/shop_search_service.dart';
@@ -34,6 +35,7 @@ class RecordState {
     this.shopFamousOriginal = false,
     this.manualWaitMinutes,
     this.arrivedAt,
+    this.chosenEatenAt,
     this.isSaving = false,
     this.resumedFromDraft = false,
   });
@@ -91,6 +93,9 @@ class RecordState {
 
   /// 並んでいる最中に真ん中の「着」を押した時刻。並んだ店で食べた時刻になり、待ち時間はここで決まる。
   final DateTime? arrivedAt;
+
+  /// 記録画面で直した、食べた日時。写真の撮影日時や「着」の時刻より優先する。
+  final DateTime? chosenEatenAt;
   final bool isSaving;
 
   /// 前に保存せずに閉じたときの入力から再開したか。
@@ -103,6 +108,18 @@ class RecordState {
     return selected != null &&
         checkedIn != null &&
         isSameShop(selected, checkedIn);
+  }
+
+  /// 保存したときの食べた日時と並んだ時刻（並んだ店を選んでいるときだけ）。
+  ({DateTime eatenAt, DateTime? checkedInAt}) timesAt(DateTime now) {
+    final atCheckinShop = isCheckinShopSelected;
+    return recordTimes(
+      now: now,
+      photoTakenAt: photoTakenAt,
+      arrivedAt: atCheckinShop ? arrivedAt : null,
+      checkedInAt: atCheckinShop ? checkin?.checkedInAt : null,
+      chosenEatenAt: chosenEatenAt,
+    );
   }
 
   bool get hasShop => selectedShop != null || manualName.trim().isNotEmpty;
@@ -142,6 +159,7 @@ class RecordState {
     bool? shopFamousOriginal,
     Object? manualWaitMinutes = _unset,
     Object? arrivedAt = _unset,
+    Object? chosenEatenAt = _unset,
     bool? isSaving,
     bool? resumedFromDraft,
   }) {
@@ -183,6 +201,9 @@ class RecordState {
           ? this.manualWaitMinutes
           : manualWaitMinutes as int?,
       arrivedAt: arrivedAt == _unset ? this.arrivedAt : arrivedAt as DateTime?,
+      chosenEatenAt: chosenEatenAt == _unset
+          ? this.chosenEatenAt
+          : chosenEatenAt as DateTime?,
       isSaving: isSaving ?? this.isSaving,
       resumedFromDraft: resumedFromDraft ?? this.resumedFromDraft,
     );

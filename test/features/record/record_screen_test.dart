@@ -272,6 +272,20 @@ void main() {
     expect(identical(before, after), isTrue);
   });
 
+  testWidgets('食べた日時をいつも出す。写真が無ければ「今」、撮れば撮った日時', (tester) async {
+    picker.cameraPath = _photoFile();
+    await pumpScreen(tester);
+
+    expect(find.text(ja.editEatenAt), findsOneWidget);
+    expect(find.textContaining('今（'), findsOneWidget);
+
+    await tester.tap(find.text(ja.takePhoto));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.editEatenAt), findsOneWidget);
+    expect(find.textContaining('今（'), findsNothing);
+  });
+
   testWidgets('候補があっても店名を打てば、選ぶ案内は消える', (tester) async {
     picker.cameraPath = _photoFile();
     await pumpScreen(tester);

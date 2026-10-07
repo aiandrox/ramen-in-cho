@@ -644,12 +644,12 @@
     }
   },
   "shopStamps": "この道場の印",
-  "recordPhotoDate": "食べた日時: {date}（写真の撮影日時）",
-  "@recordPhotoDate": {
-    "placeholders": {
-      "date": {"type": "String"}
-    }
-  },
+  "recordEatenAtFromPhoto": "{date}（写真の撮影日時）",
+  "@recordEatenAtFromPhoto": {"placeholders": {"date": {"type": "String"}}},
+  "recordEatenAtArrived": "{date}（「着」を押した時刻）",
+  "@recordEatenAtArrived": {"placeholders": {"date": {"type": "String"}}},
+  "recordEatenAtNow": "今（{date}）",
+  "@recordEatenAtNow": {"placeholders": {"date": {"type": "String"}}},
   "kanjiEraDate": "{era}{year}年\n{month}月{day}日",
   "@kanjiEraDate": {
     "placeholders": {

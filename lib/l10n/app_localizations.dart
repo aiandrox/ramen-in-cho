@@ -2458,11 +2458,23 @@ abstract class AppLocalizations {
   /// **'この道場の印'**
   String get shopStamps;
 
-  /// No description provided for @recordPhotoDate.
+  /// No description provided for @recordEatenAtFromPhoto.
   ///
   /// In ja, this message translates to:
-  /// **'食べた日時: {date}（写真の撮影日時）'**
-  String recordPhotoDate(String date);
+  /// **'{date}（写真の撮影日時）'**
+  String recordEatenAtFromPhoto(String date);
+
+  /// No description provided for @recordEatenAtArrived.
+  ///
+  /// In ja, this message translates to:
+  /// **'{date}（「着」を押した時刻）'**
+  String recordEatenAtArrived(String date);
+
+  /// No description provided for @recordEatenAtNow.
+  ///
+  /// In ja, this message translates to:
+  /// **'今（{date}）'**
+  String recordEatenAtNow(String date);
 
   /// No description provided for @kanjiEraDate.
   ///

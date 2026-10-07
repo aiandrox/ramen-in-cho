@@ -32,7 +32,12 @@ void main() {
     isLimited: true,
     memo: 'ニンニク',
     manualWaitMinutes: 40,
+    chosenEatenAt: DateTime(2026, 9, 1, 19, 5),
   );
+
+  test('食べた日時を直しただけでも、下書きに残す', () {
+    expect(RecordDraft(chosenEatenAt: DateTime(2026, 9, 1)).isEmpty, isFalse);
+  });
 
   test('書き出して読み戻すと同じ入力になる', () {
     final decoded = RecordDraft.fromJson(
@@ -58,6 +63,7 @@ void main() {
     expect(decoded.isLimited, isTrue);
     expect(decoded.memo, 'ニンニク');
     expect(decoded.manualWaitMinutes, 40);
+    expect(decoded.chosenEatenAt, DateTime(2026, 9, 1, 19, 5));
     expect(jsonEncode(decoded.toJson()), jsonEncode(draft.toJson()));
   });
 

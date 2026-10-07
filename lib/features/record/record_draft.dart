@@ -40,6 +40,7 @@ class RecordDraft {
     this.manualWaitMinutes,
     this.arrivedAt,
     this.arrivedCheckin,
+    this.chosenEatenAt,
   });
 
   /// 並んでいる店は下書きに入れない（開いたときの並びの状態から選び直す）。
@@ -69,6 +70,7 @@ class RecordDraft {
       manualWaitMinutes: state.manualWaitMinutes,
       arrivedAt: arrivedAt,
       arrivedCheckin: arrivedAt == null ? null : state.checkin,
+      chosenEatenAt: state.chosenEatenAt,
     );
   }
 
@@ -102,6 +104,9 @@ class RecordDraft {
   final DateTime? arrivedAt;
   final Checkin? arrivedCheckin;
 
+  /// 記録画面で直した、食べた日時。
+  final DateTime? chosenEatenAt;
+
   bool get isEmpty =>
       photoPath == null &&
       selectedShop == null &&
@@ -113,7 +118,8 @@ class RecordDraft {
       shopMemo.trim() == shopMemoOriginal.trim() &&
       shopFamous == shopFamousOriginal &&
       manualWaitMinutes == null &&
-      arrivedAt == null;
+      arrivedAt == null &&
+      chosenEatenAt == null;
 
   RecordDraft withoutArrival() => RecordDraft(
     photoPath: photoPath,
@@ -134,6 +140,7 @@ class RecordDraft {
     shopFamous: shopFamous,
     shopFamousOriginal: shopFamousOriginal,
     manualWaitMinutes: manualWaitMinutes,
+    chosenEatenAt: chosenEatenAt,
   );
 
   RecordDraft withPhotoPath(String? path) => RecordDraft(
@@ -157,6 +164,7 @@ class RecordDraft {
     manualWaitMinutes: manualWaitMinutes,
     arrivedAt: arrivedAt,
     arrivedCheckin: arrivedCheckin,
+    chosenEatenAt: chosenEatenAt,
   );
 
   Map<String, Object?> toJson() => {
@@ -181,6 +189,7 @@ class RecordDraft {
     'manualWaitMinutes': manualWaitMinutes,
     'arrivedAt': arrivedAt?.toUtc().toIso8601String(),
     'arrivedCheckin': _checkinToJson(arrivedCheckin),
+    'chosenEatenAt': chosenEatenAt?.toUtc().toIso8601String(),
   };
 
   /// 読めない項目は空にして、読める分だけ戻す。形が丸ごと違えばnull。
@@ -222,6 +231,7 @@ class RecordDraft {
       manualWaitMinutes: wait != null && wait > 0 ? wait : null,
       arrivedAt: arrived ? arrivedAt : null,
       arrivedCheckin: arrived ? arrivedCheckin : null,
+      chosenEatenAt: _dateTime(json['chosenEatenAt']),
     );
   }
 }

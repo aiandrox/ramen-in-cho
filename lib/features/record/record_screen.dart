@@ -14,6 +14,7 @@ import '../checkin/checkin_rules.dart';
 import '../map/location_picker_screen.dart';
 import '../records/clock.dart';
 import '../records/date_format.dart';
+import '../records/date_time_picker.dart';
 import '../records/models.dart';
 import '../records/photo_round_button.dart';
 import '../records/visit_details_form.dart';
@@ -268,7 +269,8 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
           else
             const SizedBox.shrink(),
           _PhotoSection(state: state),
-          const SizedBox(height: 24),
+          _EatenAtRow(state: state),
+          const SizedBox(height: 16),
           SectionTitle(l10n.shopSection, ruled: false),
           _ShopSection(
             state: state,
@@ -443,14 +445,48 @@ class _PhotoSection extends ConsumerWidget {
               ),
             ],
           ),
-        if (state.photoDateFromPhoto)
-          if (state.photoTakenAt case final takenAt?)
-            Text(
-              l10n.recordPhotoDate(formatDateTime(takenAt)),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
       ],
+    );
+  }
+}
+
+/// 撮影日時の無い写真で「今」になったことに気づけるよう、食べた日時をいつも出し、その場で直せるようにする。
+class _EatenAtRow extends ConsumerWidget {
+  const _EatenAtRow({required this.state});
+
+  final RecordState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final now = ref.watch(currentTimeProvider);
+    final eatenAt = state.timesAt(now).eatenAt;
+    final shown = formatDateTime(eatenAt);
+    final text = state.chosenEatenAt != null
+        ? shown
+        : state.isCheckinShopSelected && state.arrivedAt != null
+        ? l10n.recordEatenAtArrived(shown)
+        : state.photoTakenAt == null
+        ? l10n.recordEatenAtNow(shown)
+        : state.photoDateFromPhoto
+        ? l10n.recordEatenAtFromPhoto(shown)
+        : shown;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.schedule),
+      title: Text(l10n.editEatenAt),
+      subtitle: Text(text),
+      trailing: const Icon(Icons.edit_calendar),
+      enabled: !state.isSaving,
+      onTap: () async {
+        final picked = await pickDateTime(
+          context,
+          initial: eatenAt,
+          now: ref.read(clockProvider)(),
+        );
+        if (picked == null || picked == eatenAt) return;
+        ref.read(recordControllerProvider.notifier).setEatenAt(picked);
+      },
     );
   }
 }
@@ -654,9 +690,9 @@ class _ShopSection extends ConsumerWidget {
 
   /// 「着」を押していれば待ち時間はもう決まっているので、その分数を出す。
   String _checkinNote(AppLocalizations l10n, Checkin checkin, WidgetRef ref) {
-    final arrivedAt = state.arrivedAt;
-    if (arrivedAt != null) {
-      return l10n.waitTime(checkinElapsedMinutes(checkin, arrivedAt));
+    final decided = state.chosenEatenAt ?? state.arrivedAt;
+    if (decided != null) {
+      return l10n.waitTime(checkinElapsedMinutes(checkin, decided));
     }
     return l10n.checkinWaiting(
       checkinElapsedMinutes(
