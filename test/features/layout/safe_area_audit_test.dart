@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ramen_in_cho/features/backup/backup_screen.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_controller.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_screen.dart';
+import 'package:ramen_in_cho/features/checkin/retreat_screen.dart';
 import 'package:ramen_in_cho/features/credits/credits_screen.dart';
 import 'package:ramen_in_cho/features/home/app_tab.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_picker_screen.dart';
@@ -221,6 +222,13 @@ final List<_Screen> _screens = [
   (
     name: '並ぶ画面',
     home: const CheckinScreen(),
+    tab: null,
+    checkin: null,
+    visit: null,
+  ),
+  (
+    name: '撤退する店を選ぶ画面',
+    home: const RetreatScreen(),
     tab: null,
     checkin: null,
     visit: null,

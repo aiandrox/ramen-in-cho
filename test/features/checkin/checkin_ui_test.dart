@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_banner.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_screen.dart';
+import 'package:ramen_in_cho/features/checkin/retreat_screen.dart';
 import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
@@ -50,6 +51,79 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  group('RetreatScreen', () {
+    const nearAndFar = ShopSearchResult(
+      here: GeoPoint(35.0, 139.0),
+      candidates: [
+        ShopCandidate(osmId: 'node/near', name: '近い店', distanceMeters: 56),
+        ShopCandidate(
+          osmId: 'node/far',
+          name: '遠い店',
+          location: GeoPoint(35.002, 139.0),
+          distanceMeters: 222,
+        ),
+      ],
+    );
+
+    testWidgets('100mより遠い店でも選べ、撤退の窓で理由を選ぶと撤退を残す', (tester) async {
+      await pump(tester, const RetreatScreen(), search: nearAndFar);
+
+      expect(find.text(ja.retreatPickHint), findsOneWidget);
+      expect(find.text('222m'), findsOneWidget);
+
+      await tester.tap(find.text('遠い店'));
+      await tester.pumpAndSettle();
+      expect(find.text(ja.retreatTitle), findsOneWidget);
+      await tester.tap(find.text(ja.retreatReasonSoldOut));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(KeshiFuda, ja.retreatConfirm));
+      await tester.pumpAndSettle();
+
+      final shop = repository.retreatShops.single;
+      expect(shop.osmId, 'node/far');
+      expect(shop.latitude, 35.002);
+      expect(repository.retreatMemos.single, ja.retreatReasonSoldOut);
+      expect(repository.retreatWishTriggers.single, ja.wishTriggerRetreat);
+      expect(repository.cancelCount, 0);
+      expect(find.byType(RetreatScreen), findsNothing);
+    });
+
+    testWidgets('撤退の窓でやめれば、何も残さず店選びに戻る', (tester) async {
+      await pump(tester, const RetreatScreen(), search: nearAndFar);
+
+      await tester.tap(find.text('近い店'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.cancel));
+      await tester.pumpAndSettle();
+
+      expect(repository.retreatShops, isEmpty);
+      expect(find.byType(RetreatScreen), findsOneWidget);
+    });
+
+    testWidgets('現在地がわからなくても、店名を入力して撤退を残せる', (tester) async {
+      await pump(
+        tester,
+        const RetreatScreen(),
+        search: const ShopSearchResult(failure: ShopSearchFailure.noLocation),
+      );
+
+      expect(find.text(ja.shopNoLocation), findsOneWidget);
+      final button = find.widgetWithText(SumiFuda, ja.retreatManualButton);
+      expect(tester.widget<SumiFuda>(button).onPressed, isNull);
+
+      await tester.enterText(find.byType(TextField), '休みだった店');
+      await tester.pump();
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(KeshiFuda, ja.retreatConfirm));
+      await tester.pumpAndSettle();
+
+      final shop = repository.retreatShops.single;
+      expect(shop.name, '休みだった店');
+      expect(shop.latitude, isNull);
+    });
+  });
 
   group('CheckinScreen', () {
     const nearAndFar = ShopSearchResult(

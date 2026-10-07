@@ -51,3 +51,30 @@ int daysToFulfill(Wish wish, DateTime eatenAt) {
 
 // 夏時間のある地域でも1日を24時間として数えるため、UTCの日付で比べる。
 DateTime _dateOnly(DateTime at) => DateTime.utc(at.year, at.month, at.day);
+
+/// 店名を打っているときの候補（[query]は[normalizeShopName]したもの）。まだの願の店（位置のわからない店も）を先に出す。
+List<ShopCandidate> shopNameMatches(
+  String query, {
+  required List<Wish> wishes,
+  required List<Shop> knownShops,
+}) {
+  final wished = [
+    for (final wish in wishes)
+      if (normalizeShopName(wish.name).contains(query))
+        ShopCandidate(
+          shopId: wish.shopId,
+          osmId: wish.osmId,
+          name: wish.name,
+          location: wishLocation(wish),
+          dataSource: wish.dataSource,
+          wishId: wish.id,
+        ),
+  ];
+  final known = [
+    for (final shop in knownShops)
+      if (normalizeShopName(shop.name).contains(query) &&
+          !wished.any((w) => w.shopId == shop.id))
+        ShopCandidate.fromShop(shop),
+  ];
+  return [...wished, ...known].take(maxShopCandidates).toList();
+}

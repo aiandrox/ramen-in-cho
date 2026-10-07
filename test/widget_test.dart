@@ -10,6 +10,7 @@ import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_banner.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_controller.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_screen.dart';
+import 'package:ramen_in_cho/features/checkin/retreat_screen.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/record_draft.dart';
@@ -359,11 +360,20 @@ void main() {
       expect(find.text(ja.startEatenBody), findsOneWidget);
       expect(find.text(ja.startQueueTitle), findsOneWidget);
       expect(find.text(ja.startQueueBody), findsOneWidget);
+      expect(find.text(ja.startRetreatTitle), findsOneWidget);
 
       await tester.tap(find.text(ja.startQueueTitle));
       await tester.pumpAndSettle();
       expect(find.byType(CheckinScreen), findsOneWidget);
       Navigator.of(tester.element(find.byType(CheckinScreen))).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(RecordSealButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(ja.startRetreatTitle));
+      await tester.pumpAndSettle();
+      expect(find.byType(RetreatScreen), findsOneWidget);
+      Navigator.of(tester.element(find.byType(RetreatScreen))).pop();
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(RecordSealButton));

@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi_buttons.dart';
+import '../words/words.dart';
 
 /// 撤退を記録するか確かめる。記録するならメモ（空でもよい）、やめるならnullを返す。
 Future<String?> showRetreatDialog(BuildContext context) => showDialog<String>(
   context: context,
   builder: (_) => const _RetreatDialog(),
 );
+
+/// 撤退を残したあとの知らせ（並び中の帯からでも、判子の窓からでも同じ）。
+String retreatSavedText(AppLocalizations l10n, String memo, String visitId) =>
+    '${l10n.retreatSaved}\n${retreatConsolation(memo, visitId)}';
 
 class _RetreatDialog extends StatefulWidget {
   const _RetreatDialog();
