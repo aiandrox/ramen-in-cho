@@ -88,6 +88,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopNoCandidates => '近くに候補が見つかりませんでした。店名を入力してください';
 
   @override
+  String get shopPickHint => '候補をタップして店を選んでください（無ければ店名を入力）';
+
+  @override
   String get shopSearchAfterPhoto => '写真を選ぶと、近くの店を探します';
 
   @override

@@ -146,9 +146,12 @@ void main() {
     expect(find.text(ja.sourceCreditYahoo), findsOneWidget);
     final saveButton = find.widgetWithText(AiFuda, ja.save);
     expect(tester.widget<AiFuda>(saveButton).onPressed, isNull);
+    // 押せない理由がわかるよう、候補を選ぶよう案内する。
+    expect(find.text(ja.shopPickHint), findsOneWidget);
 
     await tester.tap(find.text('麺屋テスト'));
     await tester.pump();
+    expect(find.text(ja.shopPickHint), findsNothing);
     // ★は食べ終わってから付けることが多いため、店が決まれば保存できる。
     expect(tester.widget<AiFuda>(saveButton).onPressed, isNotNull);
     await tester.tap(find.byTooltip(ja.ratingStar(4)));
@@ -267,6 +270,22 @@ void main() {
       find.descendant(of: field, matching: find.byType(EditableText)),
     );
     expect(identical(before, after), isTrue);
+  });
+
+  testWidgets('候補があっても店名を打てば、選ぶ案内は消える', (tester) async {
+    picker.cameraPath = _photoFile();
+    await pumpScreen(tester);
+    await tester.tap(find.text(ja.takePhoto));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.shopPickHint), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.shopNameLabel),
+      '別の店',
+    );
+    await tester.pump();
+
+    expect(find.text(ja.shopPickHint), findsNothing);
   });
 
   testWidgets('検索に失敗しても、店名を入力して保存できる', (tester) async {

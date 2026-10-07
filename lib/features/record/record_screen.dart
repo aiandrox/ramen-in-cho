@@ -562,6 +562,12 @@ class _ShopSection extends ConsumerWidget {
             ),
             title: Text(l10n.shopSearching),
           ),
+        // 店を選ぶまで「着丼！」を押せないので、押せない理由と選び方を候補の上に出す。
+        if (shops.isNotEmpty && !state.hasShop)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            child: Text(l10n.shopPickHint, style: textTheme.bodyMedium),
+          ),
         for (final shop in shops)
           ShopTile(
             shop: shop,
