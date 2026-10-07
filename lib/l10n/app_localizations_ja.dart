@@ -317,26 +317,26 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get checkinFailed => 'チェックインできませんでした。もう一度お試しください';
+  String get checkinFailed => '並び始められませんでした。もう一度お試しください';
 
   @override
-  String get checkinTooFar => '100m以内に近づくとチェックインできます';
+  String get checkinTooFar => '100m以内に近づくと並び始められます';
 
   @override
   String get checkinNoLocation =>
-      '現在地がわからないため、チェックインできません。位置情報をオンにして、もう一度お試しください';
+      '現在地がわからないため、並び始められません。位置情報をオンにして、もう一度お試しください';
 
   @override
-  String get checkinSearchFailed => '店を検索できませんでした。店名を入力してチェックインできます';
+  String get checkinSearchFailed => '店を検索できませんでした。店名を入力すると並び始められます';
 
   @override
-  String get checkinNoCandidates => '近くに候補が見つかりませんでした。店名を入力してチェックインできます';
+  String get checkinNoCandidates => '近くに候補が見つかりませんでした。店名を入力すると並び始められます';
 
   @override
   String get checkinRetry => 'もう一度探す';
 
   @override
-  String get checkinManualButton => 'この店名でチェックイン';
+  String get checkinManualButton => 'この店名で並ぶ';
 
   @override
   String checkinBanner(String shop) {
@@ -373,7 +373,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checkinBannerHint => '着丼したら、真ん中の「着」を押す';
 
   @override
-  String get checkinCancelTitle => 'チェックインを取り消しますか？';
+  String get checkinCancelTitle => '並ぶのを取り消しますか？';
 
   @override
   String get checkinCancelMessage => '並んだ記録は残りません';
@@ -686,7 +686,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get wishPendingEmpty =>
-      '行きたい店を書き留めておきましょう。\n地図の灰色のピンや店のページから願を掛けられます。右下の＋なら店名だけで書き留められます';
+      '行きたい店を書き留めておきましょう。\n地図の灰色のピンや店のページから願を掛けられます。右下の「願」のボタンなら、店名だけで書き留められます';
 
   @override
   String get wishFulfilledEmpty => '願を掛けた店で「着丼！」すると、ここに並びます';
@@ -1832,7 +1832,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationKindCheckin => '並び中';
 
   @override
-  String get notificationKindCheckinNote => '並んでいる時間をリアルタイムで表示します';
+  String get notificationKindCheckinNote => '並んでいる時間を通知で数え続けます';
+
+  @override
+  String get notificationKindCheckinNoteIos => '並び始めた時刻を通知センターに置きます';
 
   @override
   String get notificationKindStreak => '連続記録';

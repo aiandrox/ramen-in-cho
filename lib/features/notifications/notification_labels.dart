@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../l10n/app_localizations.dart';
 import 'notification_settings.dart';
 
@@ -12,11 +14,18 @@ String notificationKindLabel(AppLocalizations l10n, NotificationKind kind) =>
     };
 
 /// 種類の短い説明。名前だけでわかる種類はnull。
-String? notificationKindNote(AppLocalizations l10n, NotificationKind kind) =>
-    switch (kind) {
-      NotificationKind.checkin => l10n.notificationKindCheckinNote,
-      NotificationKind.streak => l10n.notificationKindStreakNote,
-      NotificationKind.rating => null,
-      NotificationKind.monthly => l10n.notificationKindMonthlyNote,
-      NotificationKind.seasonal => l10n.notificationKindSeasonalNote,
-    };
+/// 並び中の通知は、iOS では経過時間が進まないので説明を分ける。
+String? notificationKindNote(
+  AppLocalizations l10n,
+  NotificationKind kind, {
+  TargetPlatform? platform,
+}) => switch (kind) {
+  NotificationKind.checkin =>
+    (platform ?? defaultTargetPlatform) == TargetPlatform.iOS
+        ? l10n.notificationKindCheckinNoteIos
+        : l10n.notificationKindCheckinNote,
+  NotificationKind.streak => l10n.notificationKindStreakNote,
+  NotificationKind.rating => null,
+  NotificationKind.monthly => l10n.notificationKindMonthlyNote,
+  NotificationKind.seasonal => l10n.notificationKindSeasonalNote,
+};
