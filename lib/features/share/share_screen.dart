@@ -39,18 +39,21 @@ class _ShareScreenState extends ConsumerState<ShareScreen> {
   bool _includePoints = true;
   bool _isSharing = false;
 
-  void _log(String result) => unawaited(
-    ref
-        .read(analyticsProvider)
-        .log(
-          AnalyticsEvents.shareCard(
-            result: result,
-            includePhoto: _includePhoto,
-            includeJournal: _includeJournal,
-            includePoints: _includePoints,
+  void _log(String result) {
+    if (!mounted) return;
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(
+            AnalyticsEvents.shareCard(
+              result: result,
+              includePhoto: _includePhoto,
+              includeJournal: _includeJournal,
+              includePoints: _includePoints,
+            ),
           ),
-        ),
-  );
+    );
+  }
 
   Future<void> _share() async {
     final l10n = AppLocalizations.of(context);

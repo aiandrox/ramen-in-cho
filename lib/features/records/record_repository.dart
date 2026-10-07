@@ -185,7 +185,8 @@ class RecordRepository {
         );
   }
 
-  Future<void> cancelCheckin() => _db.delete(_db.activeCheckins).go();
+  /// 消したチェックインの数（無ければ 0）。
+  Future<int> cancelCheckin() => _db.delete(_db.activeCheckins).go();
 
   /// 並んだが食べられなかった記録を残し、チェックインを終える。
   /// [wishTrigger]を渡すと、その店を願掛け帳に入れる（まだの願が無いときだけ）。

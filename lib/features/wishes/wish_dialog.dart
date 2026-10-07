@@ -216,12 +216,9 @@ class _WishDialogState extends ConsumerState<_WishDialog> {
 
   Future<void> _geocode(String address) async {
     setState(() => _geocoding = true);
+    final analytics = ref.read(analyticsProvider);
     final point = await ref.read(addressGeocoderProvider)(address);
-    unawaited(
-      ref
-          .read(analyticsProvider)
-          .log(AnalyticsEvents.geocode(found: point != null)),
-    );
+    unawaited(analytics.log(AnalyticsEvents.geocode(found: point != null)));
     if (!mounted) return;
     setState(() {
       _geocoding = false;

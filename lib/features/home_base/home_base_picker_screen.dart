@@ -123,6 +123,7 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
   Future<void> _relocate(HomeBaseSetting editing, GeoPoint location) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final analytics = ref.read(analyticsProvider);
     setState(() => _saving = true);
     try {
       await ref
@@ -134,9 +135,7 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
             ),
           );
       unawaited(
-        ref
-            .read(analyticsProvider)
-            .log(AnalyticsEvents.homeBaseEdited(change: 'location')),
+        analytics.log(AnalyticsEvents.homeBaseEdited(change: 'location')),
       );
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.homeBaseRelocated(editing.name))),
@@ -457,15 +456,12 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
   Future<void> _update(HomeBaseSetting updated, String change) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final analytics = ref.read(analyticsProvider);
     try {
       final saved = await ref
           .read(homeBaseRepositoryProvider)
           .updateHomeBase(updated);
-      unawaited(
-        ref
-            .read(analyticsProvider)
-            .log(AnalyticsEvents.homeBaseEdited(change: change)),
-      );
+      unawaited(analytics.log(AnalyticsEvents.homeBaseEdited(change: change)));
       if (mounted) setState(() => _setting = saved);
     } catch (e, st) {
       reportError(e, st, reason: 'Home base update failed');
@@ -538,12 +534,11 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    final analytics = ref.read(analyticsProvider);
     try {
       await ref.read(homeBaseRepositoryProvider).deleteHomeBase(setting.id);
       unawaited(
-        ref
-            .read(analyticsProvider)
-            .log(AnalyticsEvents.homeBaseEdited(change: 'delete')),
+        analytics.log(AnalyticsEvents.homeBaseEdited(change: 'delete')),
       );
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.homeBaseDeleted(setting.name))),
@@ -614,6 +609,7 @@ Future<bool> saveHomeBase(
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final repository = ref.read(homeBaseRepositoryProvider);
+  final analytics = ref.read(analyticsProvider);
   try {
     final isFirst = (await repository.allSettings()).isEmpty;
     final setting = await repository.setHomeBase(
@@ -624,9 +620,9 @@ Future<bool> saveHomeBase(
     );
     onSaved?.call();
     unawaited(
-      ref
-          .read(analyticsProvider)
-          .log(AnalyticsEvents.homeBaseSet(via: isFirst ? 'first' : 'change')),
+      analytics.log(
+        AnalyticsEvents.homeBaseSet(via: isFirst ? 'first' : 'change'),
+      ),
     );
     if (isFirst && context.mounted) {
       await showHomeBaseHidenDialog(context, setting.setAt);

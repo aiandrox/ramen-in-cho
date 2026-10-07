@@ -8,6 +8,7 @@ import 'package:ramen_in_cho/features/analytics/analytics.dart';
 import 'package:ramen_in_cho/features/analytics/analytics_events.dart';
 import 'package:ramen_in_cho/features/analytics/analytics_user_properties.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
+import 'package:ramen_in_cho/features/prefecture/regions.dart';
 import 'package:ramen_in_cho/features/quests/quests.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
@@ -16,6 +17,7 @@ import 'package:ramen_in_cho/features/records/clock.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/scoring/points.dart';
+import 'package:ramen_in_cho/features/scoring/rank_history.dart';
 import 'package:ramen_in_cho/features/scoring/record_outcome.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/location_service.dart';
@@ -234,6 +236,8 @@ void main() {
       scored: scored,
       quests: evaluateQuests(scored),
       homeBase: null,
+      rank: currentRank(scored),
+      prefectureCount: prefectureStamps(scored).length,
     );
     expect(properties, {
       'current_rank': 'kyu5',

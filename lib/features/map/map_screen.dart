@@ -160,8 +160,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
     }
   }
 
-  void _log(AnalyticsEvent event) =>
-      unawaited(ref.read(analyticsProvider).log(event));
+  /// 探している間に画面を閉じると ref が使えないので、閉じたあとは送らない。
+  void _log(AnalyticsEvent event) {
+    if (mounted) unawaited(ref.read(analyticsProvider).log(event));
+  }
 
   void _toggleJourney(List<JourneyStop> stops) {
     _stopReplay();

@@ -54,6 +54,7 @@ class _QueueSuggestionCardState extends ConsumerState<QueueSuggestionCard> {
     Future<void> checkIn() async {
       final messenger = ScaffoldMessenger.of(context);
       final repository = ref.read(recordRepositoryProvider);
+      final analytics = ref.read(analyticsProvider);
       setState(() => _isSaving = true);
       try {
         await repository.checkIn(
@@ -67,7 +68,6 @@ class _QueueSuggestionCardState extends ConsumerState<QueueSuggestionCard> {
           ),
           at: ref.read(clockProvider)(),
         );
-        final analytics = ref.read(analyticsProvider);
         unawaited(analytics.log(AnalyticsEvents.queueSuggestionAccepted));
         unawaited(
           analytics.log(

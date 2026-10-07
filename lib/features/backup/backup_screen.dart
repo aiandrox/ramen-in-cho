@@ -55,8 +55,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     }
   }
 
-  void _log(AnalyticsEvent event) =>
-      unawaited(ref.read(analyticsProvider).log(event));
+  void _log(AnalyticsEvent event) {
+    if (mounted) unawaited(ref.read(analyticsProvider).log(event));
+  }
 
   Future<void> _import() async {
     setState(() => _isBusy = true);

@@ -159,9 +159,6 @@ class RecordController extends Notifier<RecordState> {
         ),
       ),
     );
-    if (state.resumedFromDraft) {
-      unawaited(analytics.log(AnalyticsEvents.draftResumed));
-    }
     // 下書きに前の「着」が残っていれば、そちらの時刻を使う（そのときに着丼していたため）。
     final arrives =
         arrivedAt != null && state.checkin != null && state.arrivedAt == null;
@@ -258,12 +255,9 @@ class RecordController extends Notifier<RecordState> {
   }
 
   Future<GeoPoint?> _geocode(String address) async {
+    final analytics = ref.read(analyticsProvider);
     final location = await ref.read(addressGeocoderProvider)(address);
-    unawaited(
-      ref
-          .read(analyticsProvider)
-          .log(AnalyticsEvents.geocode(found: location != null)),
-    );
+    unawaited(analytics.log(AnalyticsEvents.geocode(found: location != null)));
     return location;
   }
 
@@ -395,7 +389,11 @@ class RecordController extends Notifier<RecordState> {
   /// 下書きを捨てて、何も入れていない状態からやり直す。
   /// 開いたときに渡された写真（共有された写真など）は、新しい記録に使うので残す。
   Future<void> discardDraft() async {
-    unawaited(ref.read(analyticsProvider).log(AnalyticsEvents.draftDiscarded));
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.draftDiscarded('restart')),
+    );
     _pickedByNameSearch = false;
     final previous = state;
     final keepPhoto =
@@ -447,7 +445,9 @@ class RecordController extends Notifier<RecordState> {
 
   /// 記録をやめるときに、下書きと下書きの写真を消す。このあとの入力は下書きに書かない。
   Future<void> abandonDraft() async {
-    unawaited(ref.read(analyticsProvider).log(AnalyticsEvents.draftDiscarded));
+    unawaited(
+      ref.read(analyticsProvider).log(AnalyticsEvents.draftDiscarded('leave')),
+    );
     _draftClosed = true;
     await _clearDraftStore();
   }

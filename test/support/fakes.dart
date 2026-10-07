@@ -217,8 +217,9 @@ class FakeRecordRepository implements RecordRepository {
   }
 
   @override
-  Future<void> cancelCheckin() async {
+  Future<int> cancelCheckin() async {
     cancelCount++;
+    return 1;
   }
 
   @override

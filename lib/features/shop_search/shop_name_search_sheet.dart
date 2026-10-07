@@ -155,8 +155,8 @@ class _ShopNameSearchSheetState extends ConsumerState<_ShopNameSearchSheet> {
       });
     } catch (e) {
       debugPrint('Shop name search failed: $e');
-      _log('device', null);
       if (!mounted || generation != _generation) return;
+      _log('device', null);
       setState(() {
         _failed = true;
         _isSearching = false;

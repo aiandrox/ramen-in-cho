@@ -232,8 +232,10 @@ abstract final class AnalyticsEvents {
       AnalyticsEvent('wish_fulfilled', {'days_waited': daysBucket(daysWaited)});
 
   static const draftKept = AnalyticsEvent('draft_kept');
-  static const draftDiscarded = AnalyticsEvent('draft_discarded');
-  static const draftResumed = AnalyticsEvent('draft_resumed');
+
+  /// [how] は restart（再開した下書きを捨ててやり直す）か leave（記録をやめて捨てる）。
+  static AnalyticsEvent draftDiscarded(String how) =>
+      AnalyticsEvent('draft_discarded', {'how': how});
 
   /// 近くの店を探した結果。[purpose]は record（記録）か checkin（並ぶ）。
   /// 候補には記録済みの店も入るので、検索元が失敗しても候補が出ることがある。

@@ -18,10 +18,11 @@ final activeCheckinProvider = StreamProvider<Checkin?>((ref) {
   final clock = ref.watch(clockProvider);
   return repository.watchActiveCheckin().asyncMap((checkin) async {
     if (checkin == null || !isCheckinExpired(checkin, clock())) return checkin;
-    await repository.cancelCheckin();
-    unawaited(
-      ref.read(analyticsProvider).log(AnalyticsEvents.checkinAutoCanceled),
-    );
+    final analytics = ref.read(analyticsProvider);
+    // 並びの帯のタイマーが先に取り消していれば数えない。
+    if (await repository.cancelCheckin() > 0) {
+      unawaited(analytics.log(AnalyticsEvents.checkinAutoCanceled));
+    }
     return null;
   });
 });
@@ -95,16 +96,15 @@ class CheckinController extends Notifier<CheckinState> {
   Future<bool> _checkIn(ShopSourceKind source, ShopInput shop) async {
     if (state.isSaving) return false;
     state = CheckinState(result: state.result, isSaving: true);
+    final analytics = ref.read(analyticsProvider);
     try {
       await ref
           .read(recordRepositoryProvider)
           .checkIn(shop: shop, at: ref.read(clockProvider)());
       unawaited(
-        ref
-            .read(analyticsProvider)
-            .log(
-              AnalyticsEvents.checkinStarted(via: 'screen', shopSource: source),
-            ),
+        analytics.log(
+          AnalyticsEvents.checkinStarted(via: 'screen', shopSource: source),
+        ),
       );
       return true;
     } catch (e, st) {
