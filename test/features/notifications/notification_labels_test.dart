@@ -29,7 +29,19 @@ void main() {
   });
 
   test('画面の文言は「チェックイン」と言わず「並ぶ」にそろえる', () {
-    final arb = File('lib/l10n/app_ja.arb').readAsStringSync();
-    expect(arb, isNot(contains('チェックイン')));
+    // 文言は app_ja.arb のほか、型と秘伝・道中記・言葉の定義ファイルにも直接書いてある。
+    const paths = [
+      'lib/l10n/app_ja.arb',
+      'lib/features/quests/quests.dart',
+      'lib/features/journal/journal_phrases.dart',
+      'lib/features/words/words.dart',
+    ];
+    for (final file in paths.map(File.new)) {
+      expect(
+        file.readAsStringSync(),
+        isNot(contains('チェックイン')),
+        reason: file.path,
+      );
+    }
   });
 }

@@ -697,7 +697,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkinTooFar.
   ///
   /// In ja, this message translates to:
-  /// **'100m以内に近づくと並べます'**
+  /// **'100m以内に近づくと並び始められます'**
   String get checkinTooFar;
 
   /// No description provided for @checkinNoLocation.
@@ -709,13 +709,13 @@ abstract class AppLocalizations {
   /// No description provided for @checkinSearchFailed.
   ///
   /// In ja, this message translates to:
-  /// **'店を検索できませんでした。店名を入力して並べます'**
+  /// **'店を検索できませんでした。店名を入力すると並び始められます'**
   String get checkinSearchFailed;
 
   /// No description provided for @checkinNoCandidates.
   ///
   /// In ja, this message translates to:
-  /// **'近くに候補が見つかりませんでした。店名を入力して並べます'**
+  /// **'近くに候補が見つかりませんでした。店名を入力すると並び始められます'**
   String get checkinNoCandidates;
 
   /// No description provided for @checkinRetry.
@@ -3277,7 +3277,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationKindCheckinNoteIos.
   ///
   /// In ja, this message translates to:
-  /// **'並び始めた時刻を通知でお知らせします'**
+  /// **'並び始めた時刻を通知センターに置きます'**
   String get notificationKindCheckinNoteIos;
 
   /// No description provided for @notificationKindStreak.

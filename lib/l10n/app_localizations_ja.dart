@@ -320,17 +320,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checkinFailed => '並び始められませんでした。もう一度お試しください';
 
   @override
-  String get checkinTooFar => '100m以内に近づくと並べます';
+  String get checkinTooFar => '100m以内に近づくと並び始められます';
 
   @override
   String get checkinNoLocation =>
       '現在地がわからないため、並び始められません。位置情報をオンにして、もう一度お試しください';
 
   @override
-  String get checkinSearchFailed => '店を検索できませんでした。店名を入力して並べます';
+  String get checkinSearchFailed => '店を検索できませんでした。店名を入力すると並び始められます';
 
   @override
-  String get checkinNoCandidates => '近くに候補が見つかりませんでした。店名を入力して並べます';
+  String get checkinNoCandidates => '近くに候補が見つかりませんでした。店名を入力すると並び始められます';
 
   @override
   String get checkinRetry => 'もう一度探す';
@@ -1835,7 +1835,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationKindCheckinNote => '並んでいる時間を通知で数え続けます';
 
   @override
-  String get notificationKindCheckinNoteIos => '並び始めた時刻を通知でお知らせします';
+  String get notificationKindCheckinNoteIos => '並び始めた時刻を通知センターに置きます';
 
   @override
   String get notificationKindStreak => '連続記録';
