@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
 import '../records/photo_storage.dart';
+import 'onboarding_flow.dart';
 
 final onboardingStoreProvider = Provider<OnboardingStore>(
   (ref) => OnboardingStore(ref.watch(documentsDirectoryProvider)),
@@ -13,7 +14,10 @@ final onboardingStoreProvider = Provider<OnboardingStore>(
 /// 起動したときに案内を出すか。テストでは出さない。
 final showOnboardingOnLaunchProvider = Provider<bool>((ref) => true);
 
-/// 案内を終えた（閉じた）かを、documents の `onboarding.json` に残す。
+/// 案内の進み具合。[completed]なら起動時に出さない。まだなら[step]から続ける。
+typedef OnboardingProgress = ({bool completed, OnboardingStep step});
+
+/// 案内を終えた（閉じた）か、途中ならどの段階にいるかを、documents の `onboarding.json` に残す。
 class OnboardingStore {
   OnboardingStore(this._documents);
 
@@ -23,18 +27,43 @@ class OnboardingStore {
 
   File get _file => File(p.join(_documents.path, fileName));
 
-  Future<bool> isCompleted() async {
+  Future<OnboardingProgress> load() async {
+    const fresh = (completed: false, step: OnboardingStep.welcome);
     try {
       final json = jsonDecode(await _file.readAsString());
-      return json is Map<String, dynamic> && json['completedAt'] is String;
+      if (json is! Map<String, dynamic>) return fresh;
+      final step = OnboardingStep.values
+          .where((s) => s.name == json['step'])
+          .firstOrNull;
+      return (
+        completed: json['completedAt'] is String,
+        step: step ?? OnboardingStep.welcome,
+      );
     } on FileSystemException {
-      return false;
+      return fresh;
     } on FormatException {
-      return false;
+      return fresh;
     }
   }
 
-  Future<void> markCompleted(DateTime now) => _file.writeAsString(
-    jsonEncode({'completedAt': now.toUtc().toIso8601String()}),
+  /// 終えたあと（設定から見直しているとき）は残さない。見直しはいつも其の一から。
+  Future<void> saveStep(OnboardingStep step) => _serial(() async {
+    if ((await load()).completed) return;
+    await _file.writeAsString(jsonEncode({'step': step.name}));
+  });
+
+  Future<void> markCompleted(DateTime now) => _serial(
+    () => _file.writeAsString(
+      jsonEncode({'completedAt': now.toUtc().toIso8601String()}),
+    ),
   );
+
+  // 段階を残す途中で閉じても、終えた印が段階で上書きされないよう、書き込みを順に並べる。
+  Future<void> _pending = Future.value();
+
+  Future<void> _serial(Future<void> Function() write) {
+    final next = _pending.then((_) => write());
+    _pending = next.catchError((Object _) {});
+    return next;
+  }
 }

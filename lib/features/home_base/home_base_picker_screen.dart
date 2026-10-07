@@ -156,28 +156,18 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
   }
 
   Future<void> _save(String name, GeoPoint location) async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final repository = ref.read(homeBaseRepositoryProvider);
     setState(() => _saving = true);
-    try {
-      final isFirst = (await repository.allSettings()).isEmpty;
-      final setting = await repository.setHomeBase(
-        name: name,
-        latitude: location.latitude,
-        longitude: location.longitude,
-        now: ref.read(clockProvider)(),
-      );
-      if (!mounted) return;
-      if (isFirst) await showHomeBaseHidenDialog(context, setting.setAt);
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.homeBaseSaved(setting.name))),
-      );
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (e, st) {
-      reportError(e, st, reason: 'Home base save failed');
-      messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
-      if (mounted) setState(() => _saving = false);
+    final saved = await saveHomeBase(
+      context,
+      ref,
+      name: name,
+      location: location,
+    );
+    if (!mounted) return;
+    if (saved) {
+      Navigator.of(context).pop(true);
+    } else {
+      setState(() => _saving = false);
     }
   }
 
@@ -590,6 +580,41 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
         ],
       ),
     );
+  }
+}
+
+/// 拠点を保存し、初めてなら秘伝を知らせてから「保存しました」を出す。失敗したら知らせて false を返す。
+/// [onSaved]は保存の直後、知らせる前に呼ぶ（知らせている間にアプリを閉じても、先へ進んだことを残すため）。
+Future<bool> saveHomeBase(
+  BuildContext context,
+  WidgetRef ref, {
+  required String name,
+  required GeoPoint location,
+  VoidCallback? onSaved,
+}) async {
+  final l10n = AppLocalizations.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final repository = ref.read(homeBaseRepositoryProvider);
+  try {
+    final isFirst = (await repository.allSettings()).isEmpty;
+    final setting = await repository.setHomeBase(
+      name: name,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      now: ref.read(clockProvider)(),
+    );
+    onSaved?.call();
+    if (isFirst && context.mounted) {
+      await showHomeBaseHidenDialog(context, setting.setAt);
+    }
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.homeBaseSaved(setting.name))),
+    );
+    return true;
+  } catch (e, st) {
+    reportError(e, st, reason: 'Home base save failed');
+    messenger.showSnackBar(SnackBar(content: Text(l10n.homeBaseSaveFailed)));
+    return false;
   }
 }
 

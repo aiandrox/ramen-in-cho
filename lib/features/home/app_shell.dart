@@ -135,21 +135,16 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   Future<void> _maybeOnboard() async {
     try {
-      final completed = await ref.read(onboardingStoreProvider).isCompleted();
+      final progress = await ref.read(onboardingStoreProvider).load();
       final visits = await ref.read(visitsProvider.future);
       if (!mounted ||
           !shouldShowOnboarding(
-            completed: completed,
+            completed: progress.completed,
             visitCount: visits.length,
           )) {
         return;
       }
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => const OnboardingScreen(),
-        ),
-      );
+      await showOnboarding(context, ref, initialStep: progress.step);
     } catch (e) {
       debugPrint('Onboarding check failed: $e');
     }

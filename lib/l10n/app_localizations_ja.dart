@@ -1674,71 +1674,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingNext => '先へ進む';
 
   @override
-  String get onboardingWelcomeTitle => '門を叩く';
-
-  @override
-  String get onboardingWelcomeBody =>
-      '麺印帳は、麺の道を歩む者のための修行の帳面である。\n食べた一杯ごとに印を授かり、並んだ時間も、遠い店への道のりも、すべて修行点として刻まれていく。\n\n始め方は三つある。';
-
-  @override
-  String get onboardingWelcomeRecord => '写真から一杯を刻む';
-
-  @override
-  String get onboardingWelcomeQueue => 'いま行列に並んでいる';
-
-  @override
-  String get onboardingWelcomeBackup => '前の帳面を引き継ぐ（バックアップ）';
-
-  @override
-  String get onboardingRecordTitle => '最初の一杯を刻む';
-
-  @override
-  String get onboardingRecordBody =>
-      '撮りためた一杯の写真が一枚あれば足りる。撮影した日時と場所から、店の候補を探し出す。\n\n次の画面で「ギャラリーから選ぶ」を押し、店を選んで「着丼！」を押す。これで一杯目が刻まれる。';
-
-  @override
-  String get onboardingRecordButton => '写真を選んで刻む';
-
-  @override
-  String get onboardingShareTitle => '一杯目の印';
-
-  @override
-  String get onboardingShareBody =>
-      '刻んだ一杯は、このような印となって帳面に並ぶ。長く並び、遠くまで足を運び、通い詰めた一杯ほど、修行点は高くなり、印は格を増していく。\n\n写真と印と店の名を一枚の絵にまとめ、同じ道を行く者に見せることもできる。';
-
-  @override
-  String get onboardingShareButton => '絵にして分かち合う';
-
-  @override
-  String get onboardingWishTitle => '次なる一杯に願を掛ける';
-
-  @override
-  String get onboardingWishBody =>
-      '行きたい店を願掛け帳に記しておけば、その店で食べた日に願が成就する。\n\n地図の右下の「探す」を押すと、近くのまだ訪れていない店が灰色の印で現れる。気になる店に触れ、「願を掛ける」を押す。';
-
-  @override
-  String get onboardingWishNotYet => 'まだ願は掛かっていない。店の名からも掛けられる。';
-
-  @override
-  String get onboardingWishMap => '地図で近くの店を探す';
-
-  @override
-  String get onboardingWishByName => '店の名で願を掛ける';
-
-  @override
-  String get onboardingFinishTitle => 'あとは精進あるのみ';
-
-  @override
-  String get onboardingFinishBody =>
-      '「修行」では、段位、型と秘伝、修行録、一年の振り返りを見ることができる。\n\n一杯ごとに印は増え、段位は上がっていく。\nいざ、麺の道へ。';
-
-  @override
-  String get onboardingFinishShugyo => '修行の間をのぞく';
-
-  @override
-  String get onboardingFinishRecords => '印帳を開く';
-
-  @override
   String get onboardingReplay => '使い方をもう一度見る';
 
   @override
@@ -1748,16 +1683,33 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingWelcomeChapter => '其の一　入門';
 
   @override
-  String get onboardingRecordChapter => '其の二　初陣';
+  String get onboardingWelcomeTitle => '門を叩く';
 
   @override
-  String get onboardingShareChapter => '其の三　授印';
+  String get onboardingWelcomeBody => '麺印帳は、麺の道を歩む者のための修行の帳面である。';
 
   @override
-  String get onboardingWishChapter => '其の四　願掛';
+  String get onboardingWelcomeSealTitle => '一杯ごとに印を授かる';
 
   @override
-  String get onboardingHomeBaseChapter => '其の五　拠点';
+  String get onboardingWelcomeSealBody =>
+      '食べた一杯を刻むと、このような印が帳面に並ぶ。難しい一杯ほど、印は格を増していく。';
+
+  @override
+  String get onboardingWelcomePointsTitle => '修行点を積み、段位を上げる';
+
+  @override
+  String get onboardingWelcomePointsBody =>
+      '長く並んだ一杯、限定の一杯、遠い店への道のり。攻略の難しさが修行点となり、積み重ねるほど段位が上がる。';
+
+  @override
+  String get onboardingWelcomeWishTitle => '次なる一杯に願を掛ける';
+
+  @override
+  String get onboardingWelcomeWishBody => '行きたい店は願掛け帳に記しておく。その店で食べた日に、願が成就する。';
+
+  @override
+  String get onboardingHomeBaseChapter => '其の二　拠点';
 
   @override
   String get onboardingHomeBaseTitle => '拠点を構える';
@@ -1767,13 +1719,35 @@ class AppLocalizationsJa extends AppLocalizations {
       'ふだん暮らす駅や街を、修行の拠点と定める。\n\n拠点から80km以上離れた店で食べた一杯は「遠征」となり、修行点が上乗せされる。拠点はあとから設定で変えられ、変えた日から後の一杯にだけ効く。';
 
   @override
-  String get onboardingHomeBaseButton => '拠点を決める';
+  String get onboardingHomeBaseHere => '現在地を拠点にする';
+
+  @override
+  String get onboardingHomeBaseMap => '地図で選ぶ';
 
   @override
   String get onboardingHomeBaseLater => 'あとで決める';
 
   @override
-  String get onboardingFinishChapter => '其の六　精進';
+  String get onboardingStartChapter => '其の三　始め方';
+
+  @override
+  String get onboardingStartTitle => 'いざ、麺の道へ';
+
+  @override
+  String get onboardingStartBody =>
+      '支度は整った。どこから始めるかを選ぶがよい。\n\n刻んだ一杯は印帳に並び、段位や型と秘伝は「修行」で見ることができる。';
+
+  @override
+  String get onboardingStartRecord => '写真から一杯を刻む';
+
+  @override
+  String get onboardingStartQueue => 'いま並んでいる';
+
+  @override
+  String get onboardingStartBackup => '前の帳面を引き継ぐ';
+
+  @override
+  String get onboardingStartBrowse => 'まずは見てまわる';
 
   @override
   String get locationBlockedTitle => '現在地が使えません';

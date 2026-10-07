@@ -9,21 +9,68 @@ import '../checkin/checkin_screen.dart';
 import '../error_reporting/error_reporting.dart';
 import '../home/app_tab.dart';
 import '../home_base/home_base_picker_screen.dart';
+import '../home_base/home_base_repository.dart';
 import '../inkan/inkan_stamp.dart';
-import '../map/map_screen.dart';
 import '../record/record_screen.dart';
 import '../records/clock.dart';
-import '../records/record_repository.dart';
-import '../scoring/scoring_providers.dart';
-import '../share/share_screen.dart';
-import '../wishes/wish_dialog.dart';
-import '../wishes/wish_repository.dart';
+import '../records/models.dart';
+import '../scoring/points.dart';
+import '../shop_search/location_service.dart';
 import 'onboarding_flow.dart';
 import 'onboarding_store.dart';
 
-/// 初めて開いたときの案内。1枚ずつ説明し、ボタンで本物の画面（記録・共有・地図）を開く。
+/// 案内を開き、最後に選んだ始め方の画面へ移る。案内の上に積んだ画面（設定など）は閉じて、印帳から始める。
+Future<void> showOnboarding(
+  BuildContext context,
+  WidgetRef ref, {
+  OnboardingStep initialStep = OnboardingStep.welcome,
+}) async {
+  final navigator = Navigator.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final l10n = AppLocalizations.of(context);
+  final tabs = ref.read(appTabProvider.notifier);
+  final start = await navigator.push<OnboardingStart>(
+    MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => OnboardingScreen(initialStep: initialStep),
+    ),
+  );
+  if (start == null || start == OnboardingStart.browse) return;
+  navigator.popUntil((route) => route.isFirst);
+  tabs.select(AppTab.records);
+  switch (start) {
+    case OnboardingStart.record:
+      await navigator.push<void>(
+        MaterialPageRoute(builder: (_) => const RecordScreen()),
+      );
+    case OnboardingStart.checkin:
+      final shopName = await navigator.push<String>(
+        MaterialPageRoute(builder: (_) => const CheckinScreen()),
+      );
+      if (shopName != null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.checkinDone(shopName))),
+        );
+      }
+    case OnboardingStart.backup:
+      await navigator.push<void>(
+        MaterialPageRoute(builder: (_) => const BackupScreen()),
+      );
+    case OnboardingStart.browse:
+      return;
+  }
+}
+
+/// 初めて開いたときの案内。三つの段階をこの画面の中で進め、最後の始め方を選ぶと[OnboardingStart]を返して閉じる。
+/// 外の画面へ移るのは「地図で選ぶ」（拠点を決めて戻ってくる）だけ。
 class OnboardingScreen extends ConsumerStatefulWidget {
-  const OnboardingScreen({super.key});
+  const OnboardingScreen({
+    super.key,
+    this.initialStep = OnboardingStep.welcome,
+  });
+
+  /// 途中でアプリを閉じた人は、その段階から続ける。
+  final OnboardingStep initialStep;
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -32,9 +79,8 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   late final OnboardingStore _store;
   late final DateTime Function() _clock;
-  var _step = OnboardingStep.welcome;
-  String? _visitId;
-  var _noWishYet = false;
+  late final ScoredVisit _sample;
+  late var _step = widget.initialStep;
   var _busy = false;
 
   @override
@@ -42,264 +88,219 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.initState();
     _store = ref.read(onboardingStoreProvider);
     _clock = ref.read(clockProvider);
+    _sample = _sampleSeal(_clock());
   }
 
   @override
   void dispose() {
-    // どこで閉じても（途中で閉じても）、次からは起動時に出さない。修行の設定から見直せる。
+    // 閉じたら（×・「また今度」・始め方を選ぶ）、次からは起動時に出さない。設定から見直せる。
+    // アプリごと閉じたときはここを通らないので、次に開いたときに残した段階から続く。
     _store.markCompleted(_clock()).catchError((Object e, StackTrace st) {
       reportError(e, st, reason: 'Onboarding completion save failed');
     });
     super.dispose();
   }
 
-  void _advance(OnboardingEvent event) =>
-      setState(() => _step = nextOnboardingStep(_step, event));
+  void _advance() {
+    final next = nextOnboardingStep(_step);
+    setState(() => _step = next);
+    _store.saveStep(next).catchError((Object e, StackTrace st) {
+      reportError(e, st, reason: 'Onboarding step save failed');
+    });
+  }
 
-  Future<T?> _open<T>(Widget screen) =>
-      Navigator.of(context).push<T>(MaterialPageRoute(builder: (_) => screen));
+  void _close([OnboardingStart? start]) => Navigator.of(context).pop(start);
 
-  Future<void> _restoreBackup() async {
+  Future<void> _useHere() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = true);
     try {
-      final summary = await pickAndRestoreBackup(context, ref);
-      if (mounted && summary != null && summary.totalVisits > 0) {
-        _advance(OnboardingEvent.backupRestored);
+      final here = await ref
+          .read(locationServiceProvider)
+          .currentPosition(requestPermission: true);
+      if (!mounted) return;
+      if (here == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.homeBaseHereFailed)),
+        );
+        return;
       }
+      await saveHomeBase(
+        context,
+        ref,
+        name: l10n.homeBaseNameDefault,
+        location: here,
+        onSaved: () {
+          if (!mounted) return;
+          setState(() => _busy = false);
+          _advance();
+        },
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  Future<void> _checkIn() async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final shopName = await _open<String>(const CheckinScreen());
-    if (shopName == null || !mounted) return;
-    messenger.showSnackBar(SnackBar(content: Text(l10n.checkinDone(shopName))));
-    _advance(OnboardingEvent.checkedIn);
-  }
-
-  Future<void> _record() async {
-    final repository = ref.read(recordRepositoryProvider);
-    // 監視の値は遅れて届くことがあるので、記録は保存先から直接読み直して比べる。
-    final visitsBefore = {
-      for (final entry in await repository.watchVisits().first) entry.visit.id,
-    };
-    if (!mounted) return;
-    await _open<void>(const RecordScreen());
-    final added = [
-      for (final entry in await repository.watchVisits().first)
-        if (!visitsBefore.contains(entry.visit.id)) entry.visit,
-    ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    if (!mounted) return;
-    if (added.isNotEmpty) {
-      _visitId = added.first.id;
-      _advance(OnboardingEvent.recorded);
-    }
-  }
-
-  Future<int> _wishCount() async =>
-      (await ref.read(wishRepositoryProvider).watchWishes().first).length;
-
-  Future<void> _wishOnMap() async {
-    final before = await _wishCount();
-    if (!mounted) return;
-    await _open<void>(const MapScreen());
-    final after = await _wishCount();
-    if (!mounted) return;
-    if (after > before) {
-      _advance(OnboardingEvent.wished);
-    } else {
-      setState(() => _noWishYet = true);
-    }
-  }
-
-  Future<void> _wishByName() async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final repository = ref.read(wishRepositoryProvider);
-    final text = await showWishDialog(context);
-    if (text == null || !mounted) return;
-    try {
-      await repository.addWish(
-        shop: ShopInput(name: text.name),
-        trigger: text.trigger,
-        note: text.note,
-        link: text.link,
-        now: _clock(),
-      );
-    } catch (e, st) {
-      reportError(e, st, reason: 'Wish save failed');
-      messenger.showSnackBar(SnackBar(content: Text(l10n.wishSaveFailed)));
-      return;
-    }
-    messenger.showSnackBar(SnackBar(content: Text(l10n.wishAdded(text.name))));
-    if (mounted) _advance(OnboardingEvent.wished);
-  }
-
-  Future<void> _chooseHomeBase() async {
-    final chosen = await _open<bool>(const HomeBasePickerScreen());
-    if (chosen == true && mounted) _advance(OnboardingEvent.homeBaseSet);
-  }
-
-  void _finish({AppTab? tab}) {
-    if (tab != null) ref.read(appTabProvider.notifier).select(tab);
-    Navigator.of(context).pop();
+  Future<void> _pickOnMap() async {
+    final chosen = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const HomeBasePickerScreen()),
+    );
+    if (chosen == true && mounted) _advance();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final skip = FudeLink(
-      onPressed: () => _advance(OnboardingEvent.skipped),
-      child: Text(l10n.onboardingLater),
-    );
     final page = switch (_step) {
       OnboardingStep.welcome => _OnboardingPage(
         chapter: l10n.onboardingWelcomeChapter,
         title: l10n.onboardingWelcomeTitle,
         body: l10n.onboardingWelcomeBody,
-        actions: [
-          AiFuda(
-            expand: true,
-            onPressed: _busy ? null : () => _advance(OnboardingEvent.skipped),
-            child: Text(l10n.onboardingWelcomeRecord),
-          ),
-          SumiFuda(
-            expand: true,
-            onPressed: _busy ? null : _checkIn,
-            child: Text(l10n.onboardingWelcomeQueue),
-          ),
-          SumiFuda(
-            expand: true,
-            onPressed: _busy ? null : _restoreBackup,
-            child: Text(l10n.onboardingWelcomeBackup),
-          ),
+        hero: InkanStamp(scored: _sample, size: 120),
+        points: [
+          (l10n.onboardingWelcomeSealTitle, l10n.onboardingWelcomeSealBody),
+          (l10n.onboardingWelcomePointsTitle, l10n.onboardingWelcomePointsBody),
+          (l10n.onboardingWelcomeWishTitle, l10n.onboardingWelcomeWishBody),
         ],
-      ),
-      OnboardingStep.record => _OnboardingPage(
-        chapter: l10n.onboardingRecordChapter,
-        title: l10n.onboardingRecordTitle,
-        body: l10n.onboardingRecordBody,
         actions: [
           AiFuda(
             expand: true,
-            onPressed: _record,
-            child: Text(l10n.onboardingRecordButton),
-          ),
-          skip,
-        ],
-      ),
-      OnboardingStep.share => _OnboardingPage(
-        chapter: l10n.onboardingShareChapter,
-        title: l10n.onboardingShareTitle,
-        body: l10n.onboardingShareBody,
-        hero: switch (ref.watch(scoredVisitByIdProvider)[_visitId]) {
-          final scored? => InkanStamp(scored: scored, size: 132),
-          null => null,
-        },
-        actions: [
-          AiFuda(
-            expand: true,
-            onPressed: _visitId == null
-                ? null
-                : () => _open<void>(ShareScreen(visitId: _visitId!)),
-            child: Text(l10n.onboardingShareButton),
-          ),
-          FudeLink(
-            onPressed: () => _advance(OnboardingEvent.skipped),
+            onPressed: _advance,
             child: Text(l10n.onboardingNext),
           ),
+          FudeLink(onPressed: _close, child: Text(l10n.onboardingLater)),
         ],
       ),
-      OnboardingStep.wish => _OnboardingPage(
-        chapter: l10n.onboardingWishChapter,
-        title: l10n.onboardingWishTitle,
-        body: l10n.onboardingWishBody,
-        note: _noWishYet ? l10n.onboardingWishNotYet : null,
+      OnboardingStep.homeBase => switch (ref.watch(currentHomeBaseProvider)) {
+        // 設定から見直している人の拠点を、呼び名「このあたり」の現在地で黙って上書きしないよう、決めてあれば先へ進めるだけにする。
+        final base? => _OnboardingPage(
+          chapter: l10n.onboardingHomeBaseChapter,
+          title: l10n.onboardingHomeBaseTitle,
+          body: l10n.onboardingHomeBaseBody,
+          note: l10n.homeBaseLine(base.name),
+          actions: [
+            AiFuda(
+              expand: true,
+              onPressed: _advance,
+              child: Text(l10n.onboardingNext),
+            ),
+          ],
+        ),
+        null => _OnboardingPage(
+          chapter: l10n.onboardingHomeBaseChapter,
+          title: l10n.onboardingHomeBaseTitle,
+          body: l10n.onboardingHomeBaseBody,
+          busy: _busy,
+          actions: [
+            AiFuda(
+              expand: true,
+              icon: const Icon(Icons.my_location),
+              onPressed: _busy ? null : _useHere,
+              child: Text(l10n.onboardingHomeBaseHere),
+            ),
+            SumiFuda(
+              expand: true,
+              icon: const Icon(Icons.map_outlined),
+              onPressed: _busy ? null : _pickOnMap,
+              child: Text(l10n.onboardingHomeBaseMap),
+            ),
+            FudeLink(
+              onPressed: _busy ? null : _advance,
+              child: Text(l10n.onboardingHomeBaseLater),
+            ),
+          ],
+        ),
+      },
+      OnboardingStep.start => _OnboardingPage(
+        chapter: l10n.onboardingStartChapter,
+        title: l10n.onboardingStartTitle,
+        body: l10n.onboardingStartBody,
         actions: [
           AiFuda(
             expand: true,
-            onPressed: _wishOnMap,
-            child: Text(l10n.onboardingWishMap),
+            onPressed: () => _close(OnboardingStart.record),
+            child: Text(l10n.onboardingStartRecord),
           ),
           SumiFuda(
             expand: true,
-            onPressed: _wishByName,
-            child: Text(l10n.onboardingWishByName),
+            onPressed: () => _close(OnboardingStart.checkin),
+            child: Text(l10n.onboardingStartQueue),
           ),
-          skip,
-        ],
-      ),
-      OnboardingStep.homeBase => _OnboardingPage(
-        chapter: l10n.onboardingHomeBaseChapter,
-        title: l10n.onboardingHomeBaseTitle,
-        body: l10n.onboardingHomeBaseBody,
-        actions: [
-          AiFuda(
+          SumiFuda(
             expand: true,
-            onPressed: _chooseHomeBase,
-            child: Text(l10n.onboardingHomeBaseButton),
+            onPressed: () => _close(OnboardingStart.backup),
+            child: Text(l10n.onboardingStartBackup),
           ),
           FudeLink(
-            onPressed: () => _advance(OnboardingEvent.skipped),
-            child: Text(l10n.onboardingHomeBaseLater),
-          ),
-        ],
-      ),
-      OnboardingStep.finish => _OnboardingPage(
-        chapter: l10n.onboardingFinishChapter,
-        title: l10n.onboardingFinishTitle,
-        body: l10n.onboardingFinishBody,
-        actions: [
-          AiFuda(
-            expand: true,
-            onPressed: () => _finish(tab: AppTab.shugyo),
-            child: Text(l10n.onboardingFinishShugyo),
-          ),
-          FudeLink(
-            onPressed: () => _finish(tab: AppTab.records),
-            child: Text(l10n.onboardingFinishRecords),
+            onPressed: () => _close(OnboardingStart.browse),
+            child: Text(l10n.onboardingStartBrowse),
           ),
         ],
       ),
     };
-    return Scaffold(
-      backgroundColor: Washi.paper,
-      appBar: AppBar(
+    return PopScope(
+      canPop: !_busy,
+      child: Scaffold(
         backgroundColor: Washi.paper,
-        leading: IconButton(
-          tooltip: l10n.onboardingClose,
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        centerTitle: true,
-        title: Text(
-          l10n.onboardingScroll,
-          style: const TextStyle(
-            fontFamily: Washi.brush,
-            fontSize: 18,
-            color: Washi.inkSoft,
-            letterSpacing: 4,
+        appBar: AppBar(
+          backgroundColor: Washi.paper,
+          leading: IconButton(
+            tooltip: l10n.onboardingClose,
+            icon: const Icon(Icons.close),
+            onPressed: _busy ? null : _close,
           ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: _StepMarks(current: _step.index),
+          centerTitle: true,
+          title: Text(
+            l10n.onboardingScroll,
+            style: const TextStyle(
+              fontFamily: Washi.brush,
+              fontSize: 18,
+              color: Washi.inkSoft,
+              letterSpacing: 4,
+            ),
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: KeyedSubtree(key: ValueKey(_step), child: page),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: _StepMarks(current: _step.index),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: KeyedSubtree(key: ValueKey(_step), child: page),
+          ),
         ),
       ),
     );
   }
 }
+
+/// 其の一で見せる見本の印（醤油の一杯、初めての店で少し並んだくらい）。
+ScoredVisit _sampleSeal(DateTime now) => ScoredVisit(
+  visit: Visit(
+    id: 'onboarding-sample',
+    shopId: 'onboarding-sample',
+    result: VisitResult.eaten,
+    eatenAt: now,
+    style: RamenStyle.shoyu,
+    isLimited: false,
+    memo: '',
+    createdAt: now,
+  ),
+  shop: Shop(id: 'onboarding-sample', name: '', createdAt: now),
+  points: const PointsBreakdown(
+    base: 10,
+    waitBonus: 15,
+    limitedBonus: 0,
+    firstVisitBonus: 10,
+    retryBonus: 0,
+  ),
+  isFirstVisit: true,
+  isRetrySuccess: false,
+);
 
 /// 心得の進み具合。済んだ段は藍の小さな角印、いまの段は藍の枠、先の段は薄墨の枠。
 class _StepMarks extends StatelessWidget {
@@ -337,16 +338,22 @@ class _OnboardingPage extends StatelessWidget {
     required this.title,
     required this.body,
     this.hero,
+    this.points = const [],
     required this.actions,
     this.note,
+    this.busy = false,
   });
 
   final String chapter;
   final String title;
   final String body;
   final Widget? hero;
+
+  /// 見出しと短い説明の組。
+  final List<(String, String)> points;
   final List<Widget> actions;
   final String? note;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -383,7 +390,7 @@ class _OnboardingPage extends StatelessWidget {
                 const SizedBox(height: 12),
                 const _BrushRule(),
                 if (hero case final hero?) ...[
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   Center(child: hero),
                 ],
                 const SizedBox(height: 18),
@@ -394,6 +401,25 @@ class _OnboardingPage extends StatelessWidget {
                     color: Washi.ink,
                   ),
                 ),
+                for (final (heading, text) in points) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    heading,
+                    style: const TextStyle(
+                      fontFamily: Washi.brush,
+                      fontSize: 18,
+                      color: Washi.ai,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    text,
+                    style: textTheme.bodyMedium?.copyWith(
+                      height: 1.8,
+                      color: Washi.ink,
+                    ),
+                  ),
+                ],
                 if (note case final note?) ...[
                   const SizedBox(height: 16),
                   Text(
@@ -403,6 +429,10 @@ class _OnboardingPage extends StatelessWidget {
                 ],
                 const Spacer(),
                 const SizedBox(height: 28),
+                if (busy) ...[
+                  const LinearProgressIndicator(),
+                  const SizedBox(height: 12),
+                ],
                 for (final (i, action) in actions.indexed) ...[
                   if (i > 0) const SizedBox(height: 12),
                   action,
