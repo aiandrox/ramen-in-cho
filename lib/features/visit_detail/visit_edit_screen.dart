@@ -196,15 +196,19 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
       initialTime: TimeOfDay.fromDateTime(_eatenAt),
     );
     if (time == null || !mounted) return;
-    setState(() {
-      _eatenAt = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    });
+    final picked = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+    // 選び直さずに閉じたときは、秒を落として日時を変えたことにしない。
+    if (picked ==
+        _eatenAt.copyWith(second: 0, millisecond: 0, microsecond: 0)) {
+      return;
+    }
+    setState(() => _eatenAt = picked);
   }
 
   /// 待ち時間に触っていなければ、並んだ時刻を食べた日時と一緒にずらすだけにする
@@ -281,7 +285,7 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
   bool get _hasChanges {
     final visit = widget.entry.visit;
     return _pickedShop != null ||
-        _nameController.text.trim() != widget.entry.shop.name ||
+        _nameController.text.trim() != widget.entry.shop.name.trim() ||
         _memoController.text.trim() != visit.memo.trim() ||
         (_shopMemoShown &&
             _shopMemoController.text.trim() != _shopMemoOriginal.trim()) ||
@@ -291,7 +295,8 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
         _rating != visit.rating ||
         _style != visit.style ||
         _isLimited != visit.isLimited ||
-        _photo.isChanged;
+        _photo.current != _photo.original ||
+        _photo.quarterTurns != 0;
   }
 
   Future<void> _confirmLeave() async {
@@ -327,12 +332,14 @@ class _VisitEditScreenState extends ConsumerState<VisitEditScreen> {
 
     return ListenableBuilder(
       listenable: Listenable.merge([
+        _nameController,
         _memoController,
         _shopMemoController,
         _waitController,
       ]),
       builder: (context, child) => PopScope(
-        // 保存の途中で閉じると、書いている途中の写真を片付けてしまうため閉じさせない。
+        // 保存の途中は、書いている途中の写真を片付けてしまうため閉じさせない（確かめもしない）。
+        // 変更があるときは、戻る前に確かめる。
         canPop: !_isSaving && !_hasChanges,
         onPopInvokedWithResult: (didPop, _) {
           if (!didPop && !_isSaving) _confirmLeave();
