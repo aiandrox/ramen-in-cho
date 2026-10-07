@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/washi.dart';
 import '../../theme/washi_buttons.dart';
 import '../error_reporting/error_reporting.dart';
+import '../settings/app_about.dart';
 import 'install_id.dart';
 import 'support_diagnostics.dart';
 import 'support_environment.dart';
@@ -20,13 +20,7 @@ final supportClockProvider = Provider<DateTime Function()>(
 
 /// テストでメールアプリを開く処理を差し替えるための窓口。
 final mailOpenerProvider = Provider<Future<bool> Function(Uri uri)>(
-  (ref) => (uri) async {
-    try {
-      return await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      return false;
-    }
-  },
+  (ref) => openExternally,
 );
 
 /// 設定の「不具合を知らせる」。

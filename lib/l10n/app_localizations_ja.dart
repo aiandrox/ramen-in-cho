@@ -1965,6 +1965,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get locationAccessServiceOff => 'スマホの位置情報がオフです。タップで設定を開く';
 
   @override
+  String get privacyPolicy => 'プライバシーポリシー';
+
+  @override
+  String get privacyPolicyOpenFailed => 'ブラウザを開けませんでした';
+
+  @override
+  String appVersion(String version, String build) {
+    return '版 $version（$build）';
+  }
+
+  @override
+  String appVersionOnly(String version) {
+    return '版 $version';
+  }
+
+  @override
   String get contactSupport => '不具合を知らせる';
 
   @override

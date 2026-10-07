@@ -3472,6 +3472,30 @@ abstract class AppLocalizations {
   /// **'スマホの位置情報がオフです。タップで設定を開く'**
   String get locationAccessServiceOff;
 
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In ja, this message translates to:
+  /// **'プライバシーポリシー'**
+  String get privacyPolicy;
+
+  /// No description provided for @privacyPolicyOpenFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'ブラウザを開けませんでした'**
+  String get privacyPolicyOpenFailed;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In ja, this message translates to:
+  /// **'版 {version}（{build}）'**
+  String appVersion(String version, String build);
+
+  /// No description provided for @appVersionOnly.
+  ///
+  /// In ja, this message translates to:
+  /// **'版 {version}'**
+  String appVersionOnly(String version);
+
   /// No description provided for @contactSupport.
   ///
   /// In ja, this message translates to:
