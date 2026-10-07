@@ -35,8 +35,8 @@ void main() {
     chosenEatenAt: DateTime(2026, 9, 1, 19, 5),
   );
 
-  test('食べた日時を直しただけでも、下書きに残す', () {
-    expect(RecordDraft(chosenEatenAt: DateTime(2026, 9, 1)).isEmpty, isFalse);
+  test('食べた日時を直しただけでは、下書きに残さない', () {
+    expect(RecordDraft(chosenEatenAt: DateTime(2026, 9, 1)).isEmpty, isTrue);
   });
 
   test('書き出して読み戻すと同じ入力になる', () {

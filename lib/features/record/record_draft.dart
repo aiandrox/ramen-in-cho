@@ -118,8 +118,7 @@ class RecordDraft {
       shopMemo.trim() == shopMemoOriginal.trim() &&
       shopFamous == shopFamousOriginal &&
       manualWaitMinutes == null &&
-      arrivedAt == null &&
-      chosenEatenAt == null;
+      arrivedAt == null;
 
   RecordDraft withoutArrival() => RecordDraft(
     photoPath: photoPath,

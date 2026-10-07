@@ -7,11 +7,12 @@ Future<DateTime?> pickDateTime(
   required DateTime initial,
   required DateTime now,
 }) async {
+  final latest = now.isAfter(initial) ? now : initial;
   final date = await showDatePicker(
     context: context,
     initialDate: initial,
-    firstDate: DateTime(2000),
-    lastDate: now.isAfter(initial) ? now : initial,
+    firstDate: initial.year < 2000 ? initial : DateTime(2000),
+    lastDate: latest,
   );
   if (date == null || !context.mounted) return null;
   final time = await showTimePicker(
@@ -26,7 +27,8 @@ Future<DateTime?> pickDateTime(
     time.hour,
     time.minute,
   );
-  return picked == initial.copyWith(second: 0, millisecond: 0, microsecond: 0)
-      ? initial
-      : picked;
+  if (picked == initial.copyWith(second: 0, millisecond: 0, microsecond: 0)) {
+    return initial;
+  }
+  return picked.isAfter(latest) ? latest : picked;
 }

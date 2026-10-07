@@ -1,3 +1,4 @@
+import '../checkin/checkin_rules.dart';
 import '../records/models.dart';
 import '../records/wait_time.dart';
 import '../shop_search/geo.dart';
@@ -113,13 +114,21 @@ class RecordState {
   /// 保存したときの食べた日時と並んだ時刻（並んだ店を選んでいるときだけ）。
   ({DateTime eatenAt, DateTime? checkedInAt}) timesAt(DateTime now) {
     final atCheckinShop = isCheckinShopSelected;
-    return recordTimes(
+    final times = recordTimes(
       now: now,
       photoTakenAt: photoTakenAt,
       arrivedAt: atCheckinShop ? arrivedAt : null,
       checkedInAt: atCheckinShop ? checkin?.checkedInAt : null,
       chosenEatenAt: chosenEatenAt,
     );
+    final queued = checkin;
+    // 直した日時が並びの期限（3時間）を過ぎていれば、その並びの待ち時間とはみなさない。
+    if (chosenEatenAt != null &&
+        queued != null &&
+        isCheckinExpired(queued, times.eatenAt)) {
+      return (eatenAt: times.eatenAt, checkedInAt: null);
+    }
+    return times;
   }
 
   bool get hasShop => selectedShop != null || manualName.trim().isNotEmpty;

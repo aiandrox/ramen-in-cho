@@ -161,7 +161,10 @@ class RecordController extends Notifier<RecordState> {
     // 下書きに前の「着」が残っていれば、そちらの時刻を使う（そのときに着丼していたため）。
     final arrives =
         arrivedAt != null && state.checkin != null && state.arrivedAt == null;
-    if (arrives) state = state.copyWith(arrivedAt: arrivedAt);
+    // 「着」を押したら、下書きで直した日時よりその時刻を使う。
+    if (arrives) {
+      state = state.copyWith(arrivedAt: arrivedAt, chosenEatenAt: null);
+    }
     _draftReady = true;
     // カメラの最中にアプリが終わらされても「着」の時刻が残るよう、先に下書きへ書く。
     if (arrives) {

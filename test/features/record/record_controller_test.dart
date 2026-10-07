@@ -682,6 +682,23 @@ void main() {
       );
     });
 
+    test('並んだ店で食べた日時を3時間より後に直すと、待ち時間をつけず並びも続く', () async {
+      await checkIn();
+
+      await controller().start();
+      await controller().takePhoto();
+      await pumpEventQueue();
+      final queuedAt = state().checkin!.checkedInAt;
+      controller().setEatenAt(queuedAt.add(const Duration(hours: 4)));
+      await controller().save();
+
+      expect((await visits()).single.visit.checkedInAt, isNull);
+      expect(
+        await container.read(recordRepositoryProvider).activeCheckin(),
+        isNotNull,
+      );
+    });
+
     test('並んだ店を選んでいるときは、手で入れた待ち時間より並んだ時刻を使う', () async {
       await checkIn();
 

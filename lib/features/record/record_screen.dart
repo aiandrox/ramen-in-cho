@@ -484,7 +484,7 @@ class _EatenAtRow extends ConsumerWidget {
           initial: eatenAt,
           now: ref.read(clockProvider)(),
         );
-        if (picked == null || picked == eatenAt) return;
+        if (picked == null || picked == eatenAt || !context.mounted) return;
         ref.read(recordControllerProvider.notifier).setEatenAt(picked);
       },
     );
@@ -689,10 +689,16 @@ class _ShopSection extends ConsumerWidget {
   }
 
   /// 「着」を押していれば待ち時間はもう決まっているので、その分数を出す。
-  String _checkinNote(AppLocalizations l10n, Checkin checkin, WidgetRef ref) {
-    final decided = state.chosenEatenAt ?? state.arrivedAt;
-    if (decided != null) {
-      return l10n.waitTime(checkinElapsedMinutes(checkin, decided));
+  String? _checkinNote(AppLocalizations l10n, Checkin checkin, WidgetRef ref) {
+    if (state.chosenEatenAt != null && state.isCheckinShopSelected) {
+      final times = state.timesAt(ref.watch(currentTimeProvider));
+      final queuedAt = times.checkedInAt;
+      if (queuedAt == null) return null;
+      return l10n.waitTime(times.eatenAt.difference(queuedAt).inMinutes);
+    }
+    final arrivedAt = state.arrivedAt;
+    if (arrivedAt != null) {
+      return l10n.waitTime(checkinElapsedMinutes(checkin, arrivedAt));
     }
     return l10n.checkinWaiting(
       checkinElapsedMinutes(
