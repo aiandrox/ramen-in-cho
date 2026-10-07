@@ -668,4 +668,74 @@ void main() {
     final saveButton = find.widgetWithText(AiFuda, ja.editSave);
     expect(tester.widget<AiFuda>(saveButton).onPressed, isNull);
   });
+
+  testWidgets('編集で何も変えなければ、戻るときに何も聞かない', (tester) async {
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),
+    ], 'v');
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.editLeaveTitle), findsNothing);
+    expect(find.text(ja.editTitle), findsNothing);
+  });
+
+  testWidgets('編集で変えてから戻ると確かめ、「編集を続ける」なら画面に残る', (tester) async {
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),
+    ], 'v');
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(VisitDetailsForm.memoFieldKey), '書き直した');
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.editLeaveTitle), findsOneWidget);
+    await tester.tap(find.text(ja.editLeaveContinue));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.editTitle), findsOneWidget);
+    expect(find.text('書き直した'), findsOneWidget);
+    expect(repository.updates, isEmpty);
+  });
+
+  testWidgets('編集で変えてから戻り「戻る」を選ぶと、保存せずに閉じる', (tester) async {
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),
+    ], 'v');
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip(ja.ratingStar(2)));
+    await tester.pump();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(ja.editLeaveDiscard));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.editTitle), findsNothing);
+    expect(repository.updates, isEmpty);
+  });
+
+  testWidgets('編集で変えて保存すると、確かめずに閉じる', (tester) async {
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30, 12)),
+    ], 'v');
+    await openMenu(tester, ja.edit);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip(ja.ratingStar(2)));
+    await tester.tap(find.widgetWithText(AiFuda, ja.editSave));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.editLeaveTitle), findsNothing);
+    expect(find.text(ja.editTitle), findsNothing);
+    expect(repository.updates, hasLength(1));
+  });
 }

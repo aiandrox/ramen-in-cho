@@ -226,6 +226,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editSave => '保存';
 
   @override
+  String get editLeaveTitle => '変更を保存せずに戻りますか？';
+
+  @override
+  String get editLeaveDiscard => '戻る（変更を捨てる）';
+
+  @override
+  String get editLeaveContinue => '編集を続ける';
+
+  @override
   String get editSaveFailed => '保存できませんでした。もう一度お試しください';
 
   @override
