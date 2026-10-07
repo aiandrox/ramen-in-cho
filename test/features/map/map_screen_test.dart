@@ -90,6 +90,28 @@ void main() {
     expect(location.requests, [true]);
   });
 
+  testWidgets('丸いボタンに何のボタンかを字で添え、字を押しても同じことをする', (tester) async {
+    await pumpMap(tester, [
+      buildEntry(
+        shop: buildShop(
+          id: 'visited',
+          osmId: 'node/1',
+          latitude: 35.001,
+          longitude: 139.0,
+        ),
+      ),
+    ]);
+
+    expect(find.text(ja.mapListLabel), findsOneWidget);
+    expect(find.text(ja.mapMyLocation), findsOneWidget);
+    expect(find.text(ja.journeyToggle), findsOneWidget);
+
+    await tester.tap(find.text(ja.mapSearchHereLabel));
+    await tester.pumpAndSettle();
+
+    expect(overpass.radii, [nearbySearchRadiusMeters]);
+  });
+
   testWidgets('「このあたりを探す」で1km以内を探し、まだ行っていない店だけをピンで出す', (tester) async {
     final visited = buildShop(
       id: 'visited',

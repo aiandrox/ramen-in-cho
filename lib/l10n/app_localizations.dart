@@ -2263,7 +2263,7 @@ abstract class AppLocalizations {
   /// No description provided for @mapEmpty.
   ///
   /// In ja, this message translates to:
-  /// **'行った店はまだ地図にありません。「このあたりのラーメン店を探す」で、まわりの店を探せます'**
+  /// **'行った店はまだ地図にありません。右下の「このあたりを探す」のボタンで、まわりの店を探せます'**
   String get mapEmpty;
 
   /// No description provided for @mapSearchHere.
@@ -2271,6 +2271,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'このあたりのラーメン店を探す'**
   String get mapSearchHere;
+
+  /// No description provided for @mapSearchHereLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'このあたりを探す'**
+  String get mapSearchHereLabel;
+
+  /// No description provided for @mapListLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'一覧'**
+  String get mapListLabel;
 
   /// No description provided for @mapMyLocation.
   ///

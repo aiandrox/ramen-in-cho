@@ -548,15 +548,26 @@ class _MapScreenState extends ConsumerState<MapScreen>
           Positioned(
             top: 8,
             right: 8,
-            child: Semantics(
-              selected: _showJourney,
-              child: SealFab(
-                sumi: !_showJourney,
-                small: true,
-                tooltip: l10n.journeyToggle,
-                onPressed: () => _toggleJourney(stops),
-                child: Icon(_showJourney ? Icons.route : Icons.route_outlined),
-              ),
+            child: Column(
+              children: [
+                Semantics(
+                  selected: _showJourney,
+                  child: SealFab(
+                    sumi: !_showJourney,
+                    small: true,
+                    tooltip: l10n.journeyToggle,
+                    onPressed: () => _toggleJourney(stops),
+                    child: Icon(
+                      _showJourney ? Icons.route : Icons.route_outlined,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                _FabLabel(
+                  l10n.journeyToggle,
+                  onTap: () => _toggleJourney(stops),
+                ),
+              ],
             ),
           ),
           if (_isSearching || _locating > 0) ...[
@@ -596,10 +607,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (places.isNotEmpty) ...[
-              SealFab(
-                sumi: true,
-                small: true,
-                tooltip: l10n.mapListButton,
+              _LabeledFab(
+                label: l10n.mapListLabel,
                 onPressed: () {
                   // 一覧は、いま地図の画面に見えている店だけにする。
                   final bounds = _controller.camera.visibleBounds;
@@ -619,32 +628,103 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     withFilters: true,
                   );
                 },
-                child: const Icon(Icons.format_list_bulleted),
+                fab: (onPressed) => SealFab(
+                  sumi: true,
+                  small: true,
+                  tooltip: l10n.mapListButton,
+                  onPressed: onPressed,
+                  child: const Icon(Icons.format_list_bulleted),
+                ),
               ),
               const SizedBox(height: 12),
             ],
-            SealFab(
-              sumi: true,
-              small: true,
-              tooltip: l10n.mapMyLocation,
+            _LabeledFab(
+              label: l10n.mapMyLocation,
               onPressed: () => _locate(move: true),
-              child: const Icon(Icons.my_location),
+              fab: (onPressed) => SealFab(
+                sumi: true,
+                small: true,
+                tooltip: l10n.mapMyLocation,
+                onPressed: onPressed,
+                child: const Icon(Icons.my_location),
+              ),
             ),
             const SizedBox(height: 12),
-            SealFab(
-              tooltip: l10n.mapSearchHere,
+            _LabeledFab(
+              label: l10n.mapSearchHereLabel,
               onPressed: _isSearching ? null : _searchHere,
-              child: _isSearching
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Washi.page,
-                      ),
-                    )
-                  : const Icon(Icons.search),
+              fab: (onPressed) => SealFab(
+                tooltip: l10n.mapSearchHere,
+                onPressed: onPressed,
+                child: _isSearching
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Washi.page,
+                        ),
+                      )
+                    : const Icon(Icons.search),
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 丸いボタンの左に、何のボタンかを小さく添える。字を押しても同じ。
+class _LabeledFab extends StatelessWidget {
+  const _LabeledFab({
+    required this.label,
+    required this.onPressed,
+    required this.fab,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final Widget Function(VoidCallback? onPressed) fab;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _FabLabel(label, onTap: onPressed),
+        const SizedBox(width: 6),
+        fab(onPressed),
+      ],
+    );
+  }
+}
+
+/// 地図を隠しすぎないよう、薄い和紙の地に小さな字で書く。読み上げはボタンの名前で足りるので外す。
+class _FabLabel extends StatelessWidget {
+  const _FabLabel(this.text, {required this.onTap});
+
+  final String text;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Washi.paper.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(fontSize: 12, color: Washi.ink),
+            ),
+          ),
         ),
       ),
     );
