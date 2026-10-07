@@ -6,9 +6,12 @@ import '../../theme/washi.dart';
 import '../scoring/scoring_providers.dart';
 import 'year_review.dart';
 import 'year_review_screen.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 年の一覧を開く。[year] を渡すと、その年の紙芝居を一覧の上に重ねて開く（戻ると一覧へ）。
 void openYearReview(BuildContext context, {int? year}) {
+  logAnalytics(context, AnalyticsEvents.featureOpened('year_review'));
   final navigator = Navigator.of(context);
   navigator.push(
     MaterialPageRoute<void>(builder: (_) => const YearReviewListScreen()),

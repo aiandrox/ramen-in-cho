@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 import 'geo.dart';
 
 /// 現在地を求められたのに、アプリからは直せない理由で取れなかったこと。
@@ -11,9 +13,13 @@ enum LocationBlock { serviceOff, deniedForever }
 /// [LocationBlock]が起きたことを画面に知らせ、スマホの設定を開くよう案内してもらう。
 final locationBlocks = StreamController<LocationBlock>.broadcast();
 
-final locationServiceProvider = Provider<LocationService>(
-  (ref) => const GeolocatorLocationService(),
-);
+final locationServiceProvider = Provider<LocationService>((ref) {
+  final analytics = ref.watch(analyticsProvider);
+  return GeolocatorLocationService(
+    onPermissionDenied: () =>
+        unawaited(analytics.log(AnalyticsEvents.permissionDenied('location'))),
+  );
+});
 
 abstract class LocationService {
   /// 許可ダイアログを出さずに現在地を取れる状態か。
@@ -25,7 +31,10 @@ abstract class LocationService {
 }
 
 class GeolocatorLocationService implements LocationService {
-  const GeolocatorLocationService();
+  const GeolocatorLocationService({this.onPermissionDenied});
+
+  /// 許可を尋ねて断られた（前に断っていて尋ねられなかったときも）ときに呼ぶ。
+  final void Function()? onPermissionDenied;
 
   static const _timeout = Duration(seconds: 8);
 
@@ -49,6 +58,9 @@ class GeolocatorLocationService implements LocationService {
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied && requestPermission) {
         permission = await Geolocator.requestPermission();
+      }
+      if (requestPermission && !_isGranted(permission)) {
+        onPermissionDenied?.call();
       }
       // 何度か断ると、アプリからは許可を聞き直せなくなる（スマホの設定でしか直せない）。
       if (permission == LocationPermission.deniedForever && requestPermission) {

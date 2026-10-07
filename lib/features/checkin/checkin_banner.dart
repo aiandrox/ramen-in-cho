@@ -13,6 +13,8 @@ import 'checkin_rules.dart';
 import 'retreat_dialog.dart';
 import '../words/words.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 並んでいる店と経過時間。取り消しと撤退ができる。
 class CheckinBanner extends ConsumerStatefulWidget {
@@ -44,6 +46,9 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
     if (!isCheckinExpired(widget.checkin, ref.read(clockProvider)())) return;
     try {
       await ref.read(recordRepositoryProvider).cancelCheckin();
+      unawaited(
+        ref.read(analyticsProvider).log(AnalyticsEvents.checkinAutoCanceled),
+      );
     } catch (e) {
       debugPrint('Checkin auto-cancel failed: $e');
     }
@@ -69,7 +74,9 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
         ],
       ),
     );
-    if (confirmed == true) await repository.cancelCheckin();
+    if (confirmed != true) return;
+    await repository.cancelCheckin();
+    unawaited(ref.read(analyticsProvider).log(AnalyticsEvents.checkinCanceled));
   }
 
   Future<void> _retreat() async {
@@ -85,6 +92,15 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
         memo: memo,
         wishTrigger: l10n.wishTriggerRetreat,
         now: clock(),
+      );
+      unawaited(
+        ref
+            .read(analyticsProvider)
+            .log(
+              AnalyticsEvents.checkinRetreated(
+                waitedMinutes: checkinElapsedMinutes(widget.checkin, clock()),
+              ),
+            ),
       );
       messenger.showSnackBar(
         SnackBar(

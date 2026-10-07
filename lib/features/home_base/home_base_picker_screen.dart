@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +24,8 @@ import '../shop_search/geo.dart';
 import '../shop_search/location_service.dart';
 import 'home_base.dart';
 import 'home_base_repository.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 拠点を選ぶときの地図の倍率。駅や街のあたりが見分けられる広さ。
 const homeBasePickZoom = 13.0;
@@ -129,6 +133,11 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
               longitude: location.longitude,
             ),
           );
+      unawaited(
+        ref
+            .read(analyticsProvider)
+            .log(AnalyticsEvents.homeBaseEdited(change: 'location')),
+      );
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.homeBaseRelocated(editing.name))),
       );
@@ -445,13 +454,18 @@ class _EditSheet extends ConsumerStatefulWidget {
 class _EditSheetState extends ConsumerState<_EditSheet> {
   late var _setting = widget.setting;
 
-  Future<void> _update(HomeBaseSetting updated) async {
+  Future<void> _update(HomeBaseSetting updated, String change) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
       final saved = await ref
           .read(homeBaseRepositoryProvider)
           .updateHomeBase(updated);
+      unawaited(
+        ref
+            .read(analyticsProvider)
+            .log(AnalyticsEvents.homeBaseEdited(change: change)),
+      );
       if (mounted) setState(() => _setting = saved);
     } catch (e, st) {
       reportError(e, st, reason: 'Home base update failed');
@@ -469,7 +483,7 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
       lastDate: today,
     );
     if (day == null || !mounted) return;
-    await _update(_setting.copyWith(setAt: homeBaseDayStart(day)));
+    await _update(_setting.copyWith(setAt: homeBaseDayStart(day)), 'date');
   }
 
   Future<void> _rename() async {
@@ -478,7 +492,7 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
       builder: (_) => _NameDialog(initial: _setting.name),
     );
     if (name == null || !mounted) return;
-    await _update(_setting.copyWith(name: name));
+    await _update(_setting.copyWith(name: name), 'name');
   }
 
   Future<void> _relocate() async {
@@ -526,6 +540,11 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
     if (confirmed != true || !mounted) return;
     try {
       await ref.read(homeBaseRepositoryProvider).deleteHomeBase(setting.id);
+      unawaited(
+        ref
+            .read(analyticsProvider)
+            .log(AnalyticsEvents.homeBaseEdited(change: 'delete')),
+      );
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.homeBaseDeleted(setting.name))),
       );
@@ -604,6 +623,11 @@ Future<bool> saveHomeBase(
       now: ref.read(clockProvider)(),
     );
     onSaved?.call();
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.homeBaseSet(via: isFirst ? 'first' : 'change')),
+    );
     if (isFirst && context.mounted) {
       await showHomeBaseHidenDialog(context, setting.setAt);
     }

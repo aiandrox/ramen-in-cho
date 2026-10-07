@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +14,8 @@ import '../shop_search/ramen_in_cho_api.dart';
 import '../shop_search/shop_name_search_sheet.dart';
 import 'wish_repository.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 店名だけで掛ける願の場所（店名で探した店、地図で指した場所、住所から調べた場所）。
 class WishPlace {
@@ -74,8 +78,9 @@ Future<WishText?> showWishDialog(
 Future<void> addWishFor(
   BuildContext context,
   WidgetRef ref,
-  ShopInput shop,
-) async {
+  ShopInput shop, {
+  required WishSource source,
+}) async {
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final repository = ref.read(wishRepositoryProvider);
@@ -90,6 +95,7 @@ Future<void> addWishFor(
       link: text.link,
       now: now,
     );
+    _logWishCreated(ref, source, hasLocation: shop.latitude != null);
     messenger.showSnackBar(SnackBar(content: Text(l10n.wishAdded(shop.name))));
   } catch (e, st) {
     reportError(e, st, reason: 'Wish save failed');
@@ -106,6 +112,7 @@ Future<String?> addWishByName(
   String? link,
   WishPlace? place,
   String? address,
+  required WishSource source,
 }) async {
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
@@ -141,9 +148,22 @@ Future<String?> addWishByName(
     messenger.showSnackBar(SnackBar(content: Text(l10n.wishSaveFailed)));
     return null;
   }
+  _logWishCreated(ref, source, hasLocation: chosen != null);
   messenger.showSnackBar(SnackBar(content: Text(l10n.wishAdded(text.name))));
   return text.name;
 }
+
+void _logWishCreated(
+  WidgetRef ref,
+  WishSource source, {
+  required bool hasLocation,
+}) => unawaited(
+  ref
+      .read(analyticsProvider)
+      .log(
+        AnalyticsEvents.wishCreated(source: source, hasLocation: hasLocation),
+      ),
+);
 
 class _WishDialog extends ConsumerStatefulWidget {
   const _WishDialog({
@@ -197,6 +217,11 @@ class _WishDialogState extends ConsumerState<_WishDialog> {
   Future<void> _geocode(String address) async {
     setState(() => _geocoding = true);
     final point = await ref.read(addressGeocoderProvider)(address);
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.geocode(found: point != null)),
+    );
     if (!mounted) return;
     setState(() {
       _geocoding = false;

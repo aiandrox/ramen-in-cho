@@ -6,6 +6,8 @@ import '../inkan/inkan_stamp.dart';
 import 'rank_history_screen.dart';
 import 'rank_labels.dart';
 import 'ranks.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 段位と修行点、次の段位までの進み具合。タップで昇段の記録を開く。
 class RankProgress extends StatelessWidget {
@@ -83,9 +85,12 @@ class RankProgress extends StatelessWidget {
       ],
     );
     return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const RankHistoryScreen()),
-      ),
+      onTap: () {
+        logAnalytics(context, AnalyticsEvents.featureOpened('rank_history'));
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const RankHistoryScreen()),
+        );
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: row,

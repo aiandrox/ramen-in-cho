@@ -1,9 +1,20 @@
+import 'dart:async';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-final photoPickerProvider = Provider<PhotoPicker>(
-  (ref) => ImagePickerPhotoPicker(ImagePicker()),
-);
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
+
+final photoPickerProvider = Provider<PhotoPicker>((ref) {
+  final analytics = ref.watch(analyticsProvider);
+  return ImagePickerPhotoPicker(
+    ImagePicker(),
+    onCameraDenied: () =>
+        unawaited(analytics.log(AnalyticsEvents.permissionDenied('camera'))),
+  );
+});
 
 abstract class PhotoPicker {
   /// 撮った写真の一時ファイルのパス。キャンセル・カメラが使えないときはnull。
@@ -16,7 +27,10 @@ abstract class PhotoPicker {
 }
 
 class ImagePickerPhotoPicker implements PhotoPicker {
-  ImagePickerPhotoPicker(this._picker);
+  ImagePickerPhotoPicker(this._picker, {this.onCameraDenied});
+
+  /// カメラの許可が無くて撮れなかったときに呼ぶ。
+  final void Function()? onCameraDenied;
 
   static const _maxSize = 2000.0;
   static const _quality = 85;
@@ -38,6 +52,9 @@ class ImagePickerPhotoPicker implements PhotoPicker {
         imageQuality: _quality,
       );
       return file?.path;
+    } on PlatformException catch (e) {
+      if (e.code == 'camera_access_denied') onCameraDenied?.call();
+      return null;
     } catch (_) {
       return null;
     }

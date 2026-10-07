@@ -29,6 +29,7 @@ import '../wishes/shared_wish.dart';
 import '../wishes/wish_dialog.dart';
 import 'app_tab.dart';
 import 'shared_place_sheet.dart';
+import '../analytics/analytics_events.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -135,6 +136,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final name = await addWishByName(
       context,
       ref,
+      source: WishSource.share,
       name: shared.name,
       trigger: switch (shared.source) {
         SharedSource.googleMaps => l10n.wishTriggerGoogleMaps,

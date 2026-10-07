@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +9,8 @@ import '../records/clock.dart';
 import '../records/record_repository.dart';
 import 'queue_suggestion.dart';
 import '../../theme/washi_buttons.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 /// 店の近くでアプリを開いたときの「〇〇に並んだ？」。1タップで並び始める。
 class QueueSuggestionCard extends ConsumerStatefulWidget {
@@ -62,6 +66,16 @@ class _QueueSuggestionCardState extends ConsumerState<QueueSuggestionCard> {
             dataSource: shop.dataSource,
           ),
           at: ref.read(clockProvider)(),
+        );
+        final analytics = ref.read(analyticsProvider);
+        unawaited(analytics.log(AnalyticsEvents.queueSuggestionAccepted));
+        unawaited(
+          analytics.log(
+            AnalyticsEvents.checkinStarted(
+              via: 'suggestion',
+              shopSource: shopSourceOf(shop),
+            ),
+          ),
         );
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.checkinDone(shop.name))),

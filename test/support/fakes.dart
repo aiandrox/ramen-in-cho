@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ramen_in_cho/features/analytics/analytics.dart';
+import 'package:ramen_in_cho/features/analytics/analytics_events.dart';
 import 'package:ramen_in_cho/features/backup/backup_codec.dart';
 import 'package:ramen_in_cho/features/database/app_database.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
@@ -401,4 +403,24 @@ class MemoryRecordDraftStore implements RecordDraftStore {
 
   @override
   Future<void> clear({String? keepPhoto}) async => draft = null;
+}
+
+/// Firebase を呼ばず、送ったイベントを覚えておくだけのテスト用。
+class FakeAnalyticsService implements AnalyticsService {
+  final events = <AnalyticsEvent>[];
+  final screens = <String>[];
+  final userProperties = <String, String?>{};
+
+  Iterable<AnalyticsEvent> named(String name) =>
+      events.where((event) => event.name == name);
+
+  @override
+  Future<void> log(AnalyticsEvent event) async => events.add(event);
+
+  @override
+  Future<void> logScreen(String screen) async => screens.add(screen);
+
+  @override
+  Future<void> setUserProperties(Map<String, String?> properties) async =>
+      userProperties.addAll(properties);
 }

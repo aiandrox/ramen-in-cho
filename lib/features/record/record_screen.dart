@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 import '../credits/source_credit.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/safe_bottom.dart';
@@ -130,12 +133,15 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   }
 
   Future<void> _save() async {
-    final visitId = await ref.read(recordControllerProvider.notifier).save();
+    final controller = ref.read(recordControllerProvider.notifier);
+    final visitId = await controller.save();
     if (!mounted) return;
     if (visitId != null) {
+      final summary = controller.lastSaveSummary;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) => RecordResultScreen(visitId: visitId),
+          builder: (_) =>
+              RecordResultScreen(visitId: visitId, saveSummary: summary),
         ),
       );
     } else {
@@ -230,6 +236,8 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     final navigator = Navigator.of(context);
     if (choice == _LeaveChoice.discard) {
       await ref.read(recordControllerProvider.notifier).abandonDraft();
+    } else {
+      unawaited(ref.read(analyticsProvider).log(AnalyticsEvents.draftKept));
     }
     // 入力は変えるたびに下書きへ書いてあるので、残すときはそのまま閉じる。
     navigator.pop();
@@ -613,6 +621,7 @@ class _ShopSection extends ConsumerWidget {
                     dataSource: found.dataSource,
                   ),
                 );
+                controller.markPickedByNameSearch();
               },
             ),
           ),

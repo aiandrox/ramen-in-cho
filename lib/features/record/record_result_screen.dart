@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 import '../inkan/inkan.dart';
 import '../../l10n/app_localizations.dart';
 import '../home_base/home_base_repository.dart';
@@ -30,9 +33,16 @@ import '../../theme/washi_buttons.dart';
 
 /// 保存した記録で得たポイントの内訳と、累計・ランクの変化を見せる。
 class RecordResultScreen extends ConsumerStatefulWidget {
-  const RecordResultScreen({super.key, required this.visitId});
+  const RecordResultScreen({
+    super.key,
+    required this.visitId,
+    this.saveSummary,
+  });
 
   final String visitId;
+
+  /// 記録の画面で入れた様子（統計に送る）。
+  final RecordSaveSummary? saveSummary;
 
   @override
   ConsumerState<RecordResultScreen> createState() => _RecordResultScreenState();
@@ -41,6 +51,23 @@ class RecordResultScreen extends ConsumerStatefulWidget {
 class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
   /// 最初に求めた結果を持ち続ける。表示中に記録が変わっても、演出をやり直さないため。
   RecordOutcome? _outcome;
+  bool _logged = false;
+
+  void _logOutcome(RecordOutcome outcome, List<VisitWithShop> visits) {
+    final analytics = ref.read(analyticsProvider);
+    final eaten = visits.where((e) => e.visit.result == VisitResult.eaten);
+    final firstRecordAt = visits
+        .map((e) => e.visit.eatenAt)
+        .reduce((a, b) => a.isBefore(b) ? a : b);
+    for (final event in recordOutcomeEvents(
+      outcome,
+      summary: widget.saveSummary,
+      totalBowls: eaten.length,
+      firstRecordAt: firstRecordAt,
+    )) {
+      unawaited(analytics.log(event));
+    }
+  }
 
   @override
   void initState() {
@@ -72,6 +99,10 @@ class _RecordResultScreenState extends ConsumerState<RecordResultScreen> {
             prefectureOf: ref.watch(prefectureIndexProvider).prefectureOf,
           );
     final outcome = _outcome;
+    if (outcome != null && !_logged && visits != null) {
+      _logged = true;
+      _logOutcome(outcome, visits);
+    }
 
     final base = Theme.of(context);
     final night = base.copyWith(

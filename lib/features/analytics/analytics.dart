@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'analytics_events.dart';
@@ -10,6 +12,20 @@ import 'analytics_events.dart';
 final analyticsProvider = Provider<AnalyticsService>(
   (ref) => FirebaseAnalyticsService(),
 );
+
+/// [WidgetRef] の無い部品から送る。ProviderScope の外（一部のテストなど）では何もしない。
+void logAnalytics(BuildContext context, AnalyticsEvent event) {
+  try {
+    unawaited(
+      ProviderScope.containerOf(
+        context,
+        listen: false,
+      ).read(analyticsProvider).log(event),
+    );
+  } catch (e) {
+    debugPrint('Analytics failed: $e');
+  }
+}
 
 abstract class AnalyticsService {
   Future<void> log(AnalyticsEvent event);

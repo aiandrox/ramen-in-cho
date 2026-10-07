@@ -1,4 +1,9 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../home_base/home_base_repository.dart';
 import '../prefecture/regions.dart';
+import '../records/record_repository.dart';
+import '../scoring/scoring_providers.dart';
 import '../quests/quests.dart';
 import '../records/models.dart';
 import '../scoring/points.dart';
@@ -12,9 +17,7 @@ Map<String, String> analyticsUserProperties({
   required List<QuestProgress> quests,
   required HomeBaseSetting? homeBase,
 }) {
-  final bowls = scored
-      .where((e) => e.visit.result == VisitResult.eaten)
-      .length;
+  final bowls = scored.where((e) => e.visit.result == VisitResult.eaten).length;
   final hiden = quests
       .where((p) => p.quest.kind == QuestKind.spot && p.isAchieved)
       .length;
@@ -30,3 +33,13 @@ Map<String, String> analyticsUserProperties({
     'has_home_base': homeBase == null ? '0' : '1',
   };
 }
+
+/// 記録を読み終えるまではnull。
+final analyticsUserPropertiesProvider = Provider<Map<String, String>?>((ref) {
+  if (!ref.watch(visitsProvider).hasValue) return null;
+  return analyticsUserProperties(
+    scored: ref.watch(scoredVisitsProvider),
+    quests: ref.watch(questProgressProvider),
+    homeBase: ref.watch(currentHomeBaseProvider),
+  );
+});

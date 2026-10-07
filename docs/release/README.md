@@ -48,3 +48,13 @@ PLAY_TRACK=internal
 - **iOS**: App Store Connect → ユーザとアクセス → 統合 → App Store Connect API → チームキーで、役割「App Manager」の鍵を麺印帳のアップロード用に作る。`.p8` は1回しかダウンロードできない。`~/.appstoreconnect/private_keys/AuthKey_<キーID>.p8` に置く。署名は Xcode の自動管理（Team `CJ99DCYQKL`）なので、この Mac の Xcode にログインしていること
 - **Android**: アップロード鍵 `~/.config/ramen-in-cho/upload-keystore.jks` とパスワードの `key.properties` を `android/key.properties` に写す。**鍵を失うと Play のアプリを更新できない。** パスワードの管理アプリにも控える。アップロードには Play Console のサービスアカウントの JSON 鍵と `fastlane`（`gem install fastlane`）が要る
 - Play Console の**最初の1回**は API で上げられないので、画面から aab を上げる。そのあとで `--no-bump` 無しの通常の手順に戻る
+
+## ストアのプライバシーの回答
+
+送る内容（`site/public/privacy.html`）を変えたら、App Store Connect の「App のプライバシー」と Play Console の「データ セーフティ」の回答も直す（ストアの画面で aiandrox が行う）。今の回答の目安:
+
+- **使用状況データ（製品の操作）**: Firebase Analytics。用途は「アナリティクス」。ユーザーに紐づけない・トラッキングに使わない
+- **診断（クラッシュデータ・その他の診断データ）**: Firebase Crashlytics。用途は「アプリの機能」。ユーザーに紐づけない
+- **位置情報（おおよそ・正確）**: 店の検索のために中心の座標を送るが、保存しない。ユーザーに紐づけない
+- **ID（デバイス ID）**: Firebase のインストールごとの識別子（Android の「データ セーフティ」では「デバイスなどの ID」）。広告 ID は集めない
+- 送るデータは暗号化して送る（HTTPS）。アプリに保存したデータの削除はアプリの削除で行える

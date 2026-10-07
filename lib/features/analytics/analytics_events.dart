@@ -1,7 +1,9 @@
 import '../scoring/points.dart';
 import '../scoring/ranks.dart';
+import '../scoring/record_outcome.dart';
 import '../quests/quests.dart';
 import '../shop_search/shop_candidate.dart';
+import '../shop_search/shop_search_service.dart';
 
 /// 統計として送る1件。名前は英小文字と _ で40字まで。値は種類（英字の決まった言葉）・数・1/0 だけにし、
 /// 店名・位置・写真・メモ・願の中身・リンク・記録の日時など、人が入れたものや人を見分けられるものは入れない。
@@ -79,6 +81,9 @@ enum RecordEntry { plain, arrival, sharePhoto, shareMap, recovered }
 /// 記録の写真の出どころ。
 enum PhotoSource { camera, gallery, shared, recovered, none }
 
+/// 願を掛けた入口。
+enum WishSource { wishBook, map, shopPage, memory, share }
+
 /// 選んだ店の出どころ。
 enum ShopSourceKind { osm, yahoo, openpoi, curated, known, wish, manual }
 
@@ -99,10 +104,8 @@ ShopSourceKind shopSourceOf(ShopCandidate? shop) {
 }
 
 /// 英字の種類名（camelCase）を snake_case にする。
-String snake(String camel) => camel.replaceAllMapped(
-  RegExp('[A-Z]'),
-  (m) => '_${m[0]!.toLowerCase()}',
-);
+String snake(String camel) =>
+    camel.replaceAllMapped(RegExp('[A-Z]'), (m) => '_${m[0]!.toLowerCase()}');
 
 /// 記録を保存したときの、入力の様子（入れたかどうかだけ。中身は送らない）。
 class RecordSaveSummary {
@@ -232,20 +235,35 @@ abstract final class AnalyticsEvents {
   static const draftDiscarded = AnalyticsEvent('draft_discarded');
   static const draftResumed = AnalyticsEvent('draft_resumed');
 
-  /// 記録の画面で、近くの店を探した結果。
+  /// 近くの店を探した結果。[purpose]は record（記録）か checkin（並ぶ）。
+  /// 候補には記録済みの店も入るので、検索元が失敗しても候補が出ることがある。
   static AnalyticsEvent shopSearch({
     required String purpose,
-    required String result,
-    required int count,
+    required ShopSearchResult result,
   }) => AnalyticsEvent('shop_search', {
     'purpose': purpose,
-    'result': result,
-    'count': bucket(count),
+    'result': switch (result.failure) {
+      ShopSearchFailure.noLocation => 'no_location',
+      ShopSearchFailure.searchFailed => 'failed',
+      null => result.candidates.isEmpty ? 'zero' : 'found',
+    },
+    'count': bucket(result.candidates.length),
   });
 
   /// 店名から探した結果。
-  static AnalyticsEvent shopNameSearch({required String result}) =>
-      AnalyticsEvent('shop_name_search', {'result': result});
+  /// [via]は server（麺印帳のサーバー）か device（端末から直接）。[results]は失敗ならnull。
+  static AnalyticsEvent shopNameSearch({
+    required String via,
+    required List<Object>? results,
+  }) => AnalyticsEvent('shop_name_search', {
+    'via': via,
+    'result': results == null
+        ? 'failed'
+        : results.isEmpty
+        ? 'zero'
+        : 'found',
+    'count': bucket(results?.length ?? 0),
+  });
 
   static AnalyticsEvent geocode({required bool found}) =>
       AnalyticsEvent('geocode', {'result': found ? 'found' : 'not_found'});
@@ -266,17 +284,15 @@ abstract final class AnalyticsEvents {
         'waited_min': bucket(waitedMinutes),
       });
 
-  static const queueSuggestionShown = AnalyticsEvent('queue_suggestion_shown');
   static const queueSuggestionAccepted = AnalyticsEvent(
     'queue_suggestion_accepted',
   );
 
-  /// [source] は願を掛けた入口（wish_book・map・shop_page・memory・share・onboarding など）。
   static AnalyticsEvent wishCreated({
-    required String source,
+    required WishSource source,
     required bool hasLocation,
   }) => AnalyticsEvent('wish_created', {
-    'source': source,
+    'source': snake(source.name),
     'has_location': _flag(hasLocation),
   });
 
@@ -303,10 +319,12 @@ abstract final class AnalyticsEvents {
       AnalyticsEvent('feature_opened', {'feature': feature});
 
   static AnalyticsEvent shareCard({
+    required String result,
     required bool includePhoto,
     required bool includeJournal,
     required bool includePoints,
   }) => AnalyticsEvent('share_card', {
+    'result': result,
     'include_photo': _flag(includePhoto),
     'include_journal': _flag(includeJournal),
     'include_points': _flag(includePoints),
@@ -329,11 +347,12 @@ abstract final class AnalyticsEvents {
   static AnalyticsEvent homeBaseEdited({required String change}) =>
       AnalyticsEvent('home_base_edited', {'change': change});
 
+  /// [start] は最後に選んだ始め方（record・checkin・backup・browse）。選ばずに閉じたら null。
   static AnalyticsEvent onboardingFinished({
-    required bool skipped,
+    required String? start,
     required String step,
   }) => AnalyticsEvent('onboarding_finished', {
-    'skipped': _flag(skipped),
+    'start': start ?? 'closed',
     'step': step,
   });
 
@@ -347,4 +366,41 @@ abstract final class AnalyticsEvents {
 
   static AnalyticsEvent locationBlockedShown(String reason) =>
       AnalyticsEvent('location_blocked_shown', {'reason': reason});
+}
+
+/// 記録を保存した直後に送るイベント（保存・点の内訳・昇段・型と秘伝・願成就・隠し要素）。
+/// [summary]が無い（入力の様子がわからない）ときは、記録の保存のイベントだけ省く。
+/// [totalBowls]はこの1杯を含めた食べた杯数、[firstRecordAt]はいちばん古い記録の日時。
+List<AnalyticsEvent> recordOutcomeEvents(
+  RecordOutcome outcome, {
+  RecordSaveSummary? summary,
+  required int totalBowls,
+  required DateTime firstRecordAt,
+}) {
+  final scored = outcome.scored;
+  final eatenAt = scored.visit.eatenAt;
+  final wish = scored.fulfilledWish;
+  return [
+    if (summary != null)
+      AnalyticsEvents.recordSaved(
+        summary,
+        scored: scored,
+        totalBowls: totalBowls,
+      ),
+    AnalyticsEvents.recordBonuses(scored),
+    if (outcome.isRankUp)
+      AnalyticsEvents.rankUp(
+        rank: outcome.rankAfter,
+        totalBowls: totalBowls,
+        daysSinceFirstRecord: eatenAt.difference(firstRecordAt).inDays,
+      ),
+    for (final levelUp in outcome.questLevelUps)
+      AnalyticsEvents.questAchieved(levelUp, totalBowls: totalBowls),
+    if (wish != null)
+      AnalyticsEvents.wishFulfilled(
+        daysWaited: eatenAt.difference(wish.createdAt).inDays,
+      ),
+    if (outcome.revealsHealthyLife)
+      AnalyticsEvents.healthyLifeRevealed(totalBowls: totalBowls),
+  ];
 }

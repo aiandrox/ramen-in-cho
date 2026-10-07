@@ -10,6 +10,16 @@
         android:label="麺印帳"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- 使い方の統計（Firebase Analytics）で、広告 ID と端末の ID（SSAID）を集めず、広告に使わせない。 -->
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_ssaid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_default_allow_ad_personalization_signals"
+            android:value="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

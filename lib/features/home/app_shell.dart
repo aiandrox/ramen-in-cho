@@ -1,10 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
+import '../analytics/analytics_user_properties.dart';
 import '../checkin/checkin_banner.dart';
 import '../checkin/checkin_controller.dart';
 import '../checkin/checkin_screen.dart';
@@ -57,6 +61,17 @@ class _AppShellState extends ConsumerState<AppShell> {
   void initState() {
     super.initState();
     _locationBlocks = locationBlocks.stream.listen(_explainLocationBlock);
+    final analytics = ref.read(analyticsProvider);
+    ref.listenManual(
+      appTabProvider,
+      (_, tab) => unawaited(analytics.logScreen(tab.name)),
+      fireImmediately: true,
+    );
+    ref.listenManual(analyticsUserPropertiesProvider, (previous, next) {
+      if (next != null && !mapEquals(previous, next)) {
+        unawaited(analytics.setUserProperties(next));
+      }
+    }, fireImmediately: true);
     final notifications = ref.read(notificationServiceProvider);
     _notificationTaps = notifications.taps.listen(_openFromNotification);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -77,6 +92,11 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   Future<void> _explainLocationBlock(LocationBlock block) async {
     if (!mounted || !_shownLocationBlocks.add(block)) return;
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.locationBlockedShown(snake(block.name))),
+    );
     final l10n = AppLocalizations.of(context);
     final open = await showDialog<bool>(
       context: context,

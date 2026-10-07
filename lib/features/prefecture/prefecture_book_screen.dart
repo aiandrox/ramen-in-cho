@@ -9,6 +9,8 @@ import '../records/date_format.dart';
 import '../scoring/scoring_providers.dart';
 import '../visit_detail/visit_detail_screen.dart';
 import 'regions.dart';
+import '../analytics/analytics.dart';
+import '../analytics/analytics_events.dart';
 
 final prefectureStampsProvider = Provider<Map<String, PrefectureStamp>>(
   (ref) => prefectureStamps(ref.watch(scoredVisitsProvider)),
@@ -58,9 +60,12 @@ class PrefectureBookEntry extends ConsumerWidget {
           const Icon(Icons.chevron_right),
         ],
       ),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const PrefectureBookScreen()),
-      ),
+      onTap: () {
+        logAnalytics(context, AnalyticsEvents.featureOpened('prefecture_book'));
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const PrefectureBookScreen()),
+        );
+      },
     );
   }
 }
