@@ -97,6 +97,14 @@ void main() {
       expect(shops.map((s) => s.count), [3, 2]);
     });
 
+    test('店のページで選ぶ1杯は、その店のいちばん新しい1杯', () {
+      final older = buildEntry(shop: shopA, eatenAt: day(1));
+      final newer = buildEntry(shop: shopA, eatenAt: day(2));
+      final shops = frequentShops(scoreVisits([newer, older]));
+
+      expect(shops.single.lastVisitId, newer.visit.id);
+    });
+
     test('上位の件数を絞れる', () {
       final shops = frequentShops(
         scoreVisits([
@@ -142,6 +150,15 @@ void main() {
       expect(shops.map((s) => s.rank), [ShopRank.s, ShopRank.a, ShopRank.c]);
       expect(shops.map((s) => s.bestPoints), [60, 40, 15]);
       expect(shops.map((s) => s.count), [1, 1, 2]);
+    });
+
+    test('店のページで選ぶ1杯は、最高ポイントを得た1杯', () {
+      final plain = buildEntry(shop: shopA, eatenAt: day(1));
+      final limited = buildEntry(shop: shopA, eatenAt: day(2), isLimited: true);
+      final later = buildEntry(shop: shopA, eatenAt: day(3));
+      final shops = rankedShops(scoreVisits([plain, limited, later]));
+
+      expect(shops.single.bestVisitId, limited.visit.id);
     });
 
     test('撤退しかしていない店は含めない', () {
