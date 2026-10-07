@@ -9,6 +9,7 @@ import '../home_base/home_base_repository.dart';
 import '../notifications/notification_settings_screen.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../support/contact_support.dart';
+import 'app_about.dart';
 import 'location_access.dart';
 
 /// 設定。修行タブの右上の歯車から開く。
@@ -22,6 +23,19 @@ class SettingsScreen extends ConsumerWidget {
         Navigator.of(context)
             .push(MaterialPageRoute<void>(builder: (_) => screen));
     final homeBase = ref.watch(currentHomeBaseProvider);
+    final version = ref.watch(appVersionProvider).value;
+
+    Future<void> openPrivacyPolicy() async {
+      final messenger = ScaffoldMessenger.of(context);
+      final opened = await ref.read(externalPageOpenerProvider)(
+        privacyPolicyUri,
+      );
+      if (!opened) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.privacyPolicyOpenFailed)),
+        );
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsSection)),
@@ -66,6 +80,21 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.mail_outline),
             onTap: () => startContactSupportFlow(context, ref),
           ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.privacyPolicy),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: openPrivacyPolicy,
+          ),
+          if (version != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                l10n.appVersion(version.version, version.build),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
         ],
       ),
     );
