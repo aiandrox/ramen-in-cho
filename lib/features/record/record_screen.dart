@@ -243,6 +243,16 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     navigator.pop();
   }
 
+  void _showShopSection() {
+    final field = _nameFieldKey.currentContext;
+    if (field == null) return;
+    Scrollable.ensureVisible(
+      field,
+      alignment: 0.6,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
   Widget _buildScaffold(BuildContext context, RecordState state) {
     final l10n = AppLocalizations.of(context);
     final controller = ref.read(recordControllerProvider.notifier);
@@ -301,17 +311,21 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
           bottom: MediaQuery.viewInsetsOf(context).bottom,
         ),
         child: SafeBottomBar(
-          child: AiFuda(
-            expand: true,
-            height: 60,
-            fontSize: 26,
-            onPressed: state.canSave ? _save : null,
-            child: state.isSaving
-                ? const SizedBox.square(
-                    dimension: 24,
-                    child: CircularProgressIndicator(strokeWidth: 3),
-                  )
-                : Text(l10n.save),
+          // 店が決まらず押せないときは、押すと店の欄まで戻して選び方の案内を見せる。
+          child: GestureDetector(
+            onTap: state.hasShop ? null : _showShopSection,
+            child: AiFuda(
+              expand: true,
+              height: 60,
+              fontSize: 26,
+              onPressed: state.canSave ? _save : null,
+              child: state.isSaving
+                  ? const SizedBox.square(
+                      dimension: 24,
+                      child: CircularProgressIndicator(strokeWidth: 3),
+                    )
+                  : Text(l10n.save),
+            ),
           ),
         ),
       ),
@@ -562,8 +576,9 @@ class _ShopSection extends ConsumerWidget {
             ),
             title: Text(l10n.shopSearching),
           ),
-        // 店を選ぶまで「着丼！」を押せないので、押せない理由と選び方を候補の上に出す。
-        if (shops.isNotEmpty && !state.hasShop)
+        if (shops.isNotEmpty &&
+            !state.hasShop &&
+            state.searchStatus != ShopSearchStatus.searching)
           Padding(
             padding: const EdgeInsets.only(top: 4, bottom: 4),
             child: Text(l10n.shopPickHint, style: textTheme.bodyMedium),

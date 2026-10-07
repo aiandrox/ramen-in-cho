@@ -286,6 +286,14 @@ void main() {
     await tester.pump();
 
     expect(find.text(ja.shopPickHint), findsNothing);
+
+    // 空白だけでは店が決まらないので、案内に戻る。
+    await tester.enterText(
+      find.widgetWithText(TextField, ja.shopNameLabel),
+      '  ',
+    );
+    await tester.pump();
+    expect(find.text(ja.shopPickHint), findsOneWidget);
   });
 
   testWidgets('検索に失敗しても、店名を入力して保存できる', (tester) async {
