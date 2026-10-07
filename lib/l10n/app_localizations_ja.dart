@@ -208,10 +208,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get delete => '削除';
 
   @override
-  String get deleteConfirmTitle => 'この記録を削除しますか？';
+  String get deleteConfirmTitle => 'この1杯の記録を削除しますか？';
 
   @override
-  String get deleteConfirmMessage => '写真も削除されます。元に戻せません';
+  String get deleteRetreatConfirmTitle => 'この撤退の記録を削除しますか？';
+
+  @override
+  String get deleteConfirmOnlyThis => '消えるのはこの記録だけです。';
+
+  @override
+  String deleteConfirmOthersKept(int count) {
+    return 'この店のほかの記録（$count件）は残ります。';
+  }
+
+  @override
+  String get deleteConfirmLastOfShop => 'この店の記録はこれだけなので、店の覚え書きと名店の印も一緒に消えます。';
+
+  @override
+  String get deleteConfirmPhoto => 'アプリに保存した写真も消えます。スマホの写真アプリにある写真は消えません。';
+
+  @override
+  String get deleteConfirmIrreversible => '元に戻せません。';
 
   @override
   String get deleteFailed => '削除できませんでした';

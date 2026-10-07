@@ -481,14 +481,44 @@ abstract class AppLocalizations {
   /// No description provided for @deleteConfirmTitle.
   ///
   /// In ja, this message translates to:
-  /// **'この記録を削除しますか？'**
+  /// **'この1杯の記録を削除しますか？'**
   String get deleteConfirmTitle;
 
-  /// No description provided for @deleteConfirmMessage.
+  /// No description provided for @deleteRetreatConfirmTitle.
   ///
   /// In ja, this message translates to:
-  /// **'写真も削除されます。元に戻せません'**
-  String get deleteConfirmMessage;
+  /// **'この撤退の記録を削除しますか？'**
+  String get deleteRetreatConfirmTitle;
+
+  /// No description provided for @deleteConfirmOnlyThis.
+  ///
+  /// In ja, this message translates to:
+  /// **'消えるのはこの記録だけです。'**
+  String get deleteConfirmOnlyThis;
+
+  /// No description provided for @deleteConfirmOthersKept.
+  ///
+  /// In ja, this message translates to:
+  /// **'この店のほかの記録（{count}件）は残ります。'**
+  String deleteConfirmOthersKept(int count);
+
+  /// No description provided for @deleteConfirmLastOfShop.
+  ///
+  /// In ja, this message translates to:
+  /// **'この店の記録はこれだけなので、店の覚え書きと名店の印も一緒に消えます。'**
+  String get deleteConfirmLastOfShop;
+
+  /// No description provided for @deleteConfirmPhoto.
+  ///
+  /// In ja, this message translates to:
+  /// **'アプリに保存した写真も消えます。スマホの写真アプリにある写真は消えません。'**
+  String get deleteConfirmPhoto;
+
+  /// No description provided for @deleteConfirmIrreversible.
+  ///
+  /// In ja, this message translates to:
+  /// **'元に戻せません。'**
+  String get deleteConfirmIrreversible;
 
   /// No description provided for @deleteFailed.
   ///

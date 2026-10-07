@@ -265,6 +265,10 @@ void main() {
     await openMenu(tester, ja.delete);
     await tester.pumpAndSettle();
     expect(find.text(ja.deleteConfirmTitle), findsOneWidget);
+    expect(find.textContaining(ja.deleteConfirmOnlyThis), findsOneWidget);
+    // 店に覚え書きも名店の印も無ければ、店のことは書かない。
+    expect(find.textContaining(ja.deleteConfirmLastOfShop), findsNothing);
+    expect(find.textContaining(ja.deleteConfirmPhoto), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, ja.cancel));
     await tester.pumpAndSettle();
@@ -287,6 +291,57 @@ void main() {
     expect(repository.deletedVisitIds, ['v']);
     expect(find.byType(VisitDetailScreen), findsNothing);
     expect(photo.existsSync(), isFalse);
+  });
+
+  testWidgets('店にほかの記録があれば、削除の確認でそれが残ると伝える', (tester) async {
+    await pumpDetail(tester, [
+      entry(id: 'v', eatenAt: DateTime(2026, 9, 30)),
+      entry(id: 'w', eatenAt: DateTime(2026, 9, 20)),
+      entry(id: 'x', eatenAt: DateTime(2026, 9, 10)),
+    ], 'v');
+
+    await openMenu(tester, ja.delete);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining(ja.deleteConfirmOthersKept(2)), findsOneWidget);
+    expect(find.textContaining(ja.deleteConfirmLastOfShop), findsNothing);
+    // 写真の無い記録では、写真のことは書かない。
+    expect(find.textContaining(ja.deleteConfirmPhoto), findsNothing);
+  });
+
+  testWidgets('撤退の記録の削除は、撤退の記録として確かめる', (tester) async {
+    await pumpDetail(tester, [
+      VisitWithShop(
+        shop: shop,
+        visit: buildVisit(
+          id: 'r',
+          shopId: shop.id,
+          result: VisitResult.retreated,
+          rating: null,
+        ),
+      ),
+    ], 'r');
+
+    await openMenu(tester, ja.delete);
+    await tester.pumpAndSettle();
+
+    expect(find.text(ja.deleteRetreatConfirmTitle), findsOneWidget);
+    expect(find.text(ja.deleteConfirmTitle), findsNothing);
+  });
+
+  testWidgets('店の最後の記録を消すときは、店の覚え書きも消えると伝える', (tester) async {
+    final memoShop = buildShop(name: '麺屋テスト', strategyMemo: '開店30分前');
+    await pumpDetail(tester, [
+      VisitWithShop(
+        shop: memoShop,
+        visit: buildVisit(id: 'v', shopId: memoShop.id),
+      ),
+    ], 'v');
+
+    await openMenu(tester, ja.delete);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining(ja.deleteConfirmLastOfShop), findsOneWidget);
   });
 
   testWidgets('削除に失敗したら知らせて、画面に残る', (tester) async {
