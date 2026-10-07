@@ -691,31 +691,31 @@ abstract class AppLocalizations {
   /// No description provided for @checkinFailed.
   ///
   /// In ja, this message translates to:
-  /// **'チェックインできませんでした。もう一度お試しください'**
+  /// **'並び始められませんでした。もう一度お試しください'**
   String get checkinFailed;
 
   /// No description provided for @checkinTooFar.
   ///
   /// In ja, this message translates to:
-  /// **'100m以内に近づくとチェックインできます'**
+  /// **'100m以内に近づくと並べます'**
   String get checkinTooFar;
 
   /// No description provided for @checkinNoLocation.
   ///
   /// In ja, this message translates to:
-  /// **'現在地がわからないため、チェックインできません。位置情報をオンにして、もう一度お試しください'**
+  /// **'現在地がわからないため、並び始められません。位置情報をオンにして、もう一度お試しください'**
   String get checkinNoLocation;
 
   /// No description provided for @checkinSearchFailed.
   ///
   /// In ja, this message translates to:
-  /// **'店を検索できませんでした。店名を入力してチェックインできます'**
+  /// **'店を検索できませんでした。店名を入力して並べます'**
   String get checkinSearchFailed;
 
   /// No description provided for @checkinNoCandidates.
   ///
   /// In ja, this message translates to:
-  /// **'近くに候補が見つかりませんでした。店名を入力してチェックインできます'**
+  /// **'近くに候補が見つかりませんでした。店名を入力して並べます'**
   String get checkinNoCandidates;
 
   /// No description provided for @checkinRetry.
@@ -727,7 +727,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkinManualButton.
   ///
   /// In ja, this message translates to:
-  /// **'この店名でチェックイン'**
+  /// **'この店名で並ぶ'**
   String get checkinManualButton;
 
   /// No description provided for @checkinBanner.
@@ -781,7 +781,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkinCancelTitle.
   ///
   /// In ja, this message translates to:
-  /// **'チェックインを取り消しますか？'**
+  /// **'並ぶのを取り消しますか？'**
   String get checkinCancelTitle;
 
   /// No description provided for @checkinCancelMessage.
@@ -1297,7 +1297,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishPendingEmpty.
   ///
   /// In ja, this message translates to:
-  /// **'行きたい店を書き留めておきましょう。\n地図の灰色のピンや店のページから願を掛けられます。右下の＋なら店名だけで書き留められます'**
+  /// **'行きたい店を書き留めておきましょう。\n地図の灰色のピンや店のページから願を掛けられます。右下の「願」のボタンなら、店名だけで書き留められます'**
   String get wishPendingEmpty;
 
   /// No description provided for @wishFulfilledEmpty.
@@ -3271,8 +3271,14 @@ abstract class AppLocalizations {
   /// No description provided for @notificationKindCheckinNote.
   ///
   /// In ja, this message translates to:
-  /// **'並んでいる時間をリアルタイムで表示します'**
+  /// **'並んでいる時間を通知で数え続けます'**
   String get notificationKindCheckinNote;
+
+  /// No description provided for @notificationKindCheckinNoteIos.
+  ///
+  /// In ja, this message translates to:
+  /// **'並び始めた時刻を通知でお知らせします'**
+  String get notificationKindCheckinNoteIos;
 
   /// No description provided for @notificationKindStreak.
   ///
