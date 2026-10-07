@@ -46,7 +46,7 @@ const _fallbackCenter = LatLng(35.6812, 139.7671);
 /// 右上の「旅路」の丸印（48）と、その左右の余白の分。上に重ねる札はここまでで止める。
 const _topControlsInset = 64.0;
 
-/// 右下に縦に並ぶ丸いボタンの幅（余白込み）。
+/// 右下に縦に並ぶ丸いボタンの幅（余白込み）。左に添えた字の幅は別に足す。
 const _bottomControlsInset = 80.0;
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -512,7 +512,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
           // 下のタブの真ん中の判子に隠れないよう、判子がはみ出す分だけ上げる。右下のボタンは避ける。
           Positioned(
             left: 0,
-            right: _bottomControlsInset,
+            right:
+                _bottomControlsInset +
+                _FabLabel.widthOf(context, l10n.mapSearchHereLabel),
             bottom: RecordSealButton.overhang + 4,
             child: Align(
               alignment: Alignment.bottomLeft,
@@ -548,26 +550,17 @@ class _MapScreenState extends ConsumerState<MapScreen>
           Positioned(
             top: 8,
             right: 8,
-            child: Column(
-              children: [
-                Semantics(
-                  selected: _showJourney,
-                  child: SealFab(
-                    sumi: !_showJourney,
-                    small: true,
-                    tooltip: l10n.journeyToggle,
-                    onPressed: () => _toggleJourney(stops),
-                    child: Icon(
-                      _showJourney ? Icons.route : Icons.route_outlined,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                _FabLabel(
-                  l10n.journeyToggle,
-                  onTap: () => _toggleJourney(stops),
-                ),
-              ],
+            child: Semantics(
+              selected: _showJourney,
+              child: _LabeledFab(
+                label: l10n.journeyToggle,
+                below: true,
+                tooltip: l10n.journeyToggle,
+                sumi: !_showJourney,
+                small: true,
+                onPressed: () => _toggleJourney(stops),
+                icon: Icon(_showJourney ? Icons.route : Icons.route_outlined),
+              ),
             ),
           ),
           if (_isSearching || _locating > 0) ...[
@@ -609,6 +602,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
             if (places.isNotEmpty) ...[
               _LabeledFab(
                 label: l10n.mapListLabel,
+                tooltip: l10n.mapListButton,
+                sumi: true,
+                small: true,
+                icon: const Icon(Icons.format_list_bulleted),
                 onPressed: () {
                   // 一覧は、いま地図の画面に見えている店だけにする。
                   final bounds = _controller.camera.visibleBounds;
@@ -628,44 +625,31 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     withFilters: true,
                   );
                 },
-                fab: (onPressed) => SealFab(
-                  sumi: true,
-                  small: true,
-                  tooltip: l10n.mapListButton,
-                  onPressed: onPressed,
-                  child: const Icon(Icons.format_list_bulleted),
-                ),
               ),
               const SizedBox(height: 12),
             ],
             _LabeledFab(
               label: l10n.mapMyLocation,
+              tooltip: l10n.mapMyLocation,
+              sumi: true,
+              small: true,
+              icon: const Icon(Icons.my_location),
               onPressed: () => _locate(move: true),
-              fab: (onPressed) => SealFab(
-                sumi: true,
-                small: true,
-                tooltip: l10n.mapMyLocation,
-                onPressed: onPressed,
-                child: const Icon(Icons.my_location),
-              ),
             ),
             const SizedBox(height: 12),
             _LabeledFab(
               label: l10n.mapSearchHereLabel,
+              tooltip: l10n.mapSearchHere,
               onPressed: _isSearching ? null : _searchHere,
-              fab: (onPressed) => SealFab(
-                tooltip: l10n.mapSearchHere,
-                onPressed: onPressed,
-                child: _isSearching
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Washi.page,
-                        ),
-                      )
-                    : const Icon(Icons.search),
-              ),
+              icon: _isSearching
+                  ? const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Washi.page,
+                      ),
+                    )
+                  : const Icon(Icons.search),
             ),
           ],
         ),
@@ -674,55 +658,102 @@ class _MapScreenState extends ConsumerState<MapScreen>
   }
 }
 
-/// 丸いボタンの左に、何のボタンかを小さく添える。字を押しても同じ。
+/// 丸いボタンの左（[below]なら下）に、何のボタンかを小さく添える。字を押しても同じ。
 class _LabeledFab extends StatelessWidget {
   const _LabeledFab({
     required this.label,
+    required this.tooltip,
     required this.onPressed,
-    required this.fab,
+    required this.icon,
+    this.sumi = false,
+    this.small = false,
+    this.below = false,
   });
 
   final String label;
+  final String tooltip;
   final VoidCallback? onPressed;
-  final Widget Function(VoidCallback? onPressed) fab;
+  final Widget icon;
+  final bool sumi;
+  final bool small;
+  final bool below;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _FabLabel(label, onTap: onPressed),
-        const SizedBox(width: 6),
-        fab(onPressed),
-      ],
+    final fab = SealFab(
+      tooltip: tooltip,
+      sumi: sumi,
+      small: small,
+      onPressed: onPressed,
+      child: icon,
     );
+    final text = _FabLabel(label, onTap: onPressed);
+    return below
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [fab, const SizedBox(height: 2), text],
+          )
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              text,
+              const SizedBox(width: _FabLabel._gap),
+              fab,
+            ],
+          );
   }
 }
 
-/// 地図を隠しすぎないよう、薄い和紙の地に小さな字で書く。読み上げはボタンの名前で足りるので外す。
+/// 地図を隠しすぎないよう、薄い和紙の地に小さな字で書く（大きな文字の設定でも広がりすぎないよう抑える）。
+/// 読み上げはボタンの名前で足りるので外す。
 class _FabLabel extends StatelessWidget {
   const _FabLabel(this.text, {required this.onTap});
 
   final String text;
   final VoidCallback? onTap;
 
+  static const _maxScale = 1.3;
+  static const _padding = EdgeInsets.symmetric(horizontal: 6, vertical: 2);
+  static const _gap = 6.0;
+
+  static TextStyle? _style(BuildContext context) =>
+      Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 12);
+
+  /// 丸いボタンの左に添えたときに取る幅（ボタンとの間を含む）。地図の出典をここまで避ける。
+  static double widthOf(BuildContext context, String text) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: _style(context)),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+      textScaler: MediaQuery.textScalerOf(context)
+          .clamp(maxScaleFactor: _maxScale),
+    )..layout();
+    final width = painter.width + _padding.horizontal + _gap;
+    painter.dispose();
+    return width;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ExcludeSemantics(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Washi.paper.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.labelSmall
-                  ?.copyWith(fontSize: 12, color: Washi.ink),
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: _maxScale,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Washi.paper.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Padding(
+              padding: _padding,
+              child: Text(
+                text,
+                maxLines: 1,
+                style: _style(context)
+                    ?.copyWith(color: onTap == null ? Washi.faded : Washi.ink),
+              ),
             ),
           ),
         ),
