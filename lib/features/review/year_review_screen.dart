@@ -70,7 +70,7 @@ class _YearReviewScreenState extends ConsumerState<YearReviewScreen> {
     final boundary =
         _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     final button = _buttonKey.currentContext?.findRenderObject() as RenderBox?;
-    // iPadでは共有の画面の出どころを指定しないと落ちるため、ボタンの位置を渡す。
+    // iPadでは共有の画面をボタンのそばに出すため、ボタンの位置を渡す。
     final origin = button == null
         ? null
         : button.localToGlobal(Offset.zero) & button.size;

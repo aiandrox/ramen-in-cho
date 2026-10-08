@@ -27,7 +27,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _export() async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    // iPadでは共有の画面の出どころを指定しないと落ちるため、ボタンの位置を渡す。
+    // iPadでは共有の画面をボタンのそばに出すため、ボタンの位置を渡す。
     final box =
         _exportButtonKey.currentContext?.findRenderObject() as RenderBox?;
     final origin = box == null
