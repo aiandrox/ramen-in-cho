@@ -18,10 +18,10 @@ import '../analytics/analytics.dart';
 import '../analytics/analytics_events.dart';
 
 /// 修行タブの下半分に出すもの。切り替えで1つだけを出す。
-enum ShugyoSection { quests, records, stats }
+enum _Section { quests, records, stats }
 
 /// 修行の記録をひとまとめにした画面。上に段位と、小さく連続記録・拠点。その下の切り替えで
-/// 型と秘伝・記録・統計のどれか1つを出す（画面は移らない）。設定は右上の歯車から開く。
+/// 型と秘伝・記録・統計のどれか1つを出す（画面は移らない）。選んだものは、アプリを開いている間だけ覚える。設定は右上の歯車から開く。
 class ShugyoScreen extends ConsumerStatefulWidget {
   const ShugyoScreen({super.key});
 
@@ -30,7 +30,7 @@ class ShugyoScreen extends ConsumerStatefulWidget {
 }
 
 class _ShugyoScreenState extends ConsumerState<ShugyoScreen> {
-  var _section = ShugyoSection.quests;
+  var _section = _Section.quests;
 
   @override
   Widget build(BuildContext context) {
@@ -50,15 +50,15 @@ class _ShugyoScreenState extends ConsumerState<ShugyoScreen> {
           const StreakLine(),
           const HomeBaseLine(),
           const SizedBox(height: 20),
-          ShugyoSectionSwitch(
+          _SectionSwitch(
             selected: _section,
             onSelected: (section) => setState(() => _section = section),
           ),
           const SizedBox(height: 16),
           switch (_section) {
-            ShugyoSection.quests => const QuestSections(),
-            ShugyoSection.records => const _RecordsSection(),
-            ShugyoSection.stats => const StatsSections(),
+            _Section.quests => const QuestSections(),
+            _Section.records => const _RecordsSection(),
+            _Section.stats => const StatsSections(),
           },
         ],
       ),
@@ -67,22 +67,18 @@ class _ShugyoScreenState extends ConsumerState<ShugyoScreen> {
 }
 
 /// 「型と秘伝｜記録｜統計」の切り替え。選ぶ札（角を落とした木札）を同じ幅で横に並べる。
-class ShugyoSectionSwitch extends StatelessWidget {
-  const ShugyoSectionSwitch({
-    super.key,
-    required this.selected,
-    required this.onSelected,
-  });
+class _SectionSwitch extends StatelessWidget {
+  const _SectionSwitch({required this.selected, required this.onSelected});
 
-  final ShugyoSection selected;
-  final ValueChanged<ShugyoSection> onSelected;
+  final _Section selected;
+  final ValueChanged<_Section> onSelected;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Row(
       children: [
-        for (final (i, section) in ShugyoSection.values.indexed) ...[
+        for (final (i, section) in _Section.values.indexed) ...[
           if (i > 0) const SizedBox(width: 8),
           Expanded(
             child: ChoiceChip(
@@ -90,9 +86,9 @@ class ShugyoSectionSwitch extends StatelessWidget {
                 width: double.infinity,
                 child: Text(
                   switch (section) {
-                    ShugyoSection.quests => l10n.shugyoSectionQuests,
-                    ShugyoSection.records => l10n.shugyoSectionRecords,
-                    ShugyoSection.stats => l10n.shugyoSectionStats,
+                    _Section.quests => l10n.shugyoSectionQuests,
+                    _Section.records => l10n.shugyoSectionRecords,
+                    _Section.stats => l10n.shugyoSectionStats,
                   },
                   textAlign: TextAlign.center,
                   maxLines: 1,

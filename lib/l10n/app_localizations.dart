@@ -3385,7 +3385,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpShugyoTitle.
   ///
   /// In ja, this message translates to:
-  /// **'修行タブ（段位・型と秘伝・修行録）'**
+  /// **'修行タブ（段位・型と秘伝・記録・統計）'**
   String get helpShugyoTitle;
 
   /// No description provided for @helpShugyoRank.

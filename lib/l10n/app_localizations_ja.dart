@@ -1904,7 +1904,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpHomeBase => 'ふだん暮らす駅や街を拠点にします。設定の「拠点」からいつでも変えられます。';
 
   @override
-  String get helpShugyoTitle => '修行タブ（段位・型と秘伝・修行録）';
+  String get helpShugyoTitle => '修行タブ（段位・型と秘伝・記録・統計）';
 
   @override
   String get helpShugyoRank => '修行タブの上では、今の段位と次の段位までが見られます。タップすると昇段の記録が開きます。';
