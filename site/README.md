@@ -51,6 +51,16 @@ App Check のあと、同じ `_middleware.ts` で1台あたりの回数を数え
 - 回数は Cache API（`caches.default`）に区切りごとにためる。データセンターごとのおおよその数で、同時の問い合わせは数え漏れうる
 - 鍵は SHA-256 にしてためるので、IP そのものは残さない。ログにも IP は出さない（`rate limited` とだけ出す）
 
+## 使用量を見張る
+
+無料プランでは、Pages Functions（`/api/...`）の呼び出しは Workers と合わせて **1日10万回まで**（UTC の0時、日本時間の9時に戻る）。紹介ページ（`public/`）は数えない。
+無料プランでは使用量の通知（Notifications の Billable Usage）を作れない（Pro 以上か従量課金のアカウントだけ）ので、ダッシュボードで見る（2026-10-08 に確かめた）。
+
+- **1日の回数を見る**: ダッシュボード → Workers & Pages → ramen-in-cho → **Functions Metrics**。リクエスト数（成功・エラー）が日ごとに出る。月に1回と、ストアに出した直後は毎日見る。**1日5万回**（無料の半分。Yahoo! の1日の上限とも同じ）を越える日が出たら #29 の回避策の表を見て手を打つ
+- **上限を越えた日の動き**: ダッシュボード → Workers & Pages → ramen-in-cho → Settings → Runtime → **Fail open / closed** を **Fail open** にしておく。越えた日は API が動かず（`/api/...` が 404 になる）、アプリは端末から直接探す。紹介ページはそのまま出る
+- サーバーが止まったことは、毎日の Site Health（`.github/workflows/`）が知らせる
+- 出典: [Pages Functions の料金](https://developers.cloudflare.com/pages/functions/pricing/)・[Workers の上限](https://developers.cloudflare.com/workers/platform/limits/)・[Fail open / closed](https://developers.cloudflare.com/pages/functions/routing/)・[Functions Metrics](https://developers.cloudflare.com/pages/functions/metrics/)・[使用量の通知の対象](https://developers.cloudflare.com/billing/understand/usage-based-billing/)
+
 ## 手元で
 
 ```bash
