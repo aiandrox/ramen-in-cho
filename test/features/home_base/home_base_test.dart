@@ -115,6 +115,22 @@ void main() {
       expect(latestHomeBase(all)?.id, 'added');
     });
 
+    test('窓を開いている間に日付が変わり、今の拠点より前になるときは今この時にする', () {
+      final today = buildHomeBase(
+        id: 'today',
+        setAt: DateTime(2026, 10, 7, 10),
+      );
+      expect(
+        newHomeBaseSetAt(
+          day: DateTime(2026, 10, 7),
+          now: DateTime(2026, 10, 8, 0, 1),
+          settings: [today],
+        ),
+        DateTime(2026, 10, 8, 0, 1),
+      );
+      expect(newHomeBaseSetAt(day: null, now: now, settings: [today]), now);
+    });
+
     test('今日のうちに2回決めても、後に決めたほうが今の拠点になる', () {
       final first = buildHomeBase(
         id: 'zzz',

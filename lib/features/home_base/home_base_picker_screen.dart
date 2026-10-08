@@ -149,8 +149,9 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
   }
 
   Future<void> _choose(GeoPoint location) async {
+    final settings = await ref.read(homeBaseRepositoryProvider).allSettings();
+    if (!mounted) return;
     final now = ref.read(clockProvider)();
-    final settings = ref.read(homeBaseSettingsProvider).value ?? const [];
     final chosen = await showDialog<_NameAndDay>(
       context: context,
       builder: (_) => _NameDialog(
@@ -161,11 +162,14 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
       ),
     );
     if (chosen == null || !mounted) return;
-    final latestNow = ref.read(clockProvider)();
     await _save(
       chosen.name,
       location,
-      newHomeBaseSetAt(day: chosen.day ?? latestNow, now: latestNow),
+      newHomeBaseSetAt(
+        day: chosen.day,
+        now: ref.read(clockProvider)(),
+        settings: settings,
+      ),
     );
   }
 
@@ -690,7 +694,7 @@ Future<void> showHomeBaseHidenDialog(BuildContext context, DateTime setAt) {
   );
 }
 
-/// 呼び名の窓で選んだ呼び名と「いつから」の日。
+/// 呼び名の窓で選んだ呼び名と「いつから」の日（今日のままなら null）。
 typedef _NameAndDay = ({String name, DateTime? day});
 
 /// 拠点の呼び名を聞く。[from]を渡すと「いつから」も選べる（初めは今日）。
@@ -745,6 +749,7 @@ class _NameDialogState extends State<_NameDialog> {
     final from = widget.from;
     final day = _day;
     return AlertDialog(
+      scrollable: true,
       title: Text(l10n.homeBaseNameTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -790,7 +795,7 @@ class _NameDialogState extends State<_NameDialog> {
             final name = _controller.text.trim();
             Navigator.of(context).pop((
               name: name.isEmpty ? l10n.homeBaseNameDefault : name,
-              day: day,
+              day: from == null || day == from.today ? null : day,
             ));
           },
           child: Text(l10n.homeBaseDecide),
