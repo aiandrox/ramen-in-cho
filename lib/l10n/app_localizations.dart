@@ -376,6 +376,12 @@ abstract class AppLocalizations {
   /// **'{shop} はどうでしたか？'**
   String ratingPrompt(String shop);
 
+  /// No description provided for @ratingSaved.
+  ///
+  /// In ja, this message translates to:
+  /// **'{stars} を付けました'**
+  String ratingSaved(String stars);
+
   /// No description provided for @ratingStar.
   ///
   /// In ja, this message translates to:
@@ -814,6 +820,12 @@ abstract class AppLocalizations {
   /// **'取り消す'**
   String get checkinCancel;
 
+  /// No description provided for @checkinCancelBanner.
+  ///
+  /// In ja, this message translates to:
+  /// **'並んだのを取り消す'**
+  String get checkinCancelBanner;
+
   /// No description provided for @checkinBannerHint.
   ///
   /// In ja, this message translates to:
@@ -832,22 +844,22 @@ abstract class AppLocalizations {
   /// **'並んだ記録は残りません'**
   String get checkinCancelMessage;
 
+  /// No description provided for @checkinRetreat.
+  ///
+  /// In ja, this message translates to:
+  /// **'食べられなかった'**
+  String get checkinRetreat;
+
   /// No description provided for @checkinKeep.
   ///
   /// In ja, this message translates to:
   /// **'並び続ける'**
   String get checkinKeep;
 
-  /// No description provided for @retreat.
-  ///
-  /// In ja, this message translates to:
-  /// **'撤退'**
-  String get retreat;
-
   /// No description provided for @retreatTitle.
   ///
   /// In ja, this message translates to:
-  /// **'撤退を記録しますか？'**
+  /// **'食べられなかった（撤退）として残しますか？'**
   String get retreatTitle;
 
   /// No description provided for @retreatMessage.
@@ -1269,6 +1281,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'名店の印をつける'**
   String get shopFamousToggle;
+
+  /// No description provided for @shopFamousNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'百名店に選ばれた店やラーメン誌に載った店など、自分が名店だと思う店に'**
+  String get shopFamousNote;
 
   /// No description provided for @shopFamousNeedsShop.
   ///
@@ -1714,6 +1732,12 @@ abstract class AppLocalizations {
   /// **'まだ決めていません'**
   String get homeBaseNotSet;
 
+  /// No description provided for @homeBaseSettingNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'ふだん暮らす街。遠征の基準になります'**
+  String get homeBaseSettingNote;
+
   /// No description provided for @homeBaseIntro.
   ///
   /// In ja, this message translates to:
@@ -2155,37 +2179,37 @@ abstract class AppLocalizations {
   /// No description provided for @backupDescription.
   ///
   /// In ja, this message translates to:
-  /// **'記録と写真を一つのファイル（zip）にまとめて書き出します。機種変更のときは、新しいスマホでこのファイルを読み込んでください。'**
+  /// **'記録と写真を1つのファイルにまとめて保存しておけます。機種変更のときは、新しいスマホでこのファイルから記録を戻してください。'**
   String get backupDescription;
 
   /// No description provided for @backupExport.
   ///
   /// In ja, this message translates to:
-  /// **'書き出す'**
+  /// **'記録を保存しておく'**
   String get backupExport;
 
   /// No description provided for @backupExportNote.
   ///
   /// In ja, this message translates to:
-  /// **'書き出したファイルは、「ファイル」アプリやクラウド、メールなどに保存してください'**
+  /// **'送り先は、自分あてのメールや、Google ドライブ・iCloud Drive などのドライブ、「ファイル」アプリなどを選んでください'**
   String get backupExportNote;
 
   /// No description provided for @backupImport.
   ///
   /// In ja, this message translates to:
-  /// **'読み込む'**
+  /// **'保存した記録を戻す'**
   String get backupImport;
 
   /// No description provided for @backupImportNote.
   ///
   /// In ja, this message translates to:
-  /// **'書き出したファイルを選ぶと、このスマホに無い記録だけを足します。今ある記録は消えません。ファイル名は「ramen-in-cho-（日付）.zip」です'**
+  /// **'保存しておいたファイルを選ぶと、このスマホに無い記録だけを足します。今ある記録は消えません。ファイル名は「ramen-in-cho-（日付）.zip」です'**
   String get backupImportNote;
 
   /// No description provided for @backupExportFailed.
   ///
   /// In ja, this message translates to:
-  /// **'書き出せませんでした。もう一度お試しください'**
+  /// **'保存できませんでした。もう一度お試しください'**
   String get backupExportFailed;
 
   /// No description provided for @backupExportSent.
@@ -2197,7 +2221,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupImportDone.
   ///
   /// In ja, this message translates to:
-  /// **'{added}件の記録を読み込みました（ファイルの記録 {total}件のうち、このスマホに無かったもの）'**
+  /// **'{added}件の記録を戻しました（ファイルの記録 {total}件のうち、このスマホに無かったもの）'**
   String backupImportDone(int added, int total);
 
   /// No description provided for @backupImportInvalid.
@@ -2209,7 +2233,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupImportFailed.
   ///
   /// In ja, this message translates to:
-  /// **'読み込めませんでした。もう一度お試しください'**
+  /// **'戻せませんでした。もう一度お試しください'**
   String get backupImportFailed;
 
   /// No description provided for @backupFileType.
@@ -3349,19 +3373,19 @@ abstract class AppLocalizations {
   /// No description provided for @helpBackup.
   ///
   /// In ja, this message translates to:
-  /// **'機種変更に備えて、記録と写真を1つのファイルに書き出しておけます。読み込むと、端末に無い記録だけが足されます。'**
+  /// **'機種変更に備えて、記録と写真を1つのファイルにして、メールやドライブに保存しておけます。戻すと、このスマホに無い記録だけが足されます。'**
   String get helpBackup;
 
   /// No description provided for @onboardingScroll.
   ///
   /// In ja, this message translates to:
-  /// **'入門の心得'**
+  /// **'麺道の心得'**
   String get onboardingScroll;
 
   /// No description provided for @onboardingWelcomeChapter.
   ///
   /// In ja, this message translates to:
-  /// **'其の一　入門'**
+  /// **'其の一　門出'**
   String get onboardingWelcomeChapter;
 
   /// No description provided for @onboardingWelcomeTitle.
@@ -3483,6 +3507,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'前の帳面を引き継ぐ'**
   String get onboardingStartBackup;
+
+  /// No description provided for @onboardingStartBackupNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'機種変更などで、保存しておいた記録を移す'**
+  String get onboardingStartBackupNote;
 
   /// No description provided for @onboardingStartBrowse.
   ///
@@ -3751,7 +3781,7 @@ abstract class AppLocalizations {
   /// No description provided for @contactSupport.
   ///
   /// In ja, this message translates to:
-  /// **'不具合を知らせる'**
+  /// **'不具合・ご要望を知らせる'**
   String get contactSupport;
 
   /// No description provided for @contactSupportNote.
@@ -3763,7 +3793,7 @@ abstract class AppLocalizations {
   /// No description provided for @contactConfirmBody.
   ///
   /// In ja, this message translates to:
-  /// **'メールアプリが開きます。困ったことや、そのときの操作を書いて送ってください。'**
+  /// **'メールアプリが開きます。困ったことや、こうしてほしいことを書いて送ってください。'**
   String get contactConfirmBody;
 
   /// No description provided for @contactConfirmDiagnosticsNote.
@@ -3781,13 +3811,13 @@ abstract class AppLocalizations {
   /// No description provided for @contactMailSubject.
   ///
   /// In ja, this message translates to:
-  /// **'麺印帳 不具合のお知らせ'**
+  /// **'麺印帳 不具合・ご要望'**
   String get contactMailSubject;
 
   /// No description provided for @contactMailBodyPlaceholder.
   ///
   /// In ja, this message translates to:
-  /// **'（この上に、困ったことや、そのときの操作を書いてください）'**
+  /// **'（この上に、困ったことやそのときの操作、こうしてほしいことを書いてください）'**
   String get contactMailBodyPlaceholder;
 
   /// No description provided for @contactMailDiagnosticsNotice.

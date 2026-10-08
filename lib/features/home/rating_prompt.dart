@@ -7,7 +7,7 @@ import '../record/star_rating.dart';
 import '../records/models.dart';
 import '../records/record_repository.dart';
 
-/// ★をすぐに保存する。失敗したら知らせる。
+/// ★をすぐに保存し、付けた数か失敗を知らせる。
 Future<void> saveRating(
   BuildContext context,
   WidgetRef ref,
@@ -15,12 +15,15 @@ Future<void> saveRating(
   int rating,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
-  final message = AppLocalizations.of(context).editSaveFailed;
+  final l10n = AppLocalizations.of(context);
   try {
     await ref.read(recordRepositoryProvider).setRating(visitId, rating);
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.ratingSaved('★' * rating))),
+    );
   } catch (e, st) {
     reportError(e, st, reason: 'Rating save failed');
-    messenger.showSnackBar(SnackBar(content: Text(message)));
+    messenger.showSnackBar(SnackBar(content: Text(l10n.editSaveFailed)));
   }
 }
 

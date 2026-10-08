@@ -182,19 +182,20 @@ class _CheckinBannerState extends ConsumerState<CheckinBanner> {
                 ),
               ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
               children: [
                 FudeLink(
                   night: true,
                   onPressed: _cancel,
-                  child: Text(l10n.checkinCancel),
+                  child: Text(l10n.checkinCancelBanner),
                 ),
-                const SizedBox(width: 8),
                 KeshiFuda(
                   night: true,
                   onPressed: _retreat,
-                  child: Text(l10n.retreat),
+                  child: Text(l10n.checkinRetreat),
                 ),
               ],
             ),

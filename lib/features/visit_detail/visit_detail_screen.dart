@@ -424,6 +424,7 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.shopFamousToggle),
+                  subtitle: Text(l10n.shopFamousNote),
                   value: entry.shop.isFamous,
                   onChanged: (value) => _setFamous(entry.shop, value),
                 ),
@@ -451,27 +452,22 @@ class _VisitDetailScreenState extends ConsumerState<VisitDetailScreen> {
                 ),
                 if (scored != null) ...[
                   const Divider(height: 32),
-                  // 修行点は1行だけ。押すと内訳を開く。
-                  ExpansionTile(
-                    tilePadding: EdgeInsets.zero,
-                    shape: const Border(),
-                    collapsedShape: const Border(),
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            l10n.pointsSection,
-                            style: textTheme.titleMedium,
-                          ),
-                        ),
-                        Text(
-                          l10n.points(scored.points.total),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.pointsSection,
                           style: textTheme.titleMedium,
                         ),
-                      ],
-                    ),
-                    children: [PointsBreakdownView(scored: scored)],
+                      ),
+                      Text(
+                        l10n.points(scored.points.total),
+                        style: textTheme.titleMedium,
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 8),
+                  PointsBreakdownView(scored: scored),
                 ],
               ],
             ),

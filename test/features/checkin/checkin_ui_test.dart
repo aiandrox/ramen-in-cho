@@ -244,13 +244,13 @@ void main() {
     testWidgets('取り消しは確認してから行う', (tester) async {
       await pump(tester, banner);
 
-      await tester.tap(find.text(ja.checkinCancel));
+      await tester.tap(find.text(ja.checkinCancelBanner));
       await tester.pumpAndSettle();
       await tester.tap(find.text(ja.checkinKeep));
       await tester.pumpAndSettle();
       expect(repository.cancelCount, 0);
 
-      await tester.tap(find.text(ja.checkinCancel));
+      await tester.tap(find.text(ja.checkinCancelBanner));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(KeshiFuda, ja.checkinCancel));
       await tester.pumpAndSettle();
@@ -260,7 +260,7 @@ void main() {
     testWidgets('撤退は理由を選んで記録できる', (tester) async {
       await pump(tester, banner);
 
-      await tester.tap(find.text(ja.retreat));
+      await tester.tap(find.text(ja.checkinRetreat));
       await tester.pumpAndSettle();
       expect(find.text(ja.retreatTitle), findsOneWidget);
 
@@ -281,7 +281,7 @@ void main() {
     testWidgets('撤退をキャンセルすると何も記録しない', (tester) async {
       await pump(tester, banner);
 
-      await tester.tap(find.text(ja.retreat));
+      await tester.tap(find.text(ja.checkinRetreat));
       await tester.pumpAndSettle();
       await tester.tap(find.text(ja.cancel));
       await tester.pumpAndSettle();
