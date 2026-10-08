@@ -847,7 +847,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkinRetreat.
   ///
   /// In ja, this message translates to:
-  /// **'食べられなかった'**
+  /// **'撤退'**
   String get checkinRetreat;
 
   /// No description provided for @checkinKeep.
@@ -859,7 +859,7 @@ abstract class AppLocalizations {
   /// No description provided for @retreatTitle.
   ///
   /// In ja, this message translates to:
-  /// **'食べられなかった（撤退）として残しますか？'**
+  /// **'撤退として残しますか？'**
   String get retreatTitle;
 
   /// No description provided for @retreatMessage.
