@@ -224,11 +224,6 @@ abstract final class AnalyticsEvents {
     'total_bowls': bucket(totalBowls),
   });
 
-  static AnalyticsEvent healthyLifeRevealed({required int totalBowls}) =>
-      AnalyticsEvent('healthy_life_revealed', {
-        'total_bowls': bucket(totalBowls),
-      });
-
   static AnalyticsEvent wishFulfilled({required int daysWaited}) =>
       AnalyticsEvent('wish_fulfilled', {'days_waited': daysBucket(daysWaited)});
 
@@ -375,7 +370,7 @@ abstract final class AnalyticsEvents {
       AnalyticsEvent('location_blocked_shown', {'reason': reason});
 }
 
-/// 記録を保存した直後に送るイベント（保存・点の内訳・昇段・型と秘伝・願成就・隠し要素）。
+/// 記録を保存した直後に送るイベント（保存・点の内訳・昇段・型と秘伝・願成就）。
 /// [summary]が無い（入力の様子がわからない）ときは、記録の保存のイベントだけ省く。
 /// [totalBowls]はこの1杯を含めた食べた杯数、[firstRecordAt]はいちばん古い記録の日時。
 List<AnalyticsEvent> recordOutcomeEvents(
@@ -407,8 +402,6 @@ List<AnalyticsEvent> recordOutcomeEvents(
       AnalyticsEvents.wishFulfilled(
         daysWaited: eatenAt.difference(wish.createdAt).inDays,
       ),
-    if (outcome.revealsHealthyLife)
-      AnalyticsEvents.healthyLifeRevealed(totalBowls: totalBowls),
   ];
 }
 
@@ -445,7 +438,5 @@ List<AnalyticsEvent> batchOutcomeEvents(
             .difference(scored.fulfilledWish!.createdAt)
             .inDays,
       ),
-    if (outcome.revealsHealthyLife)
-      AnalyticsEvents.healthyLifeRevealed(totalBowls: totalBowls),
   ];
 }

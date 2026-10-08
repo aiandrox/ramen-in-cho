@@ -4,7 +4,6 @@ import '../records/models.dart';
 import 'points.dart';
 import 'rank_history.dart';
 import 'ranks.dart';
-import '../streak/daily_streak.dart';
 
 /// 1件の記録を保存した結果。得たポイントと、累計・ランクの変化。
 class RecordOutcome {
@@ -15,8 +14,6 @@ class RecordOutcome {
     required this.rankBefore,
     required this.rankAfter,
     this.questLevelUps = const [],
-    this.bestDailyStreakBefore = 0,
-    this.bestDailyStreakAfter = 0,
     this.journal = const [],
   });
 
@@ -26,15 +23,6 @@ class RecordOutcome {
 
   /// この記録で新しく達成・レベルアップしたクエスト。
   final List<QuestLevelUp> questLevelUps;
-
-  /// 毎日続けて食べた日数の最高記録の、この記録の前とあと。
-  final int bestDailyStreakBefore;
-  final int bestDailyStreakAfter;
-
-  /// この1杯で、隠し要素「毎日ラーメン健康生活」が初めて出現したか。
-  bool get revealsHealthyLife =>
-      bestDailyStreakBefore < healthyLifeDays &&
-      bestDailyStreakAfter >= healthyLifeDays;
 
   /// この1杯の道中記（店のページと同じく、ほかの記録も合わせて組み立てる）。
   final List<String> journal;
@@ -78,8 +66,6 @@ RecordOutcome? computeRecordOutcome(
       before: evaluateQuests(scoredOthers, homeBases: homeBases),
       after: evaluateQuests(scoredAll, homeBases: homeBases),
     ),
-    bestDailyStreakBefore: bestDailyStreak(scoredOthers),
-    bestDailyStreakAfter: bestDailyStreak(scoredAll),
     journal: buildJournal(scored, scoredAll),
   );
 }

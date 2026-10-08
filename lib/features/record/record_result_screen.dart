@@ -237,8 +237,6 @@ class _ResultBody extends StatelessWidget {
           eatenAt: scored.visit.eatenAt,
           revealAt: at,
         ),
-      if (outcome.revealsHealthyLife)
-        (at) => HealthyLifeRevealBanner(revealAt: at),
       for (final levelUp in outcome.questLevelUps)
         (at) => QuestAchievedBanner(levelUp: levelUp, revealAt: at),
     ];
@@ -542,42 +540,6 @@ class _KanaiSeal extends StatelessWidget {
               height: 1,
               color: Washi.page,
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 隠し要素「毎日ラーメン健康生活」が出現したときの知らせ。
-class HealthyLifeRevealBanner extends StatelessWidget {
-  const HealthyLifeRevealBanner({super.key, required this.revealAt});
-
-  final Duration revealAt;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    return RiseIn(
-      delay: revealAt,
-      child: DecoratedBox(
-        decoration: BoxDecoration(border: Border.all(color: Washi.aiLight)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Text(
-                l10n.healthyLifeTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: Washi.brush,
-                  fontSize: 24,
-                  color: Washi.aiLight,
-                ),
-              ),
-              Text(l10n.healthyLifeRevealNote, style: textTheme.bodyMedium),
-            ],
           ),
         ),
       ),

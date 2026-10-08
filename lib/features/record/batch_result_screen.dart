@@ -197,8 +197,6 @@ class _BatchBody extends StatelessWidget {
           eatenAt: entry.visit.eatenAt,
           revealAt: at,
         ),
-      if (outcome.revealsHealthyLife)
-        (at) => HealthyLifeRevealBanner(revealAt: at),
       for (final levelUp in outcome.questLevelUps)
         (at) => QuestAchievedBanner(levelUp: levelUp, revealAt: at),
     ];

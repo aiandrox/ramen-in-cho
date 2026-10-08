@@ -1556,17 +1556,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shugyoSectionStats => '統計';
 
   @override
-  String get healthyLifeTitle => '毎日ラーメン健康生活';
-
-  @override
-  String healthyLifeBest(int days) {
-    return '最高 $days日連続';
-  }
-
-  @override
-  String get healthyLifeRevealNote => '七日続けて着丼した';
-
-  @override
   String get shugyorokuTitle => '修行録';
 
   @override
