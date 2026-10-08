@@ -132,10 +132,17 @@ def write(out):
 
 
 def check():
+    def same(made, kept):
+        if not kept.exists():
+            return False
+        if made.suffix == '.png':  # PNG の圧縮は環境で変わるので、画素で比べる
+            return np.array_equal(np.array(Image.open(made)), np.array(Image.open(kept)))
+        return made.read_bytes() == kept.read_bytes()
+
     with tempfile.TemporaryDirectory() as tmp:
         write(Path(tmp))
-        made = {p.name: p.read_bytes() for p in Path(tmp).iterdir()}
-    stale = sorted(n for n, b in made.items() if not (OUT / n).exists() or (OUT / n).read_bytes() != b)
+        made = sorted(Path(tmp).iterdir())
+        stale = [p.name for p in made if not same(p, OUT / p.name)]
     if stale:
         sys.exit(f'元の絵と合わない: {", ".join(stale)}\npython3 scripts/lp_images.py で作り直してください（site/README.md）')
     print(f'{len(made)}枚とも、元の絵から作ったものと同じ')
