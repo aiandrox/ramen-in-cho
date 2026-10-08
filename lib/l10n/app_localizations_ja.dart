@@ -759,11 +759,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wishLinkHint => 'Google マップや YouTube の URL';
 
   @override
-  String wishLinkOpen(String host) {
-    return 'リンクを開く（$host）';
-  }
-
-  @override
   String get wishLinkOpenFailed => 'リンクを開けませんでした';
 
   @override

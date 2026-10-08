@@ -392,8 +392,6 @@
   "wishNoteHint": "限定の煮干しを食べたい など",
   "wishLink": "リンク（任意）",
   "wishLinkHint": "Google マップや YouTube の URL",
-  "wishLinkOpen": "リンクを開く（{host}）",
-  "@wishLinkOpen": {"placeholders": {"host": {"type": "String"}}},
   "wishLinkOpenFailed": "リンクを開けませんでした",
   "wishPlaceNone": "場所: まだ決めていません（決めなくても掛けられます）",
   "wishPlaceLooking": "場所: 住所から調べています…",

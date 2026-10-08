@@ -1420,12 +1420,6 @@ abstract class AppLocalizations {
   /// **'Google マップや YouTube の URL'**
   String get wishLinkHint;
 
-  /// No description provided for @wishLinkOpen.
-  ///
-  /// In ja, this message translates to:
-  /// **'リンクを開く（{host}）'**
-  String wishLinkOpen(String host);
-
   /// No description provided for @wishLinkOpenFailed.
   ///
   /// In ja, this message translates to:

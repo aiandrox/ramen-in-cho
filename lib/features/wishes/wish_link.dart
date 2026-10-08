@@ -39,7 +39,7 @@ class WishLinkButton extends ConsumerWidget {
     return FudeLink(
       icon: const Icon(Icons.link),
       onPressed: () => _open(context, ref, uri),
-      child: Text(AppLocalizations.of(context).wishLinkOpen(host)),
+      child: Text(host),
     );
   }
 }
