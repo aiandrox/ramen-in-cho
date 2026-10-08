@@ -181,7 +181,7 @@ abstract class AppLocalizations {
   /// No description provided for @startRetreatTitle.
   ///
   /// In ja, this message translates to:
-  /// **'食べられなかった（撤退）'**
+  /// **'撤退'**
   String get startRetreatTitle;
 
   /// No description provided for @startRetreatBody.
@@ -469,7 +469,7 @@ abstract class AppLocalizations {
   /// No description provided for @memoHint.
   ///
   /// In ja, this message translates to:
-  /// **'麺かため。前よりスープが濃い'**
+  /// **'例: 麺かため。前よりスープが濃い'**
   String get memoHint;
 
   /// No description provided for @memoHelper.
@@ -1321,7 +1321,7 @@ abstract class AppLocalizations {
   /// No description provided for @shopMemoHint.
   ///
   /// In ja, this message translates to:
-  /// **'券売機は現金のみ／11時前に着けば一巡目'**
+  /// **'例: 券売機は現金のみ／11時前に着けば一巡目'**
   String get shopMemoHint;
 
   /// No description provided for @shopMemoNeedsShop.
@@ -1429,7 +1429,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishTriggerHint.
   ///
   /// In ja, this message translates to:
-  /// **'同僚に聞いた・テレビで見た など'**
+  /// **'例: 同僚に聞いた・テレビで見た'**
   String get wishTriggerHint;
 
   /// No description provided for @wishNote.
@@ -1441,7 +1441,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishNoteHint.
   ///
   /// In ja, this message translates to:
-  /// **'限定の煮干しを食べたい など'**
+  /// **'例: 限定の煮干しを食べたい'**
   String get wishNoteHint;
 
   /// No description provided for @wishLink.
@@ -3295,7 +3295,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpRetreat.
   ///
   /// In ja, this message translates to:
-  /// **'売り切れや休みで食べられなかったときは、「麺」→「食べられなかった（撤退）」で残せます。'**
+  /// **'売り切れや休みで食べられなかったときは、「麺」→「撤退」で残せます。'**
   String get helpRetreat;
 
   /// No description provided for @helpRatingTitle.

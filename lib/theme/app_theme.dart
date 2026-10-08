@@ -101,6 +101,8 @@ ThemeData buildAppTheme() {
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: Washi.page,
+      // 入れた字と見分けられるよう、未入力の例は薄くする。
+      hintStyle: TextStyle(color: Washi.faded),
       border: OutlineInputBorder(
         borderSide: BorderSide(color: Washi.line),
         borderRadius: BorderRadius.all(Radius.circular(4)),
