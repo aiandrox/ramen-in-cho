@@ -101,9 +101,11 @@ class VisitDetailsForm extends StatelessWidget {
           key: shopFamousSwitchKey,
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.shopFamousToggle),
-          subtitle: onShopFamousChanged == null
-              ? Text(l10n.shopFamousNeedsShop)
-              : null,
+          subtitle: Text(
+            onShopFamousChanged == null
+                ? l10n.shopFamousNeedsShop
+                : l10n.shopFamousNote,
+          ),
           value: onShopFamousChanged != null && shopFamous,
           onChanged: onShopFamousChanged,
         ),

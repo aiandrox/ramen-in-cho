@@ -66,7 +66,7 @@
 | 地図 | `flutter_map`・`latlong2`。画像は OpenStreetMap の標準タイルサーバー |
 | 通知 | `flutter_local_notifications`・`timezone`（端末で予約する。通信しない） |
 | サーバーの API の保護 | Firebase App Check（`firebase_core`・`firebase_app_check`。Firebase プロジェクト `ramen-in-cho`）。リリースは App Attest / Play Integrity、デバッグはデバッグ用トークン |
-| クラッシュ・エラーの把握 | Firebase Crashlytics（`firebase_crashlytics`）。作りは face-seal と同じ（`lib/main.dart` の受け口、`lib/features/error_reporting/` の `reportError`）。`reportError` は保存・バックアップなど大事な処理の失敗にだけ使い、電波しだいで起きる検索の失敗には使わない。例外の文は型の名前しか出ない種類（`TypeError`・`AssertionError`）以外は種類の名前だけにして送る。設定の「不具合を知らせる」はメールアプリを開くだけ（`lib/features/support/`、`package_info_plus`・`device_info_plus`） |
+| クラッシュ・エラーの把握 | Firebase Crashlytics（`firebase_crashlytics`）。作りは face-seal と同じ（`lib/main.dart` の受け口、`lib/features/error_reporting/` の `reportError`）。`reportError` は保存・バックアップなど大事な処理の失敗にだけ使い、電波しだいで起きる検索の失敗には使わない。例外の文は型の名前しか出ない種類（`TypeError`・`AssertionError`）以外は種類の名前だけにして送る。設定の「不具合・ご要望を知らせる」はメールアプリを開くだけ（`lib/features/support/`、`package_info_plus`・`device_info_plus`） |
 | 使い方の統計 | Firebase Analytics（`firebase_analytics`）。送るイベントと値は `lib/features/analytics/analytics_events.dart` の1箇所にまとめ、値は種類（英字の決まった言葉）・幅にまとめた数・1/0 だけにする（`test/features/analytics/` で確かめる）。広告 ID は集めない。設定のオン・オフは作らない（face-seal と同じ） |
 | サーバー | Cloudflare Pages（`site/`。紹介ページ `public/` と Pages Functions の API `/api/v1/...`、D1、Cache API）。https://ramen-in-cho.aiandrox.com |
 | フォント | Yuji Syuku（筆文字）・Shippori Mincho（本文）を同梱 |
@@ -115,7 +115,7 @@
 - **修行**（タブ）: 段位と昇段の記録・連続記録・型と秘伝・都道府県の印帳・統計（店ランク・今年の杯数・系統の割合・よく行く店）・修行録・年の振り返り・拠点
 - **地図**（タブ）: 行った店・願の店のピンと現在地。現在地のまわりから始める。右下の「このあたりを探す」で地図の中心から 1km 以内のまだ行っていない店を灰色のピンで出す（ボタンを押したときだけ）。重なったピンはまとめ、「一覧」で見えている店を近い順に見られる。「旅路」で食べた順に線でつなぎ、再生できる。丸いボタン（一覧・現在地・このあたりを探す・旅路）には、何のボタンかを小さな字で添える。出典を地図上に出す
 - **設定**（4つのタブの右上の歯車）: バックアップ（zip を共有画面で書き出し、読み込みは端末に無いものだけを足す）・通知・位置情報・拠点・使い方（項目ごとに実際の画面の絵を1枚ずつめくって見せる。絵は `test/tool/help_shots_test.dart` で架空のデータから作る。下に「はじめの案内をもう一度見る」）・出典とライセンス
-- 初めて開いたとき（記録が0件）は案内「入門の心得」を出す。其の一 入門（印・修行点と段位・願掛け）→ 其の二 拠点（現在地・地図で選ぶ・あとで）→ 其の三 始め方（写真から刻む・いま並んでいる・前の帳面を引き継ぐ・見てまわる。選ぶと案内を終えてその画面へ）。案内の中で完結させ、外の画面へ移るのは「地図で選ぶ」（決めたら戻る）だけ。途中でアプリを閉じたり「また今度」で閉じたりしたら、記録が0件のうちは次に開いたときにその段から続ける（×と始め方の選択で閉じたら終える）
+- 初めて開いたとき（記録が0件）は案内「麺道の心得」を出す。其の一 門出（印・修行点と段位・願掛け）→ 其の二 拠点（現在地・地図で選ぶ・あとで）→ 其の三 始め方（写真から刻む・いま並んでいる・前の帳面を引き継ぐ・見てまわる。選ぶと案内を終えてその画面へ）。案内の中で完結させ、外の画面へ移るのは「地図で選ぶ」（決めたら戻る）だけ。途中でアプリを閉じたり「また今度」で閉じたりしたら、記録が0件のうちは次に開いたときにその段から続ける（×と始め方の選択で閉じたら終える）
 - 1杯の印は、格（その1杯の修行点）で飾りが、店のある地方で外枠が変わる。見本帳は `docs/seals/`
 
 ### 通知

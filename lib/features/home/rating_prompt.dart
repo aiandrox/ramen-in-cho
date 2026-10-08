@@ -7,8 +7,8 @@ import '../record/star_rating.dart';
 import '../records/models.dart';
 import '../records/record_repository.dart';
 
-/// ★をすぐに保存する。失敗したら知らせる。
-Future<void> saveRating(
+/// ★をすぐに保存する。失敗したら知らせる。保存できたら true。
+Future<bool> saveRating(
   BuildContext context,
   WidgetRef ref,
   String visitId,
@@ -18,9 +18,11 @@ Future<void> saveRating(
   final message = AppLocalizations.of(context).editSaveFailed;
   try {
     await ref.read(recordRepositoryProvider).setRating(visitId, rating);
+    return true;
   } catch (e, st) {
     reportError(e, st, reason: 'Rating save failed');
     messenger.showSnackBar(SnackBar(content: Text(message)));
+    return false;
   }
 }
 
@@ -52,8 +54,14 @@ class RatingPrompt extends ConsumerWidget {
             StarRating(
               rating: null,
               size: 32,
-              onChanged: (rating) =>
-                  saveRating(context, ref, entry.visit.id, rating),
+              onChanged: (rating) async {
+                final messenger = ScaffoldMessenger.of(context);
+                if (await saveRating(context, ref, entry.visit.id, rating)) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.ratingSaved('★' * rating))),
+                  );
+                }
+              },
             ),
           ],
         ),

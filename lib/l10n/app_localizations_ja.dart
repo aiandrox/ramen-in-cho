@@ -165,6 +165,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String ratingSaved(String stars) {
+    return '$stars を付けました';
+  }
+
+  @override
   String ratingStar(int stars) {
     return '★$stars';
   }
@@ -401,6 +406,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checkinCancel => '取り消す';
 
   @override
+  String get checkinCancelBanner => '並んだのを取り消す';
+
+  @override
   String get checkinBannerHint => '着丼したら、真ん中の「着」を押す';
 
   @override
@@ -410,10 +418,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checkinCancelMessage => '並んだ記録は残りません';
 
   @override
-  String get checkinKeep => '並び続ける';
+  String get checkinRetreat => '食べられなかった';
 
   @override
-  String get retreat => '撤退';
+  String get checkinKeep => '並び続ける';
 
   @override
   String get retreatTitle => '撤退を記録しますか？';
@@ -677,6 +685,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopFamousToggle => '名店の印をつける';
 
   @override
+  String get shopFamousNote => '百名店に選ばれた店やラーメン誌に載った店など、自分が名店だと思う店に';
+
+  @override
   String get shopFamousNeedsShop => '店を決めると付けられます';
 
   @override
@@ -926,6 +937,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeBaseNotSet => 'まだ決めていません';
+
+  @override
+  String get homeBaseSettingNote => 'ふだん暮らす街。遠征の基準になります';
 
   @override
   String get homeBaseIntro =>
@@ -1186,37 +1200,38 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get backupDescription =>
-      '記録と写真を一つのファイル（zip）にまとめて書き出します。機種変更のときは、新しいスマホでこのファイルを読み込んでください。';
+      '記録と写真を1つのファイルにまとめて保存しておけます。機種変更のときは、新しいスマホでこのファイルから記録を戻してください。';
 
   @override
-  String get backupExport => '書き出す';
+  String get backupExport => '記録を保存しておく';
 
   @override
-  String get backupExportNote => '書き出したファイルは、「ファイル」アプリやクラウド、メールなどに保存してください';
+  String get backupExportNote =>
+      '送り先は、自分あてのメールや、Google ドライブ・iCloud Drive などのドライブ、「ファイル」アプリなどを選んでください';
 
   @override
-  String get backupImport => '読み込む';
+  String get backupImport => '保存した記録を戻す';
 
   @override
   String get backupImportNote =>
-      '書き出したファイルを選ぶと、このスマホに無い記録だけを足します。今ある記録は消えません。ファイル名は「ramen-in-cho-（日付）.zip」です';
+      '保存しておいたファイルを選ぶと、このスマホに無い記録だけを足します。今ある記録は消えません。ファイル名は「ramen-in-cho-（日付）.zip」です';
 
   @override
-  String get backupExportFailed => '書き出せませんでした。もう一度お試しください';
+  String get backupExportFailed => '保存できませんでした。もう一度お試しください';
 
   @override
   String get backupExportSent => '保存先に送りました。ドライブなどにファイルがあるか確かめてください';
 
   @override
   String backupImportDone(int added, int total) {
-    return '$added件の記録を読み込みました（ファイルの記録 $total件のうち、このスマホに無かったもの）';
+    return '$added件の記録を戻しました（ファイルの記録 $total件のうち、このスマホに無かったもの）';
   }
 
   @override
   String get backupImportInvalid => '麺印帳のバックアップとして読めないファイルです';
 
   @override
-  String get backupImportFailed => '読み込めませんでした。もう一度お試しください';
+  String get backupImportFailed => '戻せませんでした。もう一度お試しください';
 
   @override
   String get backupFileType => 'バックアップ（zip）';
@@ -1879,13 +1894,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get helpBackup =>
-      '機種変更に備えて、記録と写真を1つのファイルに書き出しておけます。読み込むと、端末に無い記録だけが足されます。';
+      '機種変更に備えて、記録と写真を1つのファイルにして、メールやドライブに保存しておけます。戻すと、このスマホに無い記録だけが足されます。';
 
   @override
-  String get onboardingScroll => '入門の心得';
+  String get onboardingScroll => '麺道の心得';
 
   @override
-  String get onboardingWelcomeChapter => '其の一　入門';
+  String get onboardingWelcomeChapter => '其の一　門出';
 
   @override
   String get onboardingWelcomeTitle => '門を叩く';
@@ -1950,6 +1965,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingStartBackup => '前の帳面を引き継ぐ';
+
+  @override
+  String get onboardingStartBackupNote => '機種変更などで、保存しておいた記録を移す';
 
   @override
   String get onboardingStartBrowse => 'まずは見てまわる';
@@ -2120,13 +2138,13 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get contactSupport => '不具合を知らせる';
+  String get contactSupport => '不具合・ご要望を知らせる';
 
   @override
   String get contactSupportNote => 'メールアプリで運営者に送ります';
 
   @override
-  String get contactConfirmBody => 'メールアプリが開きます。困ったことや、そのときの操作を書いて送ってください。';
+  String get contactConfirmBody => 'メールアプリが開きます。困ったことや、こうしてほしいことを書いて送ってください。';
 
   @override
   String get contactConfirmDiagnosticsNote =>
@@ -2136,10 +2154,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get composeEmail => 'メールを作る';
 
   @override
-  String get contactMailSubject => '麺印帳 不具合のお知らせ';
+  String get contactMailSubject => '麺印帳 不具合・ご要望';
 
   @override
-  String get contactMailBodyPlaceholder => '（この上に、困ったことや、そのときの操作を書いてください）';
+  String get contactMailBodyPlaceholder =>
+      '（この上に、困ったことやそのときの操作、こうしてほしいことを書いてください）';
 
   @override
   String get contactMailDiagnosticsNotice => '以下は不具合を調べるための情報です。そのまま送ってください。';

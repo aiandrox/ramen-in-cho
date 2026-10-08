@@ -263,10 +263,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: () => _close(OnboardingStart.checkin),
             child: Text(l10n.onboardingStartQueue),
           ),
-          SumiFuda(
-            expand: true,
-            onPressed: () => _close(OnboardingStart.backup),
-            child: Text(l10n.onboardingStartBackup),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SumiFuda(
+                expand: true,
+                onPressed: () => _close(OnboardingStart.backup),
+                child: Text(l10n.onboardingStartBackup),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.onboardingStartBackupNote,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: Washi.inkSoft),
+              ),
+            ],
           ),
           FudeLink(
             onPressed: () => _close(OnboardingStart.browse),
