@@ -5,7 +5,7 @@ set -uo pipefail
 
 base="${SITE_URL:-https://ramen-in-cho.aiandrox.com}"
 root="$(cd "$(dirname "$0")/../.." && pwd)"
-enforce="$(sed -nE 's/^APP_CHECK_ENFORCE *= *"([^"]*)".*/\1/p' "$root/site/wrangler.toml")"
+enforce="$(sed -nE 's/^APP_CHECK_ENFORCE *= *"?([^"]*)"?.*/\1/p' "$root/site/wrangler.toml" | head -n 1)"
 body="$(mktemp)"
 failed=0
 
@@ -13,6 +13,7 @@ failed=0
 check() {
   local path="$1" want="$2" filter="$3" status="" type="" i
   for i in 1 2 3; do
+    : >"$body"
     read -r status type < <(curl -sS -o "$body" -w '%{http_code} %{content_type}\n' --max-time 30 "$base$path" 2>/dev/null || echo "000 -")
     if [[ "$status" == "$want" && "$type" == application/json* ]] && jq -e "$filter" "$body" >/dev/null 2>&1; then
       echo "ok: ${path} → ${status}"
@@ -20,7 +21,7 @@ check() {
     fi
     [[ $i -lt 3 ]] && sleep "${RETRY_WAIT:-30}"
   done
-  echo "NG: ${path} → ${status}（期待 ${want}）$(head -c 200 "$body" | tr '\n' ' ')"
+  echo "NG: ${path} → ${status}（期待 ${want}）$(head -c 200 "$body" | iconv -c -f UTF-8 -t UTF-8 | tr '\n' ' ')"
   failed=1
 }
 
