@@ -10,10 +10,14 @@ Cloudflare Pages の1つのプロジェクトに、紹介ページ（`public/`�
 | `GET /api/v1/curated-shops` | アプリに持たせる店の一覧（閉店も含む）。`ETag` 付きで、`If-None-Match` が同じなら 304 |
 | `GET /api/v1/shops/nearby?lat=&lon=&radius=` | 近くの店（半径 1000m まで）。手で持つ店・Overpass・OpenPOI・Yahoo! をまとめて返す |
 | `GET /api/v1/shops/search?q=&lat=&lon=` | 店名で全国から探す。空白があれば詰めた言葉でも探してまとめる |
-| `GET /api/v1/geocode?q=` | 住所を位置にする（Yahoo! ジオコーダ）。`{ result: { latitude, longitude, address, level, attribution } }`、見つからなければ `{ result: null }`。1週間ためる（失敗は1日） |
+| `GET /api/v1/geocode?q=` | 住所を位置にする（Yahoo! ジオコーダ）。`{ result: { latitude, longitude, address, level, attribution } }`、見つからなければ `{ result: null }`。ためない（毎回 Yahoo! に問い合わせる） |
 
-検索結果は Cache API に **1週間** ためる（どれかの検索が失敗したときは1日）。近くの店は緯度経度 0.003 度（約300m）のマスごと、
-店名は言葉と 0.5 度（約50km）の場所ごと。誰が探したかは残さない。手で持つ店はため置かず、毎回 D1 から読む。
+Overpass・OpenPOI の検索結果は Cache API に **1週間** ためる（どれかの検索が失敗したときは1日）。近くの店は緯度経度 0.003 度（約300m）のマスごと、
+店名は言葉と 0.1 度（約10km）の場所ごと。誰が探したかは残さない。手で持つ店はため置かず、毎回 D1 から読む。
+
+Yahoo!（ローカルサーチ・ジオコーダ）の結果は、YOLP の利用条件（保存・キャッシュの禁止）のため **ためない**。問い合わせのたびに Yahoo! に聞き、
+ためた Overpass・OpenPOI の結果と混ぜる（同じ店は OSM → Yahoo! → OpenPOI の順に残す）。Yahoo! に問い合わせた回数は D1 の `yahoo_daily_usage`
+（日本時間の日付と回数だけ）で数え、4万5千回（上限5万回の手前）を越えた日は Yahoo! を使わずに探す（#373）。
 
 ## 店のデータを直す
 

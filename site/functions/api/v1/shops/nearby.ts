@@ -1,5 +1,6 @@
 import { type Env, json, loadCuratedShops } from '../../../../src/http.ts';
 import { searchNearby } from '../../../../src/search/service.ts';
+import { d1YahooQuota } from '../../../../src/yahoo-quota.ts';
 
 const maxRadius = 1000;
 
@@ -13,7 +14,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   }
   try {
     const shops = await searchNearby(
-      { fetch: (input, init) => fetch(input, init), cache: caches.default, yahooAppId: env.YAHOO_APP_ID },
+      {
+        fetch: (input, init) => fetch(input, init),
+        cache: caches.default,
+        yahooAppId: env.YAHOO_APP_ID,
+        yahooQuota: d1YahooQuota(env.DB),
+      },
       await loadCuratedShops(env.DB),
       { latitude, longitude },
       radius,

@@ -1,5 +1,6 @@
 import { type Env, json, loadCuratedShops } from '../../../../src/http.ts';
 import { searchByName } from '../../../../src/search/service.ts';
+import { d1YahooQuota } from '../../../../src/yahoo-quota.ts';
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const url = new URL(request.url);
@@ -13,7 +14,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       : undefined;
   try {
     const shops = await searchByName(
-      { fetch: (input, init) => fetch(input, init), cache: caches.default, yahooAppId: env.YAHOO_APP_ID },
+      {
+        fetch: (input, init) => fetch(input, init),
+        cache: caches.default,
+        yahooAppId: env.YAHOO_APP_ID,
+        yahooQuota: d1YahooQuota(env.DB),
+      },
       await loadCuratedShops(env.DB),
       query,
       near,
