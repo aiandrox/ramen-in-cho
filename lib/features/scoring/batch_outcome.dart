@@ -1,6 +1,5 @@
 import '../quests/quests.dart';
 import '../records/models.dart';
-import '../streak/daily_streak.dart';
 import 'points.dart';
 import 'rank_history.dart';
 import 'ranks.dart';
@@ -14,8 +13,6 @@ class BatchOutcome {
     required this.rankBefore,
     required this.rankAfter,
     this.questLevelUps = const [],
-    this.bestDailyStreakBefore = 0,
-    this.bestDailyStreakAfter = 0,
   });
 
   /// まとめて記録した杯（食べた順）。
@@ -25,8 +22,6 @@ class BatchOutcome {
   final AdventurerRank rankBefore;
   final AdventurerRank rankAfter;
   final List<QuestLevelUp> questLevelUps;
-  final int bestDailyStreakBefore;
-  final int bestDailyStreakAfter;
 
   /// 累計の増えた分（過去の日時の杯を足すと、ほかの杯の初訪問ボーナスが動くことがあるため、杯ごとの点の和とは限らない）。
   int get points {
@@ -47,10 +42,6 @@ class BatchOutcome {
     for (final entry in scored)
       if (entry.fulfilledWish != null) entry,
   ];
-
-  bool get revealsHealthyLife =>
-      bestDailyStreakBefore < healthyLifeDays &&
-      bestDailyStreakAfter >= healthyLifeDays;
 }
 
 /// [visitIds]の記録が1件でも無ければnull（一覧に保存した杯がまだ届いていないとき）。
@@ -88,7 +79,5 @@ BatchOutcome? computeBatchOutcome(
       before: evaluateQuests(scoredOthers, homeBases: homeBases),
       after: evaluateQuests(scoredAll, homeBases: homeBases),
     ),
-    bestDailyStreakBefore: bestDailyStreak(scoredOthers),
-    bestDailyStreakAfter: bestDailyStreak(scoredAll),
   );
 }

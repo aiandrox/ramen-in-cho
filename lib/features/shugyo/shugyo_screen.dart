@@ -12,7 +12,6 @@ import '../scoring/rank_progress.dart';
 import '../scoring/scoring_providers.dart';
 import '../settings/settings_action.dart';
 import '../stats/stats_screen.dart';
-import '../streak/healthy_life_card.dart';
 import '../streak/streak_line.dart';
 import '../analytics/analytics.dart';
 import '../analytics/analytics_events.dart';
@@ -105,7 +104,7 @@ class _SectionSwitch extends StatelessWidget {
   }
 }
 
-/// 記録: 修行録・都道府県の印帳・年の振り返り・（出現していれば）毎日ラーメン健康生活。
+/// 記録: 修行録・都道府県の印帳・年の振り返り。
 class _RecordsSection extends StatelessWidget {
   const _RecordsSection();
 
@@ -129,7 +128,6 @@ class _RecordsSection extends StatelessWidget {
         ),
         const PrefectureBookEntry(),
         const YearReviewEntry(),
-        const HealthyLifeCard(),
       ],
     );
   }

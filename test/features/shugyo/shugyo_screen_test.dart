@@ -53,24 +53,11 @@ void main() {
     expect(find.text('着丼の道'), findsNothing);
     expect(find.text(ja.shugyorokuOpen), findsOneWidget);
     expect(find.text(ja.statsBowls), findsNothing);
-    // 毎日ラーメン健康生活は、7日続けるまで姿を見せない。
-    expect(find.text(ja.healthyLifeTitle), findsNothing);
 
     await tester.tap(find.text(ja.shugyoSectionStats));
     await tester.pumpAndSettle();
     expect(find.text(ja.shugyorokuOpen), findsNothing);
     expect(find.text(ja.statsBowls), findsOneWidget);
-  });
-
-  testWidgets('7日続けて食べたら、記録に毎日ラーメン健康生活を出す', (tester) async {
-    await pumpShugyo(tester, [
-      for (var d = 1; d <= 7; d++)
-        buildEntry(shop: shop, eatenAt: DateTime(2026, 9, d, 12)),
-    ]);
-    expect(find.text(ja.healthyLifeTitle), findsNothing);
-    await tester.tap(find.text(ja.shugyoSectionRecords));
-    await tester.pumpAndSettle();
-    expect(find.text(ja.healthyLifeTitle), findsOneWidget);
   });
 
   testWidgets('段位を押すと昇段の記録、型のカードを押すとこれまでの段が開く', (tester) async {
