@@ -1,11 +1,10 @@
-import { readFileSync } from 'node:fs';
-import { URL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
+import { readJson } from './read_json.ts';
 import { geocode, geocodeCacheSeconds, geocodeFailureCacheSeconds, parseGeocode } from '../src/geocode.ts';
 
 const fixture = (name: string) =>
-  JSON.parse(readFileSync(new URL(`../../test/fixtures/${name}`, import.meta.url), 'utf8'));
+  readJson(`../../test/fixtures/${name}`);
 
 function fakeCache() {
   const store = new Map<string, Response>();
