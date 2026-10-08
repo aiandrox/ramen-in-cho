@@ -1,0 +1,7 @@
+# 紹介ページの書体と絵を作る道具（scripts/lp_fonts.py・scripts/lp_images.py）。アプリとサーバーの動きには使わない。
+fonttools==4.66.1
+brotli==1.2.0
+beautifulsoup4==4.15.0
+soupsieve==2.10
+pillow==12.3.0
+numpy==2.4.6

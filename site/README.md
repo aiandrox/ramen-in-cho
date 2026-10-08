@@ -70,3 +70,20 @@ npx wrangler pages deployment tail --project-name ramen-in-cho --format pretty
 ```
 
 wrangler は v4 で、Node 22 以上が要る。`npx wrangler` で `node_modules` の版が使われる（グローバルに入れた古い版は使わない）。
+
+## 紹介ページの書体と絵
+
+書体（`public/fonts/*.woff2`）はページで使う字だけに間引いてある。**ページに字を足したら作り直す**（作り直さないと、その字だけ別の書体で出る。Site CI の `lp_fonts.py check` が失敗して知らせる。lp.js が後から付ける class で筆の書体になる要素の字は数えられないので、その字は HTML のどこかで筆の書体の要素に入れておく）。
+絵（`public/img/`）は docs の見本とアプリのアイコンから切り出している。印や秘伝・タブの絵を描き直したら、見本を作り直してから切り出す（Site CI の `lp_images.py check` が、元と合わなくなったら知らせる）。
+
+```bash
+python3 -m venv /tmp/lp-venv && /tmp/lp-venv/bin/pip install -r scripts/requirements.txt   # 一度だけ
+/tmp/lp-venv/bin/python scripts/lp_fonts.py         # 書体を作り直す
+/tmp/lp-venv/bin/python scripts/lp_fonts.py check   # ページの字が、すべて書体にあるか
+/tmp/lp-venv/bin/python scripts/lp_images.py        # 絵を切り出す
+/tmp/lp-venv/bin/python scripts/lp_images.py check  # 絵が、元の見本から作ったものと同じか
+```
+
+- 書体の元はアプリと同じ `../assets/fonts/`。本文（Shippori Mincho）はページのすべての字、筆（Yuji Syuku）は `lp.css` で `var(--brush)` を使う要素の字だけを入れる（どちらにも ASCII は入れる）
+- 絵の元: 印と「まだ」の印は `docs/seals/catalog.png`、秘伝は `docs/hiden/*.png`（「まだ見ぬ秘伝」はぼかして灰色にする）、判子・絵馬・系統の椀は `docs/buttons/catalog.png`、タブは `docs/buttons/tab_seals.png` の4倍の段、丼の朱印と `og-icon.png`・`apple-touch-icon.png` はアプリのアイコン。どこを切り出すかは `scripts/lp_images.py` に書いてある
+- 見本の並びや大きさが変わったら、`lp_images.py` の切り出す位置も直す
