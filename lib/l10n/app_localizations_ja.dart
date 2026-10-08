@@ -1830,7 +1830,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpRatingTitle => '★をあとで付ける';
 
   @override
-  String get helpRating => '★は食べ終わってからで大丈夫です。印帳の上の「〇〇 はどうでしたか？」で付けられます。';
+  String get helpRating =>
+      '★は食べ終わってからで大丈夫です。食べてから半日は、印帳の上の「〇〇 はどうでしたか？」で付けられます。店のページからもいつでも付けられます。';
 
   @override
   String get helpWishTitle => '願掛け';
@@ -1846,7 +1847,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpMapTitle => '地図で店を探す';
 
   @override
-  String get helpMapSearch => '地図の「このあたりのラーメン店を探す」で、まだ行っていない店が灰色のピンで出ます。';
+  String get helpMapSearch => '地図の右下の「このあたりを探す」で、まだ行っていない店が灰色のピンで出ます。';
 
   @override
   String get helpJourneyTitle => '旅路';

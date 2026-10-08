@@ -149,10 +149,11 @@ class _HelpPageView extends StatelessWidget {
         children: [
           Expanded(
             child: Center(
-              child: DecoratedBox(
+              child: Container(
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
+                  color: Washi.ink,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Washi.ink, width: 3),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x33000000),
@@ -166,6 +167,7 @@ class _HelpPageView extends StatelessWidget {
                   child: Image.asset(
                     page.shot.asset,
                     fit: BoxFit.contain,
+                    semanticLabel: page.caption(l10n),
                     errorBuilder: (_, _, _) => const AspectRatio(
                       aspectRatio: 393 / 852,
                       child: ColoredBox(color: Washi.page),

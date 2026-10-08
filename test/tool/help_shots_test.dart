@@ -68,7 +68,7 @@ const _here = GeoPoint(35.0, 139.0);
 final _kasumi = buildShop(
   id: 'kasumi',
   name: '麺屋 かすみ',
-  latitude: 35.003,
+  latitude: 35.0025,
   longitude: 139.0,
   osmId: 'node/1',
 );
@@ -167,11 +167,15 @@ final _wishes = [
 ];
 
 const _found = [
-  FoundShop(osmId: 'node/1', name: '麺屋 かすみ', location: GeoPoint(35.0, 139.0)),
+  FoundShop(
+    osmId: 'node/1',
+    name: '麺屋 かすみ',
+    location: GeoPoint(35.0025, 139.0),
+  ),
   FoundShop(
     osmId: 'node/21',
     name: '中華そば 白露',
-    location: GeoPoint(35.003, 138.996),
+    location: GeoPoint(35.0025, 138.996),
   ),
   FoundShop(
     osmId: 'node/22',
@@ -187,15 +191,9 @@ const _found = [
 
 const _candidates = [
   ShopCandidate(
-    shopId: 'kasumi',
-    name: '麺屋 かすみ',
-    location: GeoPoint(35.0, 139.0),
-    distanceMeters: 12,
-  ),
-  ShopCandidate(
     osmId: 'node/21',
     name: '中華そば 白露',
-    location: GeoPoint(35.003, 138.996),
+    location: GeoPoint(35.0025, 138.996),
     distanceMeters: 140,
   ),
   ShopCandidate(
@@ -203,6 +201,12 @@ const _candidates = [
     name: 'らーめん 夕凪',
     location: GeoPoint(34.996, 139.004),
     distanceMeters: 260,
+  ),
+  ShopCandidate(
+    shopId: 'kasumi',
+    name: '麺屋 かすみ',
+    location: GeoPoint(35.0025, 139.0),
+    distanceMeters: 280,
   ),
 ];
 
@@ -266,13 +270,29 @@ _Scene _sceneFor(HelpShot shot) => switch (shot) {
   HelpShot.recordResult => _scene(
     home: const RecordResultScreen(visitId: 'today'),
   ),
-  HelpShot.queueStart => _scene(home: const CheckinScreen()),
+  HelpShot.queueStart => _scene(
+    home: const CheckinScreen(),
+    candidates: const [
+      ShopCandidate(
+        osmId: 'node/24',
+        name: '煮干しそば 灯',
+        location: GeoPoint(35.0003, 139.0),
+        distanceMeters: 35,
+      ),
+      ShopCandidate(
+        osmId: 'node/21',
+        name: '中華そば 白露',
+        location: GeoPoint(35.0025, 138.996),
+        distanceMeters: 140,
+      ),
+    ],
+  ),
   HelpShot.queueWaiting => _scene(
     tab: AppTab.records,
     checkin: Checkin(
       shopId: _kasumi.id,
       name: _kasumi.name,
-      latitude: 35.003,
+      latitude: 35.0025,
       longitude: 139.0,
       checkedInAt: _now.subtract(const Duration(minutes: 25)),
     ),
@@ -289,6 +309,9 @@ _Scene _sceneFor(HelpShot shot) => switch (shot) {
     tab: AppTab.map,
     act: (tester) async {
       await tester.tap(find.byTooltip(ja.mapSearchHere));
+      await _settle(tester);
+      // 見つかった軒数の知らせが消え、探すボタンが見えるまで待つ。
+      await tester.pump(const Duration(seconds: 5));
       await _settle(tester);
     },
   ),

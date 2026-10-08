@@ -3253,7 +3253,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpRating.
   ///
   /// In ja, this message translates to:
-  /// **'★は食べ終わってからで大丈夫です。印帳の上の「〇〇 はどうでしたか？」で付けられます。'**
+  /// **'★は食べ終わってからで大丈夫です。食べてから半日は、印帳の上の「〇〇 はどうでしたか？」で付けられます。店のページからもいつでも付けられます。'**
   String get helpRating;
 
   /// No description provided for @helpWishTitle.
@@ -3283,7 +3283,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpMapSearch.
   ///
   /// In ja, this message translates to:
-  /// **'地図の「このあたりのラーメン店を探す」で、まだ行っていない店が灰色のピンで出ます。'**
+  /// **'地図の右下の「このあたりを探す」で、まだ行っていない店が灰色のピンで出ます。'**
   String get helpMapSearch;
 
   /// No description provided for @helpJourneyTitle.
