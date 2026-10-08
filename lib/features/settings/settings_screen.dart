@@ -50,10 +50,17 @@ class SettingsScreen extends ConsumerWidget {
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.homeBaseTitle),
-            subtitle: Text(
-              '${homeBase?.name ?? l10n.homeBaseNotSet}\n${l10n.homeBaseSettingNote}',
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  homeBase?.name ?? l10n.homeBaseNotSet,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(l10n.homeBaseSettingNote),
+              ],
             ),
-            isThreeLine: true,
             trailing: const Icon(Icons.chevron_right),
             onTap: () => open(const HomeBasePickerScreen()),
           ),

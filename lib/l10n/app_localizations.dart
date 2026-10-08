@@ -859,7 +859,7 @@ abstract class AppLocalizations {
   /// No description provided for @retreatTitle.
   ///
   /// In ja, this message translates to:
-  /// **'撤退を記録しますか？'**
+  /// **'食べられなかった（撤退）として残しますか？'**
   String get retreatTitle;
 
   /// No description provided for @retreatMessage.

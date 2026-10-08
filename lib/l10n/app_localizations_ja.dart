@@ -424,7 +424,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checkinKeep => '並び続ける';
 
   @override
-  String get retreatTitle => '撤退を記録しますか？';
+  String get retreatTitle => '食べられなかった（撤退）として残しますか？';
 
   @override
   String get retreatMessage => '食べられなかった記録として残します。次に同じ店で食べると「再挑戦成功」になります';
