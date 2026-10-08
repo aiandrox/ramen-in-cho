@@ -3,8 +3,8 @@
 <plist version="1.0">
 <dict>
 	<!-- 根拠とストアの回答は docs/release/README.md の「ストアのプライバシーの回答」。
-	     集めるデータはストアの「App のプライバシー」の回答と同じものを書く（GoogleAppMeasurement は
-	     マニフェストを同梱していないので、Analytics の分もここに書く）。API は、マニフェストを持たない
+	     集めるデータはストアの「App のプライバシー」の回答と同じものを書く（2026-10-08 のビルド
+	     （firebase_analytics 12.6.0）では GoogleAppMeasurement のマニフェストが入っていなかったので、Analytics の分もここに書く）。API は、マニフェストを持たない
 	     sqlite3.framework（drift の SQLite）の分だけを書く（Flutter・Firebase・各プラグインは自前で申告している）。 -->
 	<key>NSPrivacyTracking</key>
 	<false/>
@@ -77,7 +77,7 @@
 			<key>NSPrivacyCollectedDataType</key>
 			<string>NSPrivacyCollectedDataTypeDeviceID</string>
 			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<false/>
+			<true/>
 			<key>NSPrivacyCollectedDataTypeTracking</key>
 			<false/>
 			<key>NSPrivacyCollectedDataTypePurposes</key>
