@@ -9,8 +9,12 @@ on:
       # サーバーの検索のテストは、アプリと同じ保存した応答（test/fixtures）を使う。
       - "test/fixtures/**"
       - ".github/workflows/site-ci.yml"
-      # 紹介ページの書体の元（アプリと同じもの）
+      # 紹介ページの書体と絵の元（scripts/lp_fonts.py・scripts/lp_images.py）
       - "assets/fonts/**"
+      - "docs/seals/catalog.png"
+      - "docs/buttons/*.png"
+      - "docs/hiden/*.png"
+      - "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png"
 
 permissions:
   contents: read
@@ -39,7 +43,7 @@ jobs:
       - run: npm test
       # 正本から D1 に入れる SQL を作れるか（デプロイと同じ道筋）。
       - run: npm run seed
-      # 紹介ページに、間引いた書体に無い字が入っていないか（足したら python3 scripts/lp_fonts.py で作り直す）。
+      # 紹介ページに、間引いた書体に無い字が入っていないか。絵が元の見本から作ったものと同じか（site/README.md）。
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
@@ -47,3 +51,4 @@ jobs:
           cache-dependency-path: site/scripts/requirements.txt
       - run: pip install -r scripts/requirements.txt
       - run: python3 scripts/lp_fonts.py check
+      - run: python3 scripts/lp_images.py check

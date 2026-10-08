@@ -25,7 +25,9 @@ FONTS = {
     'body': (SOURCES / 'ShipporiMincho-Regular.ttf', PUBLIC / 'fonts/shippori-mincho.woff2'),
 }
 BRUSH = re.compile(r'var\(--brush\)|Yuji Syuku')
-PSEUDO = re.compile(r'::?(before|after|hover|focus|focus-visible|active|visited|first-letter|first-line|placeholder|marker)\b')
+BRUSH_RULE = re.compile(r'font(-family)?\s*:[^;}]*(var\(--brush\)|Yuji Syuku)')
+PSEUDO = re.compile(r'::?[\w-]+(\([^)]*\))?')
+NOT_ELEMENT = re.compile(r'^(@|from$|to$|\d+(\.\d+)?%$)')
 
 
 def text_of(node):
@@ -40,15 +42,17 @@ def text_of(node):
 def brush_selectors(css):
     css = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
     for selectors, body in re.findall(r'([^{}]+)\{([^{}]*)\}', css):
-        if BRUSH.search(body):
+        if BRUSH_RULE.search(body):
             for selector in selectors.split(','):
-                selector = PSEUDO.sub('', selector).strip()
-                if selector:
-                    yield selector
+                selector = selector.strip()
+                if selector and not NOT_ELEMENT.match(selector):
+                    yield PSEUDO.sub('', selector).strip() or '*'
 
 
 def css_content(css):
-    return ''.join(re.findall(r'content:\s*"([^"]*)"', css))
+    found = re.findall(r'content:\s*(?:"([^"]*)"|\'([^\']*)\')', css)
+    text = ''.join(a + b for a, b in found)
+    return re.sub(r'\\([0-9a-fA-F]{1,6})\s?', lambda m: chr(int(m.group(1), 16)), text)
 
 
 def needed():
@@ -56,20 +60,23 @@ def needed():
     selectors = list(brush_selectors(css))
     extra = css_content(css)
     brush, body = set(extra), set(extra)
+    unused = set(selectors)
     for page in sorted(PUBLIC.glob('*.html')):
         soup = BeautifulSoup(page.read_text(encoding='utf-8'), 'html.parser')
         root = soup.body or soup
         body |= set(text_of(root))
         for selector in selectors:
-            try:
-                nodes = root.select(selector)
-            except Exception:
-                continue  # @keyframes の 0% など、要素を選ばないもの
+            nodes = root.select(selector)
+            if nodes:
+                unused.discard(selector)
             for node in nodes:
                 brush |= set(text_of(node))
         for node in root.find_all(True):
-            if BRUSH.search(node.get('style', '') + node.get('font-family', '')):
+            if BRUSH_RULE.search(node.get('style', '')) or BRUSH.search(node.get('font-family', '')):
                 brush |= set(text_of(node))
+    for selector in sorted(u for u in unused if '.' in u):
+        # lp.js が後から付ける class で決まる要素は、ここでは見えない
+        print(f'注意: 筆の書体の「{selector}」に当たる要素がページに無い', file=sys.stderr)
     return {'brush': brush, 'body': body}
 
 
@@ -109,4 +116,9 @@ def check():
 
 
 if __name__ == '__main__':
-    check() if sys.argv[1:] == ['check'] else build()
+    if sys.argv[1:] == ['check']:
+        check()
+    elif not sys.argv[1:]:
+        build()
+    else:
+        sys.exit('使い方: python3 scripts/lp_fonts.py [check]')

@@ -1,16 +1,27 @@
 """紹介ページ（site/public/img/）の絵を、docs の見本とアプリのアイコンから切り出す。
 
-使い方（site/ で）: python3 scripts/lp_images.py [出力先。省略すると public/img]
+使い方（site/ で）:
+  python3 scripts/lp_images.py         # public/img を作り直す
+  python3 scripts/lp_images.py check   # public/img が元の絵から作ったものと同じか確かめる（CI）
 要るもの: scripts/requirements.txt（Pillow）
 """
 
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[2]
+OUT = ROOT / 'site/public/img'
+ICON = ROOT / 'ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png'
+# 切り出す位置は、この大きさの見本に合わせてある。見本の並びが変わったら位置も直す。
+SOURCE_SIZES = {
+    'docs/seals/catalog.png': (1800, 2918),
+    'docs/buttons/catalog.png': (1520, 2864),
+    'docs/buttons/tab_seals.png': (2480, 584),
+}
 PAPER = np.array([243, 236, 223], float)  # Washi.paper。見本の地の色
 FADED = (138, 129, 117)  # Washi.faded
 AI = np.array([38, 52, 74], float)  # アイコンの表紙の藍
@@ -61,6 +72,8 @@ def unmix(a, bg, alpha):
 
 def trim(im, threshold=8):
     ys, xs = np.where(np.array(im)[..., 3] > threshold)
+    if xs.size == 0:
+        raise ValueError('切り出した所に絵が無い（見本の並びが変わった？）')
     return im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
 
 
@@ -69,11 +82,17 @@ def fit(im, longest):
     return im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
 
 
-def build():
-    seals = Image.open(ROOT / 'docs/seals/catalog.png')
-    buttons = Image.open(ROOT / 'docs/buttons/catalog.png')
-    tabs = Image.open(ROOT / 'docs/buttons/tab_seals.png')
-    icon = Image.open(ROOT / 'ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png')
+def source(path):
+    im = Image.open(ROOT / path)
+    if im.size != SOURCE_SIZES[path]:
+        sys.exit(f'{path} の大きさが {im.size} に変わった。scripts/lp_images.py の切り出す位置を直す')
+    return im
+
+
+def build(icon):
+    seals = source('docs/seals/catalog.png')
+    buttons = source('docs/buttons/catalog.png')
+    tabs = source('docs/buttons/tab_seals.png')
 
     def cell(row, col):
         x, y = 360 + 216 * col, 78 + 216 * row
@@ -104,15 +123,28 @@ def build():
     yield 'bowl-seal', cut_from_ai(icon.crop((256, 490, 625, 859))).resize((360, 360), Image.LANCZOS)
 
 
-def main():
-    out = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / 'site/public/img'
-    out.mkdir(parents=True, exist_ok=True)
-    for name, im in build():
+def write(out):
+    icon = Image.open(ICON).convert('RGBA')
+    for name, im in build(icon):
         im.save(out / f'{name}.webp', 'WEBP', quality=85, method=6, exact=True)
-    icon = Image.open(ROOT / 'ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png').convert('RGBA')
     icon.resize((512, 512), Image.LANCZOS).save(out / 'og-icon.png', optimize=True)
     icon.resize((180, 180), Image.LANCZOS).save(out / 'apple-touch-icon.png', optimize=True)
 
 
+def check():
+    with tempfile.TemporaryDirectory() as tmp:
+        write(Path(tmp))
+        made = {p.name: p.read_bytes() for p in Path(tmp).iterdir()}
+    stale = sorted(n for n, b in made.items() if not (OUT / n).exists() or (OUT / n).read_bytes() != b)
+    if stale:
+        sys.exit(f'元の絵と合わない: {", ".join(stale)}\npython3 scripts/lp_images.py で作り直してください（site/README.md）')
+    print(f'{len(made)}枚とも、元の絵から作ったものと同じ')
+
+
 if __name__ == '__main__':
-    main()
+    if sys.argv[1:] == ['check']:
+        check()
+    elif not sys.argv[1:]:
+        write(OUT)
+    else:
+        sys.exit('使い方: python3 scripts/lp_images.py [check]')
