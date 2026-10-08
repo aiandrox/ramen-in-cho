@@ -52,7 +52,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get startQueueBody => '並び始めから着丼までの時間を測ります';
 
   @override
-  String get startRetreatTitle => '食べられなかった（撤退）';
+  String get startRetreatTitle => '撤退';
 
   @override
   String get startRetreatBody => '売り切れ・休みだった店を記録する';
@@ -214,7 +214,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get memoLabel => 'この一杯について';
 
   @override
-  String get memoHint => '麺かため。前よりスープが濃い';
+  String get memoHint => '例: 麺かため。前よりスープが濃い';
 
   @override
   String get memoHelper => 'この日の一杯の感想';
@@ -707,7 +707,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopMemoEmpty => 'まだありません';
 
   @override
-  String get shopMemoHint => '券売機は現金のみ／11時前に着けば一巡目';
+  String get shopMemoHint => '例: 券売機は現金のみ／11時前に着けば一巡目';
 
   @override
   String get shopMemoNeedsShop => '店を決めると書けます';
@@ -768,13 +768,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wishTrigger => 'きっかけ（任意）';
 
   @override
-  String get wishTriggerHint => '同僚に聞いた・テレビで見た など';
+  String get wishTriggerHint => '例: 同僚に聞いた・テレビで見た';
 
   @override
   String get wishNote => 'ひとこと（任意）';
 
   @override
-  String get wishNoteHint => '限定の煮干しを食べたい など';
+  String get wishNoteHint => '例: 限定の煮干しを食べたい';
 
   @override
   String get wishLink => 'リンク（任意）';
@@ -1855,7 +1855,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpRetreatTitle => '撤退';
 
   @override
-  String get helpRetreat => '売り切れや休みで食べられなかったときは、「麺」→「食べられなかった（撤退）」で残せます。';
+  String get helpRetreat => '売り切れや休みで食べられなかったときは、「麺」→「撤退」で残せます。';
 
   @override
   String get helpRatingTitle => '★をあとで付ける';

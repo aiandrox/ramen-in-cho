@@ -282,7 +282,7 @@ abstract final class AnalyticsEvents {
         'waited_min': bucket(waitedMinutes),
       });
 
-  /// 並ばずに、判子の窓の「食べられなかった（撤退）」から残した撤退。
+  /// 並ばずに、判子の窓の「撤退」から残した撤退。
   static AnalyticsEvent retreatRecorded({required ShopSourceKind shopSource}) =>
       AnalyticsEvent('retreat_recorded', {'shop_source': shopSource.name});
 
