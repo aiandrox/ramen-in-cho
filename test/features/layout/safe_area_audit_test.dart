@@ -8,6 +8,8 @@ import 'package:ramen_in_cho/features/checkin/checkin_controller.dart';
 import 'package:ramen_in_cho/features/checkin/checkin_screen.dart';
 import 'package:ramen_in_cho/features/checkin/retreat_screen.dart';
 import 'package:ramen_in_cho/features/credits/credits_screen.dart';
+import 'package:ramen_in_cho/features/help/help_screen.dart';
+import 'package:ramen_in_cho/features/help/help_topics.dart';
 import 'package:ramen_in_cho/features/home/app_tab.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_picker_screen.dart';
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
@@ -307,6 +309,20 @@ final List<_Screen> _screens = [
   (
     name: '設定',
     home: const SettingsScreen(),
+    tab: null,
+    checkin: null,
+    visit: null,
+  ),
+  (
+    name: '使い方',
+    home: const HelpScreen(),
+    tab: null,
+    checkin: null,
+    visit: null,
+  ),
+  (
+    name: '使い方の絵をめくる画面',
+    home: HelpTopicScreen(topic: helpTopics.first),
     tab: null,
     checkin: null,
     visit: null,

@@ -3139,8 +3139,224 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingReplay.
   ///
   /// In ja, this message translates to:
-  /// **'使い方をもう一度見る'**
+  /// **'はじめの案内をもう一度見る'**
   String get onboardingReplay;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'使い方'**
+  String get helpTitle;
+
+  /// No description provided for @helpIntro.
+  ///
+  /// In ja, this message translates to:
+  /// **'知りたいことを選ぶと、画面の絵を1枚ずつめくって見られます'**
+  String get helpIntro;
+
+  /// No description provided for @helpOnboardingNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点の決め方と始め方を、はじめて開いたときの案内で見直せます'**
+  String get helpOnboardingNote;
+
+  /// No description provided for @helpPageCount.
+  ///
+  /// In ja, this message translates to:
+  /// **'{page}/{total}'**
+  String helpPageCount(int page, int total);
+
+  /// No description provided for @helpPrev.
+  ///
+  /// In ja, this message translates to:
+  /// **'前へ'**
+  String get helpPrev;
+
+  /// No description provided for @helpNext.
+  ///
+  /// In ja, this message translates to:
+  /// **'次へ'**
+  String get helpNext;
+
+  /// No description provided for @helpDone.
+  ///
+  /// In ja, this message translates to:
+  /// **'閉じる'**
+  String get helpDone;
+
+  /// No description provided for @helpRecordTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'記録する'**
+  String get helpRecordTitle;
+
+  /// No description provided for @helpRecordStart.
+  ///
+  /// In ja, this message translates to:
+  /// **'食べたら、下の真ん中の「麺」を押して「着丼した」を選びます。'**
+  String get helpRecordStart;
+
+  /// No description provided for @helpRecordPhoto.
+  ///
+  /// In ja, this message translates to:
+  /// **'カメラで撮るか、ギャラリーから写真を選びます。過去の写真は何枚もまとめて選べます。'**
+  String get helpRecordPhoto;
+
+  /// No description provided for @helpRecordShop.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真を選ぶと、近くのラーメン店が出ます。タップして選び、見つからなければ店名を打ちます。'**
+  String get helpRecordShop;
+
+  /// No description provided for @helpRecordResult.
+  ///
+  /// In ja, this message translates to:
+  /// **'「着丼！」で保存すると、印帳に印が押されます。'**
+  String get helpRecordResult;
+
+  /// No description provided for @helpQueueTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'いま並んでいる'**
+  String get helpQueueTitle;
+
+  /// No description provided for @helpQueueStart.
+  ///
+  /// In ja, this message translates to:
+  /// **'並び始めたら「麺」→「いま並んでいる」で、並んだ店を選びます。店の近くにいるときに選べます。'**
+  String get helpQueueStart;
+
+  /// No description provided for @helpQueueWaiting.
+  ///
+  /// In ja, this message translates to:
+  /// **'並んでいる間は、印帳の上に待ち時間が出ます。食べるときは真ん中の「着」を押します。'**
+  String get helpQueueWaiting;
+
+  /// No description provided for @helpRetreatTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'撤退'**
+  String get helpRetreatTitle;
+
+  /// No description provided for @helpRetreat.
+  ///
+  /// In ja, this message translates to:
+  /// **'売り切れや休みで食べられなかったときは、「麺」→「食べられなかった（撤退）」で残せます。'**
+  String get helpRetreat;
+
+  /// No description provided for @helpRatingTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'★をあとで付ける'**
+  String get helpRatingTitle;
+
+  /// No description provided for @helpRating.
+  ///
+  /// In ja, this message translates to:
+  /// **'★は食べ終わってからで大丈夫です。食べてから半日は、印帳の上の「〇〇 はどうでしたか？」で付けられます。店のページからもいつでも付けられます。'**
+  String get helpRating;
+
+  /// No description provided for @helpWishTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'願掛け'**
+  String get helpWishTitle;
+
+  /// No description provided for @helpWishList.
+  ///
+  /// In ja, this message translates to:
+  /// **'行きたい店は願掛け帳に書いておきます。右下のしおりから足せます。'**
+  String get helpWishList;
+
+  /// No description provided for @helpWishCandidate.
+  ///
+  /// In ja, this message translates to:
+  /// **'願を掛けた店は、記録するときの候補に「願」の印付きで出ます。選んで保存すると願が叶います。'**
+  String get helpWishCandidate;
+
+  /// No description provided for @helpMapTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図で店を探す'**
+  String get helpMapTitle;
+
+  /// No description provided for @helpMapSearch.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図の右下の「このあたりを探す」で、まだ行っていない店が灰色のピンで出ます。'**
+  String get helpMapSearch;
+
+  /// No description provided for @helpJourneyTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'旅路'**
+  String get helpJourneyTitle;
+
+  /// No description provided for @helpJourney.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図の右上の「旅路」で、食べた店を食べた順に線でつないで振り返れます。'**
+  String get helpJourney;
+
+  /// No description provided for @helpHomeBaseTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'拠点'**
+  String get helpHomeBaseTitle;
+
+  /// No description provided for @helpHomeBase.
+  ///
+  /// In ja, this message translates to:
+  /// **'ふだん暮らす駅や街を拠点にします。設定の「拠点」からいつでも変えられます。'**
+  String get helpHomeBase;
+
+  /// No description provided for @helpShugyoTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'修行タブ（段位・型と秘伝・修行録）'**
+  String get helpShugyoTitle;
+
+  /// No description provided for @helpShugyoRank.
+  ///
+  /// In ja, this message translates to:
+  /// **'修行タブの上では、今の段位と次の段位までが見られます。タップすると昇段の記録が開きます。'**
+  String get helpShugyoRank;
+
+  /// No description provided for @helpShugyoQuests.
+  ///
+  /// In ja, this message translates to:
+  /// **'型と秘伝には、続けるほど上がる型と、会得した秘伝の印が並びます。'**
+  String get helpShugyoQuests;
+
+  /// No description provided for @helpShugyoroku.
+  ///
+  /// In ja, this message translates to:
+  /// **'修行録では、一年分の一杯を月ごとの章にして、本のように読み返せます。'**
+  String get helpShugyoroku;
+
+  /// No description provided for @helpShareTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'共有'**
+  String get helpShareTitle;
+
+  /// No description provided for @helpShare.
+  ///
+  /// In ja, this message translates to:
+  /// **'店のページの右上から、一杯を1枚の絵にして家族や友だちに送れます。'**
+  String get helpShare;
+
+  /// No description provided for @helpBackupTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'バックアップ'**
+  String get helpBackupTitle;
+
+  /// No description provided for @helpBackup.
+  ///
+  /// In ja, this message translates to:
+  /// **'機種変更に備えて、記録と写真を1つのファイルに書き出しておけます。読み込むと、端末に無い記録だけが足されます。'**
+  String get helpBackup;
 
   /// No description provided for @onboardingScroll.
   ///

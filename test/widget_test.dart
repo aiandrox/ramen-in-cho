@@ -146,7 +146,7 @@ void main() {
     await tester.tap(find.byTooltip(ja.settingsSection));
     await tester.pumpAndSettle();
     expect(find.text(ja.backupTitle), findsOneWidget);
-    expect(find.text(ja.onboardingReplay), findsOneWidget);
+    expect(find.text(ja.helpTitle), findsOneWidget);
     expect(find.text(ja.creditsTitle), findsOneWidget);
     Navigator.of(tester.element(find.byType(SettingsScreen))).pop();
     await tester.pumpAndSettle();
