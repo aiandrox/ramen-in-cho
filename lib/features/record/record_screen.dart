@@ -171,6 +171,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
   }
 
   Future<void> _skipInBatch() async {
+    if (ref.read(recordControllerProvider).isSaving) return;
     await ref.read(recordControllerProvider.notifier).skipInBatch();
     if (!mounted) return;
     await _continueBatch();

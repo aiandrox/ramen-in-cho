@@ -56,7 +56,7 @@ class ImagePickerPhotoPicker implements PhotoPicker {
         imageQuality: _quality,
         limit: _maxPhotos,
       );
-      return [for (final file in files) file.path];
+      return [for (final file in files.take(_maxPhotos)) file.path];
     } catch (_) {
       return const [];
     }

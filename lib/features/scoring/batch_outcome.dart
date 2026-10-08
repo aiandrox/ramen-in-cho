@@ -28,8 +28,11 @@ class BatchOutcome {
   final int bestDailyStreakBefore;
   final int bestDailyStreakAfter;
 
-  /// まとめた杯それぞれの修行点の合計。
-  int get points => scored.fold(0, (sum, e) => sum + e.points.total);
+  /// 累計の増えた分（過去の日時の杯を足すと、ほかの杯の初訪問ボーナスが動くことがあるため、杯ごとの点の和とは限らない）。
+  int get points {
+    final gain = totalAfter - totalBefore;
+    return gain < 0 ? 0 : gain;
+  }
 
   /// 上がった段位の数（1杯で上がるのは1つだけなので、杯数より多くはならない）。
   int get rankSteps {
@@ -50,7 +53,7 @@ class BatchOutcome {
       bestDailyStreakAfter >= healthyLifeDays;
 }
 
-/// [visitIds]の記録が1件も無ければnull。
+/// [visitIds]の記録が1件でも無ければnull（一覧に保存した杯がまだ届いていないとき）。
 BatchOutcome? computeBatchOutcome(
   List<VisitWithShop> all,
   Iterable<String> visitIds, {
@@ -70,7 +73,7 @@ BatchOutcome? computeBatchOutcome(
     for (final entry in scoredAll)
       if (ids.contains(entry.visit.id)) entry,
   ];
-  if (batch.isEmpty) return null;
+  if (batch.isEmpty || batch.length < ids.length) return null;
   final scoredOthers = score([
     for (final entry in all)
       if (!ids.contains(entry.visit.id)) entry,

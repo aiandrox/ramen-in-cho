@@ -541,15 +541,22 @@ class RecordController extends Notifier<RecordState> {
     _lastDraftJson = null;
     _startedAt = ref.read(clockProvider)();
     _knownShopsLoad = _loadKnownShops();
-    state = RecordState(batch: next);
+    // 2枚目からは過去の写真なので、並んでいる店を先に選んでおかない。写真が入るまでは押せなくする。
+    state = RecordState(batch: next, isSaving: true);
     _draftClosed = false;
-    await _loadCheckin();
-    if (!ref.mounted) return;
     await _setGalleryPhoto(batch.pending.first);
+    if (ref.mounted) state = state.copyWith(isSaving: false);
   }
 
   /// 何枚も選んで記録している最中に、今の写真を記録せずに飛ばす。
   Future<void> skipInBatch() async {
+    if (state.isSaving) return;
+    state = state.copyWith(isSaving: true);
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.draftDiscarded('batch_skip')),
+    );
     _draftClosed = true;
     await _clearDraftStore();
   }

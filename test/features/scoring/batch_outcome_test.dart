@@ -24,17 +24,19 @@ void main() {
     )!;
 
     expect(outcome.scored.map((e) => e.visit.id), [a.visit.id, b.visit.id]);
+    expect(outcome.totalBefore, 15);
+    expect(outcome.points, outcome.totalAfter - outcome.totalBefore);
     expect(
       outcome.points,
       outcome.scored[0].points.total + outcome.scored[1].points.total,
     );
-    expect(outcome.totalBefore, 15);
-    expect(outcome.totalAfter, outcome.totalBefore + outcome.points);
   });
 
   test('まとめた記録が無ければnull', () {
     final entry = buildEntry(shop: shop, eatenAt: day(1));
     expect(computeBatchOutcome([entry], ['missing']), isNull);
+    // 保存した杯が一覧にまだ届いていなければ、そろうまで待つ。
+    expect(computeBatchOutcome([entry], [entry.visit.id, 'missing']), isNull);
   });
 
   test('段位は1杯で1つずつ上がるので、上がった数は杯数を越えない', () {
@@ -58,6 +60,24 @@ void main() {
     expect(outcome.rankAfter, AdventurerRank.kyu3);
     expect(outcome.rankSteps, 3);
     expect(outcome.isRankUp, isTrue);
+  });
+
+  test('過去の日時の杯を足すと、合計はほかの杯のボーナスの動きも含めた累計の差になる', () {
+    final later = buildEntry(shop: shop, eatenAt: day(20));
+    final earlier = buildEntry(shop: shop, eatenAt: day(1));
+    final other = buildEntry(
+      shop: buildShop(id: 'other'),
+      eatenAt: day(10),
+    );
+
+    final outcome = computeBatchOutcome(
+      [later, earlier, other],
+      [earlier.visit.id, other.visit.id],
+    )!;
+
+    final sum = outcome.scored.fold(0, (s, e) => s + e.points.total);
+    expect(outcome.points, outcome.totalAfter - outcome.totalBefore);
+    expect(outcome.points, lessThan(sum));
   });
 
   test('段位が変わらなければ0', () {
