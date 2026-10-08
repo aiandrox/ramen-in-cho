@@ -1,5 +1,5 @@
 import { yahooAttribution } from './search/yahoo.ts';
-import type { YahooQuota } from './yahoo-quota.ts';
+import { type YahooQuota, yahooAppIdFor } from './yahoo-quota.ts';
 
 /** 住所を位置にした結果。`level` は Yahoo! の住所の一致の細かさ（1 都道府県〜6 号）。 */
 export interface GeocodeResult {
@@ -50,10 +50,10 @@ export const normalizeAddress = (address: string) => address.replaceAll('　', '
  * Yahoo! の結果は利用条件（保存・キャッシュの禁止）のため ためず、毎回問い合わせる（#373）。
  */
 export async function geocode(deps: GeocodeDeps, address: string): Promise<GeocodeResult | null> {
-  const appId = deps.yahooAppId;
   const query = normalizeAddress(address);
-  if (!appId || !query) return null;
-  if (deps.yahooQuota && !(await deps.yahooQuota.take(1))) return null;
+  if (!query) return null;
+  const appId = await yahooAppIdFor(deps, 1);
+  if (!appId) return null;
   try {
     const response = await deps.fetch(buildGeocodeUrl(query, appId), {
       signal: AbortSignal.timeout(upstreamTimeoutMs),

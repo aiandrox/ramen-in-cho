@@ -15,7 +15,7 @@ export function jstDay(nowMs: number): string {
   return new Date(nowMs + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
-/** D1 の1日1行に足していく。足したあとの回数が上限を越えたら使わない（越えた日の分も数えたまま）。 */
+/** D1 の1日1行に足していく。足すと上限を越えるときは足さずに使わない（行は書き換えない）。 */
 export function d1YahooQuota(
   db: D1Database,
   limit = yahooDailyLimit,
@@ -27,21 +27,30 @@ export function d1YahooQuota(
         const row = await db
           .prepare(
             'INSERT INTO yahoo_daily_usage (day, count) VALUES (?1, ?2) ' +
-              'ON CONFLICT (day) DO UPDATE SET count = count + ?2 RETURNING count',
+              'ON CONFLICT (day) DO UPDATE SET count = count + ?2 WHERE count + ?2 <= ?3 RETURNING count',
           )
-          .bind(jstDay(now()), count)
+          .bind(jstDay(now()), count, limit)
           .first<{ count: number }>();
-        const used = Number(row?.count);
-        if (!Number.isFinite(used)) return false;
-        if (used > limit) {
+        if (row === null) {
           console.log('yahoo daily limit reached');
           return false;
         }
-        return true;
+        return Number(row.count) <= limit;
       } catch (e) {
         console.log(`yahoo quota failed: ${e}`);
         return false;
       }
     },
   };
+}
+
+/** Yahoo! に [count] 回問い合わせてよければ Client ID を返す（Client ID があり、今日の上限の内）。[quota] が無ければ数えない。 */
+export async function yahooAppIdFor(
+  deps: { yahooAppId?: string; yahooQuota?: YahooQuota },
+  count: number,
+): Promise<string | null> {
+  const appId = deps.yahooAppId;
+  if (!appId) return null;
+  if (deps.yahooQuota && !(await deps.yahooQuota.take(count))) return null;
+  return appId;
 }

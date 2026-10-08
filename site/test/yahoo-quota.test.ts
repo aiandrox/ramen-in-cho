@@ -8,11 +8,13 @@ function fakeDb(fail = false) {
   const statements: string[] = [];
   const db = {
     prepare: (sql: string) => ({
-      bind: (day: string, count: number) => ({
+      bind: (day: string, count: number, limit: number) => ({
         first: async () => {
           statements.push(sql);
           if (fail) throw new Error('D1 unavailable');
-          rows.set(day, (rows.get(day) ?? 0) + count);
+          const before = rows.get(day);
+          if (before !== undefined && before + count > limit) return null;
+          rows.set(day, (before ?? 0) + count);
           return { count: rows.get(day) };
         },
       }),
@@ -34,7 +36,7 @@ describe('Yahoo! の1日の回数', () => {
     expect(await quota.take(2)).toBe(true);
     expect(await quota.take(1)).toBe(true);
     expect(await quota.take(1)).toBe(false);
-    expect(await quota.take(1)).toBe(false);
+    expect(rows.get('2026-10-08')).toBe(3);
     now = Date.parse('2026-10-08T15:00:00Z');
     expect(await quota.take(1)).toBe(true);
     expect([...rows.keys()]).toEqual(['2026-10-08', '2026-10-09']);

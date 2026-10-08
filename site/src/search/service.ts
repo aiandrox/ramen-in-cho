@@ -9,7 +9,7 @@ import {
   nameQueryVariants,
   normalizeShopName,
 } from './shop.ts';
-import type { YahooQuota } from '../yahoo-quota.ts';
+import { type YahooQuota, yahooAppIdFor } from '../yahoo-quota.ts';
 import { buildYahooNameUrl, buildYahooNearbyUrl, parseYahooLocal } from './yahoo.ts';
 
 export interface SearchDeps {
@@ -53,14 +53,6 @@ async function attempt(search: () => Promise<FoundShop[]>): Promise<FoundShop[] 
     console.log(`search failed: ${e}`);
     return null;
   }
-}
-
-/** Yahoo! に [count] 回問い合わせてよいか（Client ID があり、今日の上限の内）。 */
-async function yahooAppIdFor(deps: SearchDeps, count: number): Promise<string | null> {
-  const appId = deps.yahooAppId;
-  if (!appId) return null;
-  if (deps.yahooQuota && !(await deps.yahooQuota.take(count))) return null;
-  return appId;
 }
 
 /** ため置く Yahoo! 以外の結果。OpenStreetMap と OpenPOI は優先の順を保つため分けて持つ。 */
@@ -143,7 +135,8 @@ export async function searchNearby(
     (async () => {
       const appId = await yahooAppIdFor(deps, 1);
       return appId
-        ? attempt(async () => parseYahooLocal(await getJson(deps, buildYahooNearbyUrl(cell, searchRadius, appId))))
+        ? // ためないので、マスではなく問い合わせの中心と半径で探す。
+          attempt(async () => parseYahooLocal(await getJson(deps, buildYahooNearbyUrl(center, radiusMeters, appId))))
         : null;
     })(),
   ]);
