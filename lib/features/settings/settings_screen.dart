@@ -7,7 +7,7 @@ import '../credits/credits_screen.dart';
 import '../home_base/home_base_picker_screen.dart';
 import '../home_base/home_base_repository.dart';
 import '../notifications/notification_settings_screen.dart';
-import '../onboarding/onboarding_screen.dart';
+import '../help/help_screen.dart';
 import '../support/contact_support.dart';
 import 'app_about.dart';
 import 'location_access.dart';
@@ -64,7 +64,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           for (final (title, onTap) in [
             (l10n.backupTitle, () => open(const BackupScreen())),
-            (l10n.onboardingReplay, () => showOnboarding(context, ref)),
+            (l10n.helpTitle, () => open(const HelpScreen())),
             (l10n.creditsTitle, () => open(const CreditsScreen())),
           ])
             ListTile(

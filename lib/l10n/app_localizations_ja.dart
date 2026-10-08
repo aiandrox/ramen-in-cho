@@ -1771,7 +1771,119 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingNext => '先へ進む';
 
   @override
-  String get onboardingReplay => '使い方をもう一度見る';
+  String get onboardingReplay => 'はじめの案内をもう一度見る';
+
+  @override
+  String get helpTitle => '使い方';
+
+  @override
+  String get helpIntro => '知りたいことを選ぶと、画面の絵を1枚ずつめくって見られます';
+
+  @override
+  String get helpOnboardingNote => '拠点の決め方と始め方を、はじめて開いたときの案内で見直せます';
+
+  @override
+  String helpPageCount(int page, int total) {
+    return '$page/$total';
+  }
+
+  @override
+  String get helpPrev => '前へ';
+
+  @override
+  String get helpNext => '次へ';
+
+  @override
+  String get helpDone => '閉じる';
+
+  @override
+  String get helpRecordTitle => '記録する';
+
+  @override
+  String get helpRecordStart => '食べたら、下の真ん中の「麺」を押して「着丼した」を選びます。';
+
+  @override
+  String get helpRecordPhoto => 'カメラで撮るか、ギャラリーから写真を選びます。過去の写真は何枚もまとめて選べます。';
+
+  @override
+  String get helpRecordShop => '写真を選ぶと、近くのラーメン店が出ます。タップして選び、見つからなければ店名を打ちます。';
+
+  @override
+  String get helpRecordResult => '「着丼！」で保存すると、印帳に印が押されます。';
+
+  @override
+  String get helpQueueTitle => 'いま並んでいる';
+
+  @override
+  String get helpQueueStart => '並び始めたら「麺」→「いま並んでいる」で、並んだ店を選びます。店の近くにいるときに選べます。';
+
+  @override
+  String get helpQueueWaiting => '並んでいる間は、印帳の上に待ち時間が出ます。食べるときは真ん中の「着」を押します。';
+
+  @override
+  String get helpRetreatTitle => '撤退';
+
+  @override
+  String get helpRetreat => '売り切れや休みで食べられなかったときは、「麺」→「食べられなかった（撤退）」で残せます。';
+
+  @override
+  String get helpRatingTitle => '★をあとで付ける';
+
+  @override
+  String get helpRating => '★は食べ終わってからで大丈夫です。印帳の上の「〇〇 はどうでしたか？」で付けられます。';
+
+  @override
+  String get helpWishTitle => '願掛け';
+
+  @override
+  String get helpWishList => '行きたい店は願掛け帳に書いておきます。右下のしおりから足せます。';
+
+  @override
+  String get helpWishCandidate =>
+      '願を掛けた店は、記録するときの候補に「願」の印付きで出ます。選んで保存すると願が叶います。';
+
+  @override
+  String get helpMapTitle => '地図で店を探す';
+
+  @override
+  String get helpMapSearch => '地図の「このあたりのラーメン店を探す」で、まだ行っていない店が灰色のピンで出ます。';
+
+  @override
+  String get helpJourneyTitle => '旅路';
+
+  @override
+  String get helpJourney => '地図の右上の「旅路」で、食べた店を食べた順に線でつないで振り返れます。';
+
+  @override
+  String get helpHomeBaseTitle => '拠点';
+
+  @override
+  String get helpHomeBase => 'ふだん暮らす駅や街を拠点にします。設定の「拠点」からいつでも変えられます。';
+
+  @override
+  String get helpShugyoTitle => '修行タブ（段位・型と秘伝・修行録）';
+
+  @override
+  String get helpShugyoRank => '修行タブの上では、今の段位と次の段位までが見られます。タップすると昇段の記録が開きます。';
+
+  @override
+  String get helpShugyoQuests => '型と秘伝には、続けるほど上がる型と、会得した秘伝の印が並びます。';
+
+  @override
+  String get helpShugyoroku => '修行録では、一年分の一杯を月ごとの章にして、本のように読み返せます。';
+
+  @override
+  String get helpShareTitle => '共有';
+
+  @override
+  String get helpShare => '店のページの右上から、一杯を1枚の絵にして家族や友だちに送れます。';
+
+  @override
+  String get helpBackupTitle => 'バックアップ';
+
+  @override
+  String get helpBackup =>
+      '機種変更に備えて、記録と写真を1つのファイルに書き出しておけます。読み込むと、端末に無い記録だけが足されます。';
 
   @override
   String get onboardingScroll => '入門の心得';

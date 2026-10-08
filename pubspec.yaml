@@ -91,6 +91,7 @@ flutter:
     - assets/prefectures.json
     - assets/fonts/ShipporiMincho-OFL.txt
     - assets/fonts/YujiSyuku-OFL.txt
+    - assets/help/
 
   fonts:
     - family: ShipporiMincho
