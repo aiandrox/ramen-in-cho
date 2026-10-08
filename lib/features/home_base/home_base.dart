@@ -18,6 +18,35 @@ List<HomeBaseSetting> homeBasesNewestFirst(List<HomeBaseSetting> settings) =>
 DateTime homeBaseDayStart(DateTime day) =>
     DateTime(day.year, day.month, day.day);
 
+/// 新しく決める拠点の「いつから」に選べる、いちばん前の日。
+/// 今の拠点より前の日にすると今の拠点のほうが新しいままになるので、今の拠点を決めた日の翌日から（今日より後にはしない）。
+/// 前の日から効かせたいときは、これまでの拠点の日付を直す。
+DateTime earliestNewHomeBaseDay(List<HomeBaseSetting> settings, DateTime now) {
+  final today = homeBaseDayStart(now);
+  final latest = latestHomeBase(settings);
+  if (latest == null) return homeBaseFirstDay;
+  final next = homeBaseDayStart(latest.setAt).add(const Duration(days: 1));
+  return next.isAfter(today) ? today : next;
+}
+
+/// 「いつから」に選べる日の下限（拠点がまだ無いとき）。
+final homeBaseFirstDay = DateTime(2000);
+
+/// 新しく決める拠点の効き始め。[day]が無いか今日なら今この時から（その日のうちに決め直しても、後に決めたほうが効くように）、
+/// 前の日ならその日の0時から（その日の記録すべてに効かせる）。
+/// 今の拠点より前になるとき（窓を開いている間に日付が変わったなど）は今この時にし、新しい拠点がいつも今の拠点になるようにする。
+DateTime newHomeBaseSetAt({
+  required DateTime? day,
+  required DateTime now,
+  List<HomeBaseSetting> settings = const [],
+}) {
+  if (day == null) return now;
+  final start = homeBaseDayStart(day);
+  if (!start.isBefore(homeBaseDayStart(now))) return now;
+  final latest = latestHomeBase(settings);
+  return latest != null && !start.isAfter(latest.setAt) ? now : start;
+}
+
 /// [at]の時点で効いている拠点（[at]以前に決めたうちの最新）。まだ決めていなければnull。
 HomeBaseSetting? homeBaseAt(List<HomeBaseSetting> settings, DateTime at) =>
     latestHomeBase([

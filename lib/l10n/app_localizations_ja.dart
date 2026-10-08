@@ -943,7 +943,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeBaseIntro =>
-      '地図を動かして、ふだん暮らしているあたりを真ん中の「拠」に合わせてください。家の場所でなくても、駅や街のあたりで十分です。拠点から80km以上離れた店で食べると「遠征」になります。変えても、変えた日から後の記録にだけ効きます。';
+      '地図を動かして、ふだん暮らしているあたりを真ん中の「拠」に合わせてください。家の場所でなくても、駅や街のあたりで十分です。拠点から80km以上離れた店で食べると「遠征」になります。いつから効かせるかは、呼び名と一緒に選べます。';
 
   @override
   String get homeBaseUseCenter => 'ここを拠点にする';
@@ -965,6 +965,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get homeBaseDecide => '決める';
+
+  @override
+  String get homeBaseFromTitle => 'いつから';
+
+  @override
+  String get homeBaseFromToday => '今日から';
+
+  @override
+  String get homeBaseFromNote =>
+      'この日から後の一杯は、この拠点から遠征かどうかを決めます。前の日を選ぶと、その日からの一杯も遠征になることがあります。';
 
   @override
   String get homeBaseHereFailed => '現在地がわかりませんでした';
@@ -1790,7 +1800,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpIntro => '知りたいことを選ぶと、画面の絵を1枚ずつめくって見られます';
 
   @override
-  String get helpOnboardingNote => '拠点の決め方と始め方を、はじめて開いたときの案内で見直せます';
+  String get helpOnboardingNote => '麺印帳の遊び方と始め方を、はじめて開いたときの案内で見直せます';
 
   @override
   String helpPageCount(int page, int total) {
@@ -1929,33 +1939,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingWelcomeWishBody => '行きたい店は願掛け帳に記しておく。その店で食べた日に、願が成就する。';
 
   @override
-  String get onboardingHomeBaseChapter => '其の二　拠点';
-
-  @override
-  String get onboardingHomeBaseTitle => '拠点を構える';
-
-  @override
-  String get onboardingHomeBaseBody =>
-      'ふだん暮らす駅や街を、修行の拠点と定める。\n\n拠点から80km以上離れた店で食べた一杯は「遠征」となり、修行点が上乗せされる。拠点はあとから設定で変えられ、変えた日から後の一杯にだけ効く。';
-
-  @override
-  String get onboardingHomeBaseHere => '現在地を拠点にする';
-
-  @override
-  String get onboardingHomeBaseMap => '地図で選ぶ';
-
-  @override
-  String get onboardingHomeBaseLater => 'あとで決める';
-
-  @override
-  String get onboardingStartChapter => '其の三　始め方';
+  String get onboardingStartChapter => '其の二　始め方';
 
   @override
   String get onboardingStartTitle => 'いざ、麺の道へ';
 
   @override
   String get onboardingStartBody =>
-      '支度は整った。どこから始めるかを選ぶがよい。\n\n刻んだ一杯は印帳に並び、段位や型と秘伝は「修行」で見ることができる。';
+      '支度は整った。どこから始めるかを選ぶがよい。\n\n刻んだ一杯は印帳に並び、段位や型と秘伝は「修行」で見ることができる。遠征の基準となる拠点は、設定からいつでも定められる。';
 
   @override
   String get onboardingStartRecord => '写真から一杯を刻む';

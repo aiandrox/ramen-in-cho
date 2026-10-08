@@ -43,14 +43,14 @@ class HomeBaseRepository {
     required String name,
     required double latitude,
     required double longitude,
-    required DateTime now,
+    required DateTime setAt,
   }) async {
     final setting = HomeBaseSetting(
       id: _uuid.v4(),
       name: name.trim(),
       latitude: latitude,
       longitude: longitude,
-      setAt: now,
+      setAt: setAt,
     );
     await _db.into(_db.homeBaseSettings).insert(setting.toCompanion());
     return setting;

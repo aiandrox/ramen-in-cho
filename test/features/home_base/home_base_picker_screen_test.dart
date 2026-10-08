@@ -157,6 +157,27 @@ void main() {
     expect(saved.single.longitude, sapporo.longitude);
   });
 
+  testWidgets('「いつから」を前の日にすると、その日の0時から効く拠点にする', (tester) async {
+    location = FakeLocationService(position: sapporo);
+    await pumpPicker(tester);
+
+    await tester.tap(find.text(ja.homeBaseUseCenter));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.homeBaseFromToday), findsOneWidget);
+    await tester.tap(find.text(ja.homeBaseFromTitle));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('1'));
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.homeBaseHistoryFrom('2026/10/1')), findsOneWidget);
+    await nameAndDecide(tester, '札幌');
+    await tester.tap(find.text(ja.homeBaseHidenOk));
+    await tester.pumpAndSettle();
+
+    final saved = await database.select(database.homeBaseSettings).get();
+    expect(saved.single.setAt, DateTime(2026, 10, 1));
+  });
+
   testWidgets('呼び名の窓を閉じたら保存しない', (tester) async {
     location = FakeLocationService(position: sapporo);
     await pumpPicker(tester);

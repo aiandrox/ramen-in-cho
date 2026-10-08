@@ -404,12 +404,7 @@ final List<_Screen> _screens = [
     tab: null,
     checkin: null,
     visit: (tester, audit) async {
-      for (final next in [
-        ja.onboardingNext,
-        // この監査では拠点が決まっているので、其の二も「先へ進む」になる。
-        ja.onboardingNext,
-        null,
-      ]) {
+      for (final next in [ja.onboardingNext, null]) {
         await audit('${next ?? '終わり'}の前');
         if (next == null) break;
         await _reveal(tester, find.text(next));

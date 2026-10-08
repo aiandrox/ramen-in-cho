@@ -23,7 +23,7 @@ void main() {
         name: name,
         latitude: 35.6909,
         longitude: 139.7003,
-        now: now,
+        setAt: now,
       );
 
   QuestProgress homeBaseQuest(List<HomeBaseSetting> settings) => evaluateQuests(
@@ -90,7 +90,7 @@ void main() {
       name: '札幌',
       latitude: 43.0687,
       longitude: 141.3508,
-      now: DateTime(2026, 6, 1, 9),
+      setAt: DateTime(2026, 6, 1, 9),
     );
     int bonus(List<HomeBaseSetting> settings) => scoreVisits([
       buildEntry(shop: far, eatenAt: DateTime(2026, 7, 1, 12)),

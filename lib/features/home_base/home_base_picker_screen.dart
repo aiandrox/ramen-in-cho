@@ -149,12 +149,28 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
   }
 
   Future<void> _choose(GeoPoint location) async {
-    final name = await showDialog<String>(
+    final settings = await ref.read(homeBaseRepositoryProvider).allSettings();
+    if (!mounted) return;
+    final now = ref.read(clockProvider)();
+    final chosen = await showDialog<_NameAndDay>(
       context: context,
-      builder: (_) => const _NameDialog(),
+      builder: (_) => _NameDialog(
+        from: (
+          today: homeBaseDayStart(now),
+          first: earliestNewHomeBaseDay(settings, now),
+        ),
+      ),
     );
-    if (name == null || !mounted) return;
-    await _save(name, location);
+    if (chosen == null || !mounted) return;
+    await _save(
+      chosen.name,
+      location,
+      newHomeBaseSetAt(
+        day: chosen.day,
+        now: ref.read(clockProvider)(),
+        settings: settings,
+      ),
+    );
   }
 
   void _showMessage(String message) {
@@ -163,13 +179,14 @@ class _HomeBasePickerScreenState extends ConsumerState<HomeBasePickerScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _save(String name, GeoPoint location) async {
+  Future<void> _save(String name, GeoPoint location, DateTime setAt) async {
     setState(() => _saving = true);
     final saved = await saveHomeBase(
       context,
       ref,
       name: name,
       location: location,
+      setAt: setAt,
     );
     if (!mounted) return;
     if (saved) {
@@ -475,7 +492,7 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
     final day = await showDatePicker(
       context: context,
       initialDate: current.isAfter(today) ? today : current,
-      firstDate: DateTime(2000),
+      firstDate: homeBaseFirstDay,
       lastDate: today,
     );
     if (day == null || !mounted) return;
@@ -483,12 +500,12 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
   }
 
   Future<void> _rename() async {
-    final name = await showDialog<String>(
+    final chosen = await showDialog<_NameAndDay>(
       context: context,
       builder: (_) => _NameDialog(initial: _setting.name),
     );
-    if (name == null || !mounted) return;
-    await _update(_setting.copyWith(name: name), 'name');
+    if (chosen == null || !mounted) return;
+    await _update(_setting.copyWith(name: chosen.name), 'name');
   }
 
   Future<void> _relocate() async {
@@ -598,13 +615,12 @@ class _EditSheetState extends ConsumerState<_EditSheet> {
 }
 
 /// 拠点を保存し、初めてなら秘伝を知らせてから「保存しました」を出す。失敗したら知らせて false を返す。
-/// [onSaved]は保存の直後、知らせる前に呼ぶ（知らせている間にアプリを閉じても、先へ進んだことを残すため）。
 Future<bool> saveHomeBase(
   BuildContext context,
   WidgetRef ref, {
   required String name,
   required GeoPoint location,
-  VoidCallback? onSaved,
+  required DateTime setAt,
 }) async {
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
@@ -616,9 +632,8 @@ Future<bool> saveHomeBase(
       name: name,
       latitude: location.latitude,
       longitude: location.longitude,
-      now: ref.read(clockProvider)(),
+      setAt: setAt,
     );
-    onSaved?.call();
     unawaited(
       analytics.log(
         AnalyticsEvents.homeBaseSet(via: isFirst ? 'first' : 'change'),
@@ -679,12 +694,19 @@ Future<void> showHomeBaseHidenDialog(BuildContext context, DateTime setAt) {
   );
 }
 
-/// 拠点の呼び名を聞く。閉じる動きの間も入力欄が残るので、入力の中身は窓と一緒に片付ける。
+/// 呼び名の窓で選んだ呼び名と「いつから」の日（今日のままなら null）。
+typedef _NameAndDay = ({String name, DateTime? day});
+
+/// 拠点の呼び名を聞く。[from]を渡すと「いつから」も選べる（初めは今日）。
+/// 閉じる動きの間も入力欄が残るので、入力の中身は窓と一緒に片付ける。
 class _NameDialog extends StatefulWidget {
-  const _NameDialog({this.initial});
+  const _NameDialog({this.initial, this.from});
 
   /// 直すときの今の呼び名。無ければ「このあたり」。
   final String? initial;
+
+  /// 「いつから」に選べる日の範囲（いちばん前の日と今日）。
+  final ({DateTime first, DateTime today})? from;
 
   @override
   State<_NameDialog> createState() => _NameDialogState();
@@ -703,25 +725,65 @@ class _NameDialogState extends State<_NameDialog> {
     );
   }();
 
+  late var _day = widget.from?.today;
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  Future<void> _pickDay(({DateTime first, DateTime today}) from) async {
+    final day = await showDatePicker(
+      context: context,
+      initialDate: _day ?? from.today,
+      firstDate: from.first,
+      lastDate: from.today,
+    );
+    if (day != null && mounted) setState(() => _day = homeBaseDayStart(day));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final from = widget.from;
+    final day = _day;
     return AlertDialog(
+      scrollable: true,
       title: Text(l10n.homeBaseNameTitle),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        maxLength: 30,
-        decoration: InputDecoration(
-          helperText: l10n.homeBaseNameHint,
-          helperMaxLines: 2,
-        ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            maxLength: 30,
+            decoration: InputDecoration(
+              helperText: l10n.homeBaseNameHint,
+              helperMaxLines: 2,
+            ),
+          ),
+          if (from != null && day != null) ...[
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.event),
+              title: Text(l10n.homeBaseFromTitle),
+              subtitle: Text(
+                day == from.today
+                    ? l10n.homeBaseFromToday
+                    : l10n.homeBaseHistoryFrom(formatDate(day)),
+              ),
+              onTap: () => _pickDay(from),
+            ),
+            Text(
+              l10n.homeBaseFromNote,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Washi.inkSoft),
+            ),
+          ],
+        ],
       ),
       actions: [
         TextButton(
@@ -731,8 +793,10 @@ class _NameDialogState extends State<_NameDialog> {
         TextButton(
           onPressed: () {
             final name = _controller.text.trim();
-            Navigator.of(context)
-                .pop(name.isEmpty ? l10n.homeBaseNameDefault : name);
+            Navigator.of(context).pop((
+              name: name.isEmpty ? l10n.homeBaseNameDefault : name,
+              day: from == null || day == from.today ? null : day,
+            ));
           },
           child: Text(l10n.homeBaseDecide),
         ),

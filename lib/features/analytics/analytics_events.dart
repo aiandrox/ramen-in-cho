@@ -367,10 +367,6 @@ abstract final class AnalyticsEvents {
   static AnalyticsEvent onboardingPostponed({required String step}) =>
       AnalyticsEvent('onboarding_postponed', {'step': step});
 
-  static const onboardingHomeBaseLater = AnalyticsEvent(
-    'onboarding_home_base_later',
-  );
-
   /// [permission] は location・notification・camera のどれか。
   static AnalyticsEvent permissionDenied(String permission) =>
       AnalyticsEvent('permission_denied', {'permission': permission});
