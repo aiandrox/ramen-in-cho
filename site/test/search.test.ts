@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
+import { readJson } from './read_json.ts';
 import type { CuratedShop } from '../src/curated.ts';
 import { parseOpenPoiResponse } from '../src/search/openpoi.ts';
 import { parseOverpassResponse } from '../src/search/overpass.ts';
@@ -9,7 +9,7 @@ import { mergeFoundShops, nameQueryVariants, normalizeShopName } from '../src/se
 import { parseYahooLocal } from '../src/search/yahoo.ts';
 
 const fixture = (name: string) =>
-  JSON.parse(readFileSync(new URL(`../../test/fixtures/${name}`, import.meta.url), 'utf8'));
+  readJson(`../../test/fixtures/${name}`);
 
 const shinjuku = { latitude: 35.69, longitude: 139.7 };
 

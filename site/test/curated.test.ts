@@ -1,11 +1,11 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
+import { readJson } from './read_json.ts';
 import { type CuratedShop, etagOf, validateCuratedShops } from '../src/curated.ts';
 import { curatedShops } from '../src/http.ts';
 import { buildSeedSql } from '../src/seed.ts';
 
-const file = JSON.parse(readFileSync(new URL('../../data/curated_shops.json', import.meta.url), 'utf8'));
+const file = readJson('../../data/curated_shops.json');
 
 const shop = (overrides: Partial<CuratedShop> = {}): CuratedShop => ({
   id: 'jiro-mita',
