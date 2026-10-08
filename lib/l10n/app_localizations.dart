@@ -2764,6 +2764,24 @@ abstract class AppLocalizations {
   /// **'修行'**
   String get shugyoTitle;
 
+  /// No description provided for @shugyoSectionQuests.
+  ///
+  /// In ja, this message translates to:
+  /// **'型と秘伝'**
+  String get shugyoSectionQuests;
+
+  /// No description provided for @shugyoSectionRecords.
+  ///
+  /// In ja, this message translates to:
+  /// **'記録'**
+  String get shugyoSectionRecords;
+
+  /// No description provided for @shugyoSectionStats.
+  ///
+  /// In ja, this message translates to:
+  /// **'統計'**
+  String get shugyoSectionStats;
+
   /// No description provided for @healthyLifeTitle.
   ///
   /// In ja, this message translates to:
@@ -3379,13 +3397,13 @@ abstract class AppLocalizations {
   /// No description provided for @helpShugyoQuests.
   ///
   /// In ja, this message translates to:
-  /// **'型と秘伝には、続けるほど上がる型と、会得した秘伝の印が並びます。'**
+  /// **'段位の下の切り替えで「型と秘伝」「記録」「統計」を選べます。型と秘伝には、続けるほど上がる型と、会得した秘伝の印が並びます。'**
   String get helpShugyoQuests;
 
   /// No description provided for @helpShugyoroku.
   ///
   /// In ja, this message translates to:
-  /// **'修行録では、一年分の一杯を月ごとの章にして、本のように読み返せます。'**
+  /// **'「記録」の修行録では、一年分の一杯を月ごとの章にして、本のように読み返せます。'**
   String get helpShugyoroku;
 
   /// No description provided for @helpShareTitle.

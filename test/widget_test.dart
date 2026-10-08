@@ -139,7 +139,8 @@ void main() {
 
     expect(find.text(ja.questStanding), findsOneWidget);
     expect(find.text('着丼の道'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text(ja.statsEmpty), 300);
+    await tester.tap(find.text(ja.shugyoSectionStats));
+    await tester.pumpAndSettle();
     expect(find.text(ja.statsEmpty), findsOneWidget);
     expect(find.byType(MapScreen), findsNothing);
 

@@ -1547,6 +1547,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shugyoTitle => '修行';
 
   @override
+  String get shugyoSectionQuests => '型と秘伝';
+
+  @override
+  String get shugyoSectionRecords => '記録';
+
+  @override
+  String get shugyoSectionStats => '統計';
+
+  @override
   String get healthyLifeTitle => '毎日ラーメン健康生活';
 
   @override
@@ -1901,10 +1910,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpShugyoRank => '修行タブの上では、今の段位と次の段位までが見られます。タップすると昇段の記録が開きます。';
 
   @override
-  String get helpShugyoQuests => '型と秘伝には、続けるほど上がる型と、会得した秘伝の印が並びます。';
+  String get helpShugyoQuests =>
+      '段位の下の切り替えで「型と秘伝」「記録」「統計」を選べます。型と秘伝には、続けるほど上がる型と、会得した秘伝の印が並びます。';
 
   @override
-  String get helpShugyoroku => '修行録では、一年分の一杯を月ごとの章にして、本のように読み返せます。';
+  String get helpShugyoroku => '「記録」の修行録では、一年分の一杯を月ごとの章にして、本のように読み返せます。';
 
   @override
   String get helpShareTitle => '共有';
