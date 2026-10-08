@@ -77,4 +77,57 @@ void main() {
     );
     expect(homeBaseAt([yokohama, moved], DateTime(2026, 5, 20))?.id, 'sapporo');
   });
+
+  group('新しく決める拠点の「いつから」', () {
+    final now = DateTime(2026, 10, 8, 20);
+
+    test('拠点がまだ無ければ、ずっと前の日から選べる', () {
+      expect(earliestNewHomeBaseDay(const [], now), homeBaseFirstDay);
+    });
+
+    test('今の拠点を決めた日の翌日から選べる', () {
+      expect(earliestNewHomeBaseDay(settings, now), DateTime(2026, 6, 2));
+    });
+
+    test('今の拠点を今日決めたなら、今日だけ選べる', () {
+      final today = buildHomeBase(id: 'today', setAt: DateTime(2026, 10, 8, 9));
+      expect(earliestNewHomeBaseDay([today], now), DateTime(2026, 10, 8));
+    });
+
+    test('今日を選ぶと今この時から、前の日を選ぶとその日の0時から効く', () {
+      expect(newHomeBaseSetAt(day: DateTime(2026, 10, 8), now: now), now);
+      expect(
+        newHomeBaseSetAt(day: DateTime(2026, 9, 1, 15), now: now),
+        DateTime(2026, 9, 1),
+      );
+    });
+
+    test('前の日から決めると、その日からの記録は新しい拠点、その前は前の拠点で決まり、今の拠点は新しい拠点になる', () {
+      final day = earliestNewHomeBaseDay(settings, now);
+      final added = buildHomeBase(
+        id: 'added',
+        setAt: newHomeBaseSetAt(day: day, now: now),
+      );
+      final all = [...settings, added];
+      expect(homeBaseAt(all, DateTime(2026, 6, 1, 23))?.id, 'sapporo');
+      expect(homeBaseAt(all, DateTime(2026, 6, 2))?.id, 'added');
+      expect(homeBaseAt(all, now)?.id, 'added');
+      expect(latestHomeBase(all)?.id, 'added');
+    });
+
+    test('今日のうちに2回決めても、後に決めたほうが今の拠点になる', () {
+      final first = buildHomeBase(
+        id: 'zzz',
+        setAt: newHomeBaseSetAt(day: now, now: DateTime(2026, 10, 8, 9)),
+      );
+      final second = buildHomeBase(
+        id: 'aaa',
+        setAt: newHomeBaseSetAt(
+          day: earliestNewHomeBaseDay([first], now),
+          now: now,
+        ),
+      );
+      expect(latestHomeBase([first, second])?.id, 'aaa');
+    });
+  });
 }

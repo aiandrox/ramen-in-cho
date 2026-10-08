@@ -15,14 +15,12 @@ import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/shop_search/geo.dart';
 import 'package:ramen_in_cho/features/shop_search/location_service.dart';
 
-import '../../support/builders.dart';
 import '../../support/fakes.dart';
 import '../../support/l10n.dart';
 
 void main() {
-  test('入門 → 拠点 → 始め方。始め方から先へは進まない', () {
-    expect(nextOnboardingStep(OnboardingStep.welcome), OnboardingStep.homeBase);
-    expect(nextOnboardingStep(OnboardingStep.homeBase), OnboardingStep.start);
+  test('門出 → 始め方。始め方から先へは進まない', () {
+    expect(nextOnboardingStep(OnboardingStep.welcome), OnboardingStep.start);
     expect(nextOnboardingStep(OnboardingStep.start), OnboardingStep.start);
   });
 
@@ -39,11 +37,31 @@ void main() {
         completed: false,
         step: OnboardingStep.welcome,
       ));
-      await store.saveStep(OnboardingStep.homeBase);
+      await store.saveStep(OnboardingStep.start);
       expect(await store.load(), (
         completed: false,
-        step: OnboardingStep.homeBase,
+        step: OnboardingStep.start,
       ));
+    });
+
+    test('前にあった拠点の段を残した人は、始め方から続ける', () async {
+      final directory = createTempDirectory();
+      File('${directory.path}/${OnboardingStore.fileName}')
+          .writeAsStringSync('{"step":"homeBase"}');
+      expect(await OnboardingStore(directory).load(), (
+        completed: false,
+        step: OnboardingStep.start,
+      ));
+    });
+
+    test('知らない段の名前は初めからにする', () async {
+      final directory = createTempDirectory();
+      File('${directory.path}/${OnboardingStore.fileName}')
+          .writeAsStringSync('{"step":"somewhere"}');
+      expect(
+        (await OnboardingStore(directory).load()).step,
+        OnboardingStep.welcome,
+      );
     });
 
     test('終えたら起動時に出さず、見直しの段階は残さない', () async {
@@ -51,7 +69,7 @@ void main() {
       await store.saveStep(OnboardingStep.start);
       await store.markCompleted(DateTime(2026, 10, 4));
       expect((await store.load()).completed, isTrue);
-      await store.saveStep(OnboardingStep.homeBase);
+      await store.saveStep(OnboardingStep.start);
       expect(await store.load(), (
         completed: true,
         step: OnboardingStep.welcome,
@@ -143,59 +161,20 @@ void main() {
       expect(find.text(ja.onboardingWelcomeWishTitle), findsOneWidget);
 
       await tapText(tester, ja.onboardingNext);
-      expect(find.text(ja.onboardingHomeBaseChapter), findsOneWidget);
-      expect(store.steps, [OnboardingStep.homeBase]);
+      expect(find.text(ja.onboardingStartChapter), findsOneWidget);
+      expect(store.steps, [OnboardingStep.start]);
       expect(location.requests, isEmpty);
     });
 
-    testWidgets('拠点をあとにして、始め方を選ぶと終える', (tester) async {
-      await pumpOnboarding(tester, initialStep: OnboardingStep.homeBase);
-      await tapText(tester, ja.onboardingHomeBaseLater);
-      expect(find.text(ja.onboardingStartChapter), findsOneWidget);
-      expect(store.steps, [OnboardingStep.start]);
+    testWidgets('始め方を選ぶと終える。拠点は聞かない', (tester) async {
+      await pumpOnboarding(tester, initialStep: OnboardingStep.start);
+      expect(find.text(ja.homeBaseTitle), findsNothing);
 
       await tapText(tester, ja.onboardingStartRecord);
       expect(closed, isTrue);
       expect(result, OnboardingStart.record);
       expect(store.completed, isTrue);
-    });
-
-    testWidgets('現在地を拠点にすると、許可を求めて「このあたり」で決め、始め方へ進む', (tester) async {
-      await pumpOnboarding(tester, initialStep: OnboardingStep.homeBase);
-      await tapText(tester, ja.onboardingHomeBaseHere);
-      expect(location.requests, [true]);
-      expect(find.text(ja.homeBaseHidenGained), findsOneWidget);
-      // 秘伝を知らせている間にアプリを閉じても、次は始め方から続ける。
-      expect(store.steps, [OnboardingStep.start]);
-      final settings = await HomeBaseRepository(database).allSettings();
-      expect(settings.single.name, ja.homeBaseNameDefault);
-      expect(settings.single.latitude, sapporo.latitude);
-
-      await tapText(tester, ja.homeBaseHidenOk);
-      expect(find.text(ja.onboardingStartChapter), findsOneWidget);
-      expect(closed, isFalse);
-    });
-
-    testWidgets('拠点がもう決まっていれば、現在地で上書きせずに先へ進めるだけにする', (tester) async {
-      await pumpOnboarding(
-        tester,
-        initialStep: OnboardingStep.homeBase,
-        homeBases: [buildHomeBase(name: '札幌市', setAt: DateTime(2026))],
-      );
-      expect(find.text(ja.homeBaseLine('札幌市')), findsOneWidget);
-      expect(find.text(ja.onboardingHomeBaseHere), findsNothing);
-
-      await tapText(tester, ja.onboardingNext);
-      expect(find.text(ja.onboardingStartChapter), findsOneWidget);
-      expect(location.requests, isEmpty);
-    });
-
-    testWidgets('現在地がわからなければ、その段にとどまる', (tester) async {
-      location = FakeLocationService();
-      await pumpOnboarding(tester, initialStep: OnboardingStep.homeBase);
-      await tapText(tester, ja.onboardingHomeBaseHere);
-      expect(find.text(ja.homeBaseHereFailed), findsOneWidget);
-      expect(find.text(ja.onboardingHomeBaseChapter), findsOneWidget);
+      expect(await HomeBaseRepository(database).allSettings(), isEmpty);
     });
 
     testWidgets('「また今度」で閉じても終えたことにせず、記録が0件なら次に開いたときにまた出す', (tester) async {

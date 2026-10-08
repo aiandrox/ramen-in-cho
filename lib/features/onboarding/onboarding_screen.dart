@@ -10,14 +10,11 @@ import '../backup/backup_screen.dart';
 import '../checkin/checkin_screen.dart';
 import '../error_reporting/error_reporting.dart';
 import '../home/app_tab.dart';
-import '../home_base/home_base_picker_screen.dart';
-import '../home_base/home_base_repository.dart';
 import '../inkan/inkan_stamp.dart';
 import '../record/record_screen.dart';
 import '../records/clock.dart';
 import '../records/models.dart';
 import '../scoring/points.dart';
-import '../shop_search/location_service.dart';
 import 'onboarding_flow.dart';
 import 'onboarding_store.dart';
 import '../analytics/analytics.dart';
@@ -85,7 +82,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   late final DateTime Function() _clock;
   late final ScoredVisit _sample;
   late var _step = widget.initialStep;
-  var _busy = false;
 
   @override
   void initState() {
@@ -132,11 +128,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
   }
 
-  void _skipHomeBase() {
-    unawaited(_analytics.log(AnalyticsEvents.onboardingHomeBaseLater));
-    _advance();
-  }
-
   void _later() {
     _postponed = true;
     Navigator.of(context).pop();
@@ -145,44 +136,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _close([OnboardingStart? start]) {
     _chosenStart = start;
     Navigator.of(context).pop(start);
-  }
-
-  Future<void> _useHere() async {
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    setState(() => _busy = true);
-    try {
-      final here = await ref
-          .read(locationServiceProvider)
-          .currentPosition(requestPermission: true);
-      if (!mounted) return;
-      if (here == null) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.homeBaseHereFailed)),
-        );
-        return;
-      }
-      await saveHomeBase(
-        context,
-        ref,
-        name: l10n.homeBaseNameDefault,
-        location: here,
-        onSaved: () {
-          if (!mounted) return;
-          setState(() => _busy = false);
-          _advance();
-        },
-      );
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _pickOnMap() async {
-    final chosen = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const HomeBasePickerScreen()),
-    );
-    if (chosen == true && mounted) _advance();
   }
 
   @override
@@ -208,46 +161,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           FudeLink(onPressed: _later, child: Text(l10n.onboardingLater)),
         ],
       ),
-      OnboardingStep.homeBase => switch (ref.watch(currentHomeBaseProvider)) {
-        // 設定から見直している人の拠点を、呼び名「このあたり」の現在地で黙って上書きしないよう、決めてあれば先へ進めるだけにする。
-        final base? => _OnboardingPage(
-          chapter: l10n.onboardingHomeBaseChapter,
-          title: l10n.onboardingHomeBaseTitle,
-          body: l10n.onboardingHomeBaseBody,
-          note: l10n.homeBaseLine(base.name),
-          actions: [
-            AiFuda(
-              expand: true,
-              onPressed: _advance,
-              child: Text(l10n.onboardingNext),
-            ),
-          ],
-        ),
-        null => _OnboardingPage(
-          chapter: l10n.onboardingHomeBaseChapter,
-          title: l10n.onboardingHomeBaseTitle,
-          body: l10n.onboardingHomeBaseBody,
-          busy: _busy,
-          actions: [
-            AiFuda(
-              expand: true,
-              icon: const Icon(Icons.my_location),
-              onPressed: _busy ? null : _useHere,
-              child: Text(l10n.onboardingHomeBaseHere),
-            ),
-            SumiFuda(
-              expand: true,
-              icon: const Icon(Icons.map_outlined),
-              onPressed: _busy ? null : _pickOnMap,
-              child: Text(l10n.onboardingHomeBaseMap),
-            ),
-            FudeLink(
-              onPressed: _busy ? null : _skipHomeBase,
-              child: Text(l10n.onboardingHomeBaseLater),
-            ),
-          ],
-        ),
-      },
       OnboardingStep.start => _OnboardingPage(
         chapter: l10n.onboardingStartChapter,
         title: l10n.onboardingStartTitle,
@@ -288,39 +201,36 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ],
       ),
     };
-    return PopScope(
-      canPop: !_busy,
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: Washi.paper,
+      appBar: AppBar(
         backgroundColor: Washi.paper,
-        appBar: AppBar(
-          backgroundColor: Washi.paper,
-          leading: IconButton(
-            tooltip: l10n.onboardingClose,
-            icon: const Icon(Icons.close),
-            onPressed: _busy ? null : _close,
-          ),
-          centerTitle: true,
-          title: Text(
-            l10n.onboardingScroll,
-            style: const TextStyle(
-              fontFamily: Washi.brush,
-              fontSize: 18,
-              color: Washi.inkSoft,
-              letterSpacing: 4,
-            ),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: _StepMarks(current: _step.index),
-            ),
-          ],
+        leading: IconButton(
+          tooltip: l10n.onboardingClose,
+          icon: const Icon(Icons.close),
+          onPressed: _close,
         ),
-        body: SafeArea(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: KeyedSubtree(key: ValueKey(_step), child: page),
+        centerTitle: true,
+        title: Text(
+          l10n.onboardingScroll,
+          style: const TextStyle(
+            fontFamily: Washi.brush,
+            fontSize: 18,
+            color: Washi.inkSoft,
+            letterSpacing: 4,
           ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _StepMarks(current: _step.index),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: KeyedSubtree(key: ValueKey(_step), child: page),
         ),
       ),
     );
@@ -389,8 +299,6 @@ class _OnboardingPage extends StatelessWidget {
     this.hero,
     this.points = const [],
     required this.actions,
-    this.note,
-    this.busy = false,
   });
 
   final String chapter;
@@ -401,8 +309,6 @@ class _OnboardingPage extends StatelessWidget {
   /// 見出しと短い説明の組。
   final List<(String, String)> points;
   final List<Widget> actions;
-  final String? note;
-  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -469,19 +375,8 @@ class _OnboardingPage extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (note case final note?) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    note,
-                    style: textTheme.bodyMedium?.copyWith(color: Washi.ai),
-                  ),
-                ],
                 const Spacer(),
                 const SizedBox(height: 28),
-                if (busy) ...[
-                  const LinearProgressIndicator(),
-                  const SizedBox(height: 12),
-                ],
                 for (final (i, action) in actions.indexed) ...[
                   if (i > 0) const SizedBox(height: 12),
                   action,

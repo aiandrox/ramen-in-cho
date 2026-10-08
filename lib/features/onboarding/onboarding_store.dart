@@ -32,9 +32,7 @@ class OnboardingStore {
     try {
       final json = jsonDecode(await _file.readAsString());
       if (json is! Map<String, dynamic>) return fresh;
-      final step = OnboardingStep.values
-          .where((s) => s.name == json['step'])
-          .firstOrNull;
+      final step = onboardingStepNamed(json['step']);
       return (
         completed: json['completedAt'] is String,
         step: step ?? OnboardingStep.welcome,

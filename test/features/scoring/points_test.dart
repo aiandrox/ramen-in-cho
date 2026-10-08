@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ramen_in_cho/features/records/models.dart';
+import 'package:ramen_in_cho/features/home_base/home_base.dart';
 import 'package:ramen_in_cho/features/scoring/points.dart';
 import 'package:ramen_in_cho/features/scoring/ranks.dart';
 
@@ -599,6 +600,15 @@ void main() {
         expect(bonusAt(DateTime(2026, 1, 31, 23), homeBases: bases), 20);
         expect(bonusAt(DateTime(2026, 2, 1), homeBases: bases), 0);
         expect(bonusAt(DateTime(2026, 2, 2), shop: home, homeBases: bases), 20);
+      });
+
+      test('「いつから」を前の日にして決めた拠点は、その日からの1杯をさかのぼって遠征にする', () {
+        final now = DateTime(2026, 3, 1, 20);
+        final backdated = buildHomeBase(
+          setAt: newHomeBaseSetAt(day: DateTime(2026, 1, 1), now: now),
+        );
+        expect(bonusAt(DateTime(2025, 12, 31, 23), homeBases: [backdated]), 0);
+        expect(bonusAt(DateTime(2026, 1, 1, 12), homeBases: [backdated]), 20);
       });
 
       test('遠征の1杯は isExpedition になり、初訪問と足し合わせる', () {

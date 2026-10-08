@@ -288,7 +288,7 @@ void main() {
         name: '横浜駅',
         latitude: 35.466,
         longitude: 139.622,
-        now: DateTime(2026, 8, 1, 9),
+        setAt: DateTime(2026, 8, 1, 9),
       );
       sourcePhotos = PhotoStorage(createTempDirectory());
       temporary = createTempDirectory();
@@ -367,7 +367,7 @@ void main() {
         name: '札幌',
         latitude: 43.0687,
         longitude: 141.3508,
-        now: DateTime(2026, 9, 10, 9),
+        setAt: DateTime(2026, 9, 10, 9),
       );
       await homeBases.updateHomeBase(
         yokohama.copyWith(name: '横浜', setAt: DateTime(2026, 7, 1)),

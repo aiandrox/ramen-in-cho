@@ -404,7 +404,7 @@ void main() {
       name: '横浜駅',
       latitude: 35.466,
       longitude: 139.622,
-      now: DateTime(2026, 10, 5, 9),
+      setAt: DateTime(2026, 10, 5, 9),
     );
     final saved = (await homeBases.watchSettings().first).single;
     expect(saved.name, '横浜駅');
@@ -833,7 +833,7 @@ void main() {
           name: '札幌',
           latitude: 43.06,
           longitude: 141.35,
-          now: DateTime(2026, 10, 6),
+          setAt: DateTime(2026, 10, 6),
         );
 
         final data = await repository.exportAll();
