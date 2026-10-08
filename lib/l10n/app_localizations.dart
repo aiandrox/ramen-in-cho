@@ -1192,6 +1192,12 @@ abstract class AppLocalizations {
   /// **'{level}段　{count}{unit}'**
   String questHistoryLevel(String level, int count, String unit);
 
+  /// No description provided for @questHistoryCurrent.
+  ///
+  /// In ja, this message translates to:
+  /// **'いま {count}{unit}'**
+  String questHistoryCurrent(int count, String unit);
+
   /// No description provided for @questHistoryNone.
   ///
   /// In ja, this message translates to:

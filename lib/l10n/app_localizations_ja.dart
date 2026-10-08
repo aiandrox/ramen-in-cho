@@ -632,6 +632,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String questHistoryCurrent(int count, String unit) {
+    return 'いま $count$unit';
+  }
+
+  @override
   String get questHistoryNone => 'まだ段はありません。最初の段に届くと、ここに記されます';
 
   @override

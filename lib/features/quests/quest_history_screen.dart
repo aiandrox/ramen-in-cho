@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../theme/history_row.dart';
 import '../../theme/washi.dart';
 import '../records/date_format.dart';
 import '../scoring/scoring_providers.dart';
@@ -9,7 +10,7 @@ import '../visit_detail/visit_detail_screen.dart';
 import 'quest_seal.dart';
 import 'quests.dart';
 
-/// 型のこれまでの段。上がった段は日付とその段に届いた1杯、まだの段は数を伏せる。
+/// 型のこれまでの段。上がった段は日付とその段に届いた1杯。次の段は「？？」で伏せ、その先は出さない。
 class QuestHistoryScreen extends ConsumerWidget {
   const QuestHistoryScreen({super.key, required this.questId});
 
@@ -21,7 +22,9 @@ class QuestHistoryScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final progress = ref
         .watch(questProgressProvider)
-        .firstWhere((p) => p.quest.id == questId);
+        .where((p) => p.quest.id == questId)
+        .firstOrNull;
+    if (progress == null) return Scaffold(appBar: AppBar());
     final quest = progress.quest;
     final history = questLevelHistory(progress);
 
@@ -39,6 +42,10 @@ class QuestHistoryScreen extends ConsumerWidget {
             quest.description,
             style: textTheme.bodyMedium?.copyWith(color: Washi.inkSoft),
           ),
+          Text(
+            l10n.questHistoryCurrent(progress.current, quest.unit),
+            style: textTheme.bodyMedium,
+          ),
           const SizedBox(height: 8),
           if (history.isEmpty)
             Padding(
@@ -47,44 +54,9 @@ class QuestHistoryScreen extends ConsumerWidget {
             ),
           for (final attainment in history)
             _LevelRow(quest: quest, attainment: attainment),
-          for (var level = history.length + 1; level <= quest.maxLevel; level++)
-            _HiddenLevelRow(quest: quest),
+          // 先の段は、いくつあるかも含めて伏せ、次の段だけを「？？」で置く。
+          if (!progress.isMaxLevel) _HiddenLevelRow(quest: quest),
         ],
-      ),
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({required this.seal, required this.lines, this.onTap});
-
-  final Widget seal;
-  final List<Widget> lines;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Washi.line, width: 0.5)),
-        ),
-        child: Row(
-          children: [
-            SizedBox(width: 64, child: Center(child: seal)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: lines,
-              ),
-            ),
-            if (onTap != null)
-              const Icon(Icons.chevron_right, color: Washi.faded),
-          ],
-        ),
       ),
     );
   }
@@ -101,7 +73,7 @@ class _LevelRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final visit = attainment.visit;
-    return _Row(
+    return HistoryRow(
       seal: QuestSeal(quest: quest, level: attainment.level, size: 48),
       lines: [
         Text(
@@ -138,7 +110,7 @@ class _HiddenLevelRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Row(
+    return HistoryRow(
       seal: QuestSeal(quest: quest, level: 0, size: 48),
       lines: [
         Text(

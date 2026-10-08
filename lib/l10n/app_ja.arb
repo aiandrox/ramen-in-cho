@@ -324,6 +324,8 @@
   "questMaxLevel": "極み",
   "questHistoryLevel": "{level}段　{count}{unit}",
   "@questHistoryLevel": {"placeholders": {"level": {"type": "String"}, "count": {"type": "int"}, "unit": {"type": "String"}}},
+  "questHistoryCurrent": "いま {count}{unit}",
+  "@questHistoryCurrent": {"placeholders": {"count": {"type": "int"}, "unit": {"type": "String"}}},
   "questHistoryNone": "まだ段はありません。最初の段に届くと、ここに記されます",
   "questCleared": "会得",
   "questNext": "{current}／{target}{unit}",

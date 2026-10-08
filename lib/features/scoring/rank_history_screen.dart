@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../theme/history_row.dart';
 import '../../theme/washi.dart';
 import '../inkan/inkan_stamp.dart';
 import '../records/date_format.dart';
@@ -45,41 +46,6 @@ class RankHistoryScreen extends ConsumerWidget {
   }
 }
 
-class _RankRow extends StatelessWidget {
-  const _RankRow({required this.seal, required this.lines, this.onTap});
-
-  final Widget seal;
-  final List<Widget> lines;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Washi.line, width: 0.5)),
-        ),
-        child: Row(
-          children: [
-            SizedBox(width: 76, child: Center(child: seal)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: lines,
-              ),
-            ),
-            if (onTap != null)
-              const Icon(Icons.chevron_right, color: Washi.faded),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _ReachedRow extends StatelessWidget {
   const _ReachedRow({required this.attainment});
 
@@ -90,7 +56,7 @@ class _ReachedRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final visit = attainment.visit;
-    return _RankRow(
+    return HistoryRow(
       seal: RankSeal(
         label: adventurerRankLabel(l10n, attainment.rank),
         fontSize: 15,
@@ -137,7 +103,7 @@ class _NextRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return _RankRow(
+    return HistoryRow(
       seal: RankSeal(
         label: adventurerRankLabel(l10n, rank),
         fontSize: 15,
@@ -161,7 +127,7 @@ class _HiddenRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _RankRow(
+    return HistoryRow(
       seal: RankSeal(
         label: AppLocalizations.of(context).rankHistoryHidden,
         fontSize: 15,

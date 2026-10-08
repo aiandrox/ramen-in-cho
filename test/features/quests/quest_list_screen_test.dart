@@ -100,8 +100,15 @@ void main() {
       find.text(ja.rankHistoryAchievedAt('2026/9/5', '麺屋テスト')),
       findsOneWidget,
     );
-    expect(find.text(ja.rankHistoryHidden), findsNWidgets(4));
-    expect(find.textContaining('30'), findsNothing);
+    expect(find.text(ja.questHistoryCurrent(10, '杯')), findsOneWidget);
+    // 次の段は「？？」1つだけ。その数も、その先の段も出さない。
+    expect(find.text(ja.rankHistoryHidden), findsOneWidget);
+    for (final (level, count) in [(3, 30), (4, 50), (5, 100), (6, 200)]) {
+      expect(
+        find.text(ja.questHistoryLevel(daijiNumber(level), count, '杯')),
+        findsNothing,
+      );
+    }
   });
 
   testWidgets('段がまだ無い型は、まだ無いと出す', (tester) async {
