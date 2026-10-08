@@ -22,6 +22,9 @@ abstract class PhotoPicker {
 
   Future<String?> pickFromGallery();
 
+  /// ギャラリーで何枚も選ぶ（選んだ順）。キャンセルしたときは空。
+  Future<List<String>> pickManyFromGallery();
+
   /// Androidでカメラの起動中にアプリが終了させられたとき、撮った写真を取り戻す。
   Future<String?> retrieveLostPhoto();
 }
@@ -34,6 +37,7 @@ class ImagePickerPhotoPicker implements PhotoPicker {
 
   static const _maxSize = 2000.0;
   static const _quality = 85;
+  static const _maxPhotos = 30;
 
   final ImagePicker _picker;
 
@@ -42,6 +46,21 @@ class ImagePickerPhotoPicker implements PhotoPicker {
 
   @override
   Future<String?> pickFromGallery() => _pick(ImageSource.gallery);
+
+  @override
+  Future<List<String>> pickManyFromGallery() async {
+    try {
+      final files = await _picker.pickMultiImage(
+        maxWidth: _maxSize,
+        maxHeight: _maxSize,
+        imageQuality: _quality,
+        limit: _maxPhotos,
+      );
+      return [for (final file in files.take(_maxPhotos)) file.path];
+    } catch (_) {
+      return const [];
+    }
+  }
 
   Future<String?> _pick(ImageSource source) async {
     try {

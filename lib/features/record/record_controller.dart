@@ -75,6 +75,9 @@ class RecordController extends Notifier<RecordState> {
   /// 保存できた記録の入力の様子（統計に送る）。
   RecordSaveSummary? lastSaveSummary;
 
+  /// 何枚も選んで記録しているときの、保存できた記録ごとの入力の様子（統計に送る）。
+  final List<RecordSaveSummary> batchSaveSummaries = [];
+
   @override
   RecordState build() {
     listenSelf((_, next) => _writeDraft(next));
@@ -399,8 +402,10 @@ class RecordController extends Notifier<RecordState> {
     );
     _pickedByNameSearch = false;
     final previous = state;
+    // 何枚も選んで記録している最中は、今の写真をその1枚として残す。
     final keepPhoto =
-        _incomingPhoto != null && previous.photoPath == _incomingPhoto;
+        previous.photoPath != null &&
+        (previous.batch != null || previous.photoPath == _incomingPhoto);
     // 下書きから戻した並びは下書きと一緒に捨て、保存先の並びに戻す。
     final active = _activeCheckin;
     final checkinShop = active == null ? null : previous.checkinShop;
@@ -428,6 +433,7 @@ class RecordController extends Notifier<RecordState> {
       shopFamous: checkinShop?.isFamous ?? false,
       shopFamousOriginal: checkinShop?.isFamous ?? false,
       arrivedAt: active == null ? null : _tappedArrivedAt,
+      batch: previous.batch,
     );
     // 写真ごと捨てたら、その写真で探した候補も消す（写真を選ぶまで探さない）。
     if (!keepPhoto) {
@@ -494,10 +500,65 @@ class RecordController extends Notifier<RecordState> {
     _setPhoto(path, fromCamera: true);
   }
 
+  /// 何枚も選んだら、1枚目から順に記録する（[nextInBatch]で次の写真へ）。
+  /// 何枚も選んで記録している最中は、今の1枚だけを選び直す。
   Future<void> pickFromGallery() async {
-    final path = await ref.read(photoPickerProvider).pickFromGallery();
-    if (!ref.mounted || path == null) return;
-    await _setGalleryPhoto(path);
+    final picker = ref.read(photoPickerProvider);
+    if (state.batch != null) {
+      final path = await picker.pickFromGallery();
+      if (!ref.mounted || path == null) return;
+      await _setGalleryPhoto(path);
+      return;
+    }
+    final paths = await picker.pickManyFromGallery();
+    if (!ref.mounted || paths.isEmpty) return;
+    if (paths.length > 1) {
+      batchSaveSummaries.clear();
+      state = state.copyWith(
+        batch: PhotoBatch(
+          pending: paths.sublist(1),
+          position: 1,
+          total: paths.length,
+        ),
+      );
+    }
+    await _setGalleryPhoto(paths.first);
+  }
+
+  /// 何枚も選んで記録している最中に、次の写真の記録を新しく始める。並んでいる店があれば選び直す。
+  Future<void> nextInBatch() async {
+    final batch = state.batch;
+    if (batch == null || !batch.hasNext) return;
+    final next = batch.advance();
+    _searchGeneration++;
+    _here = null;
+    _restoredShop = null;
+    _photoFromDraft = false;
+    _incomingPhoto = null;
+    _pickedByNameSearch = false;
+    _tappedArrivedAt = null;
+    _activeCheckin = null;
+    _lastDraftJson = null;
+    _startedAt = ref.read(clockProvider)();
+    _knownShopsLoad = _loadKnownShops();
+    // 2枚目からは過去の写真なので、並んでいる店を先に選んでおかない。写真が入るまでは押せなくする。
+    state = RecordState(batch: next, isSaving: true);
+    _draftClosed = false;
+    await _setGalleryPhoto(batch.pending.first);
+    if (ref.mounted) state = state.copyWith(isSaving: false);
+  }
+
+  /// 何枚も選んで記録している最中に、今の写真を記録せずに飛ばす。
+  Future<void> skipInBatch() async {
+    if (state.isSaving) return;
+    state = state.copyWith(isSaving: true);
+    unawaited(
+      ref
+          .read(analyticsProvider)
+          .log(AnalyticsEvents.draftDiscarded('batch_skip')),
+    );
+    _draftClosed = true;
+    await _clearDraftStore();
   }
 
   /// 過去の写真から記録できるよう、写真の撮影日時を食べた日時にし、撮影場所で店を探す。
@@ -738,6 +799,13 @@ class RecordController extends Notifier<RecordState> {
       lastSaveSummary = _saveSummary(draft, now);
       _draftClosed = true;
       await _clearDraftStore();
+      final batch = draft.batch;
+      if (batch != null) {
+        batchSaveSummaries.add(lastSaveSummary!);
+        if (ref.mounted) {
+          state = state.copyWith(batch: batch.withSaved(visit.id));
+        }
+      }
       return visit.id;
     } catch (e, st) {
       reportError(e, st, reason: 'Record save failed');

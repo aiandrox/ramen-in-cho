@@ -76,6 +76,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get save => '着丼！';
 
   @override
+  String get saveAndNext => '着丼！（次へ）';
+
+  @override
+  String batchPosition(int position, int total) {
+    return '写真 $position/$total';
+  }
+
+  @override
+  String get batchSkip => 'この写真は飛ばす';
+
+  @override
+  String leaveBatchRemaining(int count) {
+    return 'まだ開いていない写真 $count枚は記録しません。ギャラリーから選び直せます';
+  }
+
+  @override
+  String batchBowls(String count) {
+    return '$count杯';
+  }
+
+  @override
+  String batchPointsGained(int points) {
+    return '合計 +$points点';
+  }
+
+  @override
+  String batchRankSteps(String count, String before, String after) {
+    return '$beforeから$afterへ、段位が$countつ上がった';
+  }
+
+  @override
   String get takePhoto => 'カメラで撮る';
 
   @override

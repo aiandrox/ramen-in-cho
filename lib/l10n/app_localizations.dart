@@ -226,6 +226,48 @@ abstract class AppLocalizations {
   /// **'着丼！'**
   String get save;
 
+  /// No description provided for @saveAndNext.
+  ///
+  /// In ja, this message translates to:
+  /// **'着丼！（次へ）'**
+  String get saveAndNext;
+
+  /// No description provided for @batchPosition.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真 {position}/{total}'**
+  String batchPosition(int position, int total);
+
+  /// No description provided for @batchSkip.
+  ///
+  /// In ja, this message translates to:
+  /// **'この写真は飛ばす'**
+  String get batchSkip;
+
+  /// No description provided for @leaveBatchRemaining.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ開いていない写真 {count}枚は記録しません。ギャラリーから選び直せます'**
+  String leaveBatchRemaining(int count);
+
+  /// No description provided for @batchBowls.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count}杯'**
+  String batchBowls(String count);
+
+  /// No description provided for @batchPointsGained.
+  ///
+  /// In ja, this message translates to:
+  /// **'合計 +{points}点'**
+  String batchPointsGained(int points);
+
+  /// No description provided for @batchRankSteps.
+  ///
+  /// In ja, this message translates to:
+  /// **'{before}から{after}へ、段位が{count}つ上がった'**
+  String batchRankSteps(String count, String before, String after);
+
   /// No description provided for @takePhoto.
   ///
   /// In ja, this message translates to:

@@ -1632,4 +1632,118 @@ void main() {
       expect(File(p.join(documents.path, saved)).readAsBytesSync(), [1, 2, 3]);
     });
   });
+
+  group('ギャラリーで何枚も選んだとき', () {
+    late List<String> photos;
+
+    setUp(() {
+      final dir = createTempDirectory();
+      photos = [
+        for (var i = 1; i <= 3; i++)
+          (File(p.join(dir.path, 'p$i.jpg'))..writeAsBytesSync([i])).path,
+      ];
+      picker.galleryPaths = photos;
+    });
+
+    test('1枚目から順に開き、保存すると次の写真の記録を新しく始める', () async {
+      await controller().start();
+      await controller().pickFromGallery();
+      await pumpEventQueue();
+
+      expect(state().batch?.position, 1);
+      expect(state().batch?.total, 3);
+      expect(File(state().photoPath!).readAsBytesSync(), [1]);
+
+      controller().selectShop(state().candidates.single);
+      controller().setRating(4);
+      final first = await controller().save();
+      expect(first, isNotNull);
+      expect(state().batch?.savedVisitIds, [first]);
+
+      await controller().nextInBatch();
+      await pumpEventQueue();
+
+      expect(state().batch?.position, 2);
+      expect(state().batch?.savedVisitIds, [first]);
+      expect(File(state().photoPath!).readAsBytesSync(), [2]);
+      expect(state().selectedShop, isNull);
+      expect(state().rating, isNull);
+      expect(state().searchStatus, ShopSearchStatus.done);
+
+      controller().setManualName('架空軒');
+      final second = await controller().save();
+      expect(state().batch?.savedVisitIds, [first, second]);
+      expect(controller().batchSaveSummaries, hasLength(2));
+
+      final saved = await visits();
+      expect(saved, hasLength(2));
+      for (final entry in saved) {
+        expect(
+          File(p.join(documents.path, entry.visit.photoPath!)).existsSync(),
+          isTrue,
+        );
+      }
+    });
+
+    test('飛ばした写真は記録せず、下書きにも残さない', () async {
+      await controller().start();
+      await controller().pickFromGallery();
+      await pumpEventQueue();
+
+      await controller().skipInBatch();
+      await controller().nextInBatch();
+      await pumpEventQueue();
+
+      expect(state().batch?.position, 2);
+      expect(state().batch?.savedVisitIds, isEmpty);
+      expect(File(state().photoPath!).readAsBytesSync(), [2]);
+      expect(await visits(), isEmpty);
+    });
+
+    test('途中で閉じると、今の写真だけが下書きに残る', () async {
+      await controller().start();
+      await controller().pickFromGallery();
+      await pumpEventQueue();
+      controller().setManualName('架空軒');
+      await controller().save();
+      await controller().nextInBatch();
+      await pumpEventQueue();
+      controller().setManualName('途中の店');
+      await pumpEventQueue();
+
+      container = newSession();
+      expect(await controller().hasDraft(), isTrue);
+      await controller().start();
+      await pumpEventQueue();
+
+      expect(state().manualName, '途中の店');
+      expect(File(state().photoPath!).readAsBytesSync(), [2]);
+      expect(state().batch, isNull);
+      expect(await visits(), hasLength(1));
+    });
+
+    test('1枚だけ選んだときは、今までどおり', () async {
+      picker.galleryPaths = [photos.first];
+      await controller().start();
+      await controller().pickFromGallery();
+      await pumpEventQueue();
+
+      expect(state().batch, isNull);
+      expect(File(state().photoPath!).readAsBytesSync(), [1]);
+    });
+
+    test('何枚も選んで記録している最中に選び直すと、今の1枚だけを替える', () async {
+      await controller().start();
+      await controller().pickFromGallery();
+      await pumpEventQueue();
+      picker.galleryPath = photos.last;
+
+      await controller().pickFromGallery();
+      await pumpEventQueue();
+
+      expect(state().batch?.total, 3);
+      expect(state().batch?.pending, hasLength(2));
+      expect(File(state().photoPath!).readAsBytesSync(), [3]);
+    });
+  });
 }

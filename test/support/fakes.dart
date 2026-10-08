@@ -82,10 +82,18 @@ class FakeShopFinder implements NearbyShopFinder {
 }
 
 class FakePhotoPicker implements PhotoPicker {
-  FakePhotoPicker({this.cameraPath, this.galleryPath, this.lostPath});
+  FakePhotoPicker({
+    this.cameraPath,
+    this.galleryPath,
+    this.galleryPaths,
+    this.lostPath,
+  });
 
   String? cameraPath;
   String? galleryPath;
+
+  /// 何枚も選んだときの写真。nullなら[galleryPath]の1枚だけ。
+  List<String>? galleryPaths;
   String? lostPath;
   int cameraOpens = 0;
 
@@ -97,6 +105,10 @@ class FakePhotoPicker implements PhotoPicker {
 
   @override
   Future<String?> pickFromGallery() async => galleryPath;
+
+  @override
+  Future<List<String>> pickManyFromGallery() async =>
+      galleryPaths ?? [?galleryPath];
 
   @override
   Future<String?> retrieveLostPhoto() async => lostPath;
