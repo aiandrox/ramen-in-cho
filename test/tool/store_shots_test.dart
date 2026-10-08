@@ -347,6 +347,12 @@ ShotScene _sceneFor(StoreShot shot) => switch (shot) {
   ),
 };
 
+final _scored = scoreVisits(
+  _world.visits,
+  wishes: _wishes,
+  homeBases: _world.homeBases,
+);
+
 void main() {
   late Directory documents;
   late String photo;
@@ -369,11 +375,7 @@ void main() {
   });
 
   test('架空の記録は場面の案どおり（最後の一杯で三段に昇段する）', () {
-    final scored = scoreVisits(
-      _world.visits,
-      wishes: _wishes,
-      homeBases: _world.homeBases,
-    );
+    final scored = _scored;
     final history = rankHistory(scored);
     expect(history.last.rank, AdventurerRank.dan3);
     expect(history.last.visit?.visit.id, 'today');
@@ -384,7 +386,14 @@ void main() {
     final grades = {
       for (final entry in scored) shopRankFor(entry.points.total),
     };
-    expect(grades, containsAll([ShopRank.s, ShopRank.a]));
+    expect(grades, containsAll([ShopRank.s, ShopRank.a, ShopRank.b]));
+  });
+
+  test('見出しは store-listing.md の表と同じ', () {
+    final listing = File('docs/release/store-listing.md').readAsStringSync();
+    for (final shot in StoreShot.values) {
+      expect(listing, contains('| ${shot.caption} |'), reason: shot.name);
+    }
   });
 
   testWidgets('画像がそろっていて、決まりの大きさ', (tester) async {
@@ -443,11 +452,7 @@ void main() {
     tester.view.physicalSize = _featureSize * 2;
     addTearDown(tester.view.reset);
     final boundary = GlobalKey();
-    final scored = scoreVisits(
-      _world.visits,
-      wishes: _wishes,
-      homeBases: _world.homeBases,
-    );
+    final scored = _scored;
     ScoredVisit pick(ShopRank rank) => scored.lastWhere(
       (entry) =>
           entry.visit.result == VisitResult.eaten &&
@@ -548,9 +553,10 @@ Future<ui.Image> _compose(
   canvas
     ..save()
     ..clipRRect(frame)
-    ..drawImage(
+    ..drawImageRect(
       screen,
-      rect.topLeft,
+      Offset.zero & Size(screen.width.toDouble(), screen.height.toDouble()),
+      rect,
       Paint()..filterQuality = FilterQuality.high,
     )
     ..restore();
