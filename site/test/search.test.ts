@@ -7,6 +7,7 @@ import { parseOverpassResponse } from '../src/search/overpass.ts';
 import { cacheSeconds, curatedNamed, partialCacheSeconds, searchByName, searchNearby } from '../src/search/service.ts';
 import { mergeFoundShops, nameQueryVariants, normalizeShopName } from '../src/search/shop.ts';
 import { parseYahooLocal } from '../src/search/yahoo.ts';
+import type { YahooQuota } from '../src/yahoo-quota.ts';
 
 const fixture = (name: string) =>
   readJson(`../../test/fixtures/${name}`);
@@ -162,5 +163,130 @@ describe('searchByName', () => {
       expect(curatedNamed([mita, kannai], q).map((s) => s.name)).toEqual(['ラーメン二郎 横浜関内店']);
     }
     expect(curatedNamed([mita, kannai], '関内二郎')).toEqual([]);
+  });
+});
+
+/** 決めた回数まで通す Yahoo! の数え役。 */
+function fakeQuota(limit: number) {
+  let used = 0;
+  const quota: YahooQuota = {
+    take: async (count) => {
+      used += count;
+      return used <= limit;
+    },
+  };
+  return { quota, used: () => used };
+}
+
+const yahooHost = 'map.yahooapis.jp';
+const isYahoo = (url: string) => new URL(url).host === yahooHost;
+
+/** 同じ場所に OSM・Yahoo!・OpenPOI の同じ店が重なる答え。 */
+const overlapping = {
+  'overpass-api.de': () => ({
+    elements: [{ type: 'node', id: 1, lat: 35.69, lon: 139.7, tags: { name: 'らーめん鴨to葱' } }],
+  }),
+  [yahooHost]: () => ({
+    Feature: [
+      { Name: '鴨 to 葱', Geometry: { Coordinates: '139.7,35.6901' }, Property: { Genre: [{ Code: '0106001' }] } },
+      { Name: '麺処 さくら', Geometry: { Coordinates: '139.7,35.6905' }, Property: { Genre: [{ Code: '0106001' }] } },
+    ],
+  }),
+  'api.openpoiapi.com': () => ({
+    results: [
+      { name: '麺処さくら', lat: 35.6905, lng: 139.7001, attributions: ['poi'] },
+      { name: '中華そば 青葉', lat: 35.6895, lng: 139.7, attributions: ['poi'] },
+    ],
+    suggestions: [
+      { name: '麺処さくら', lat: 35.6905, lng: 139.7001, category: 'restaurant', attributions: ['poi'] },
+      { name: '中華そば 青葉', lat: 35.6895, lng: 139.7, category: 'restaurant', attributions: ['poi'] },
+    ],
+  }),
+};
+
+const sourceOf = (shop: { osmId?: string; dataSource?: { attributions: string[] } }) =>
+  shop.osmId ? 'osm' : shop.dataSource?.attributions.includes('Web Services by Yahoo! JAPAN') ? 'yahoo' : 'poi';
+
+describe('Yahoo! の結果はため置かない（#373）', () => {
+  it('近くの店: ため置くのは Yahoo! 以外だけで、2回目も Yahoo! にだけ問い合わせる', async () => {
+    const { fetch, calls } = fakeFetch(overlapping);
+    const cache = fakeCache();
+    const deps = { fetch, cache, yahooAppId: 'test-id' };
+    const first = await searchNearby(deps, [], shinjuku, 300);
+    const askedOthers = calls.filter((u) => !isYahoo(u)).length;
+    const second = await searchNearby(deps, [], shinjuku, 300);
+
+    expect(calls.filter(isYahoo)).toHaveLength(2);
+    expect(calls.filter((u) => !isYahoo(u))).toHaveLength(askedOthers);
+    expect(second).toEqual(first);
+    for (const entry of cache.store.values()) {
+      const text = await entry.clone().text();
+      expect(text).not.toContain('Yahoo');
+      expect(text).not.toContain('麺処 さくら');
+      expect(entry.headers.get('cache-control')).toBe(`public, max-age=${cacheSeconds}`);
+    }
+  });
+
+  it('近くの店: ためた分と混ぜても OSM → Yahoo! → OpenPOI の順に同じ店をまとめる', async () => {
+    const { fetch } = fakeFetch(overlapping);
+    const deps = { fetch, cache: fakeCache(), yahooAppId: 'test-id' };
+    for (let i = 0; i < 2; i++) {
+      const shops = await searchNearby(deps, [], shinjuku, 300);
+      expect(shops.map((s) => [s.name, sourceOf(s)])).toEqual([
+        ['らーめん鴨to葱', 'osm'],
+        ['麺処 さくら', 'yahoo'],
+        ['中華そば 青葉', 'poi'],
+      ]);
+    }
+  });
+
+  it('近くの店: 今日の上限を越えたら Yahoo! を使わずに探す', async () => {
+    const { fetch, calls } = fakeFetch(overlapping);
+    const { quota, used } = fakeQuota(1);
+    const deps = { fetch, cache: fakeCache(), yahooAppId: 'test-id', yahooQuota: quota };
+    await searchNearby(deps, [], shinjuku, 300);
+    const shops = await searchNearby(deps, [], shinjuku, 300);
+
+    expect(used()).toBe(2);
+    expect(calls.filter(isYahoo)).toHaveLength(1);
+    expect(shops.map((s) => [s.name, sourceOf(s)])).toEqual([
+      ['らーめん鴨to葱', 'osm'],
+      ['麺処さくら', 'poi'],
+      ['中華そば 青葉', 'poi'],
+    ]);
+  });
+
+  it('近くの店: ほかが失敗しても Yahoo! が答えれば返し、そのときはため置かない', async () => {
+    const { fetch } = fakeFetch({ [yahooHost]: overlapping[yahooHost] });
+    const cache = fakeCache();
+    const shops = await searchNearby({ fetch, cache, yahooAppId: 'test-id' }, [], shinjuku, 300);
+    expect(shops.map((s) => s.name)).toEqual(['鴨 to 葱', '麺処 さくら']);
+    expect(cache.store.size).toBe(0);
+  });
+
+  it('店名: Yahoo! は毎回問い合わせ、言葉の数だけ数え、Yahoo! の店を OpenPOI より優先する', async () => {
+    const { fetch, calls } = fakeFetch(overlapping);
+    const cache = fakeCache();
+    const { quota, used } = fakeQuota(100);
+    const deps = { fetch, cache, yahooAppId: 'test-id', yahooQuota: quota };
+    for (let i = 0; i < 2; i++) {
+      const shops = await searchByName(deps, [], '麺処 さくら', shinjuku);
+      expect(shops.find((s) => normalizeShopName(s.name) === '麺処さくら')?.name).toBe('麺処 さくら');
+      expect(sourceOf(shops.find((s) => s.name === '麺処 さくら')!)).toBe('yahoo');
+    }
+    expect(calls.filter(isYahoo)).toHaveLength(4);
+    expect(calls.filter((u) => !isYahoo(u))).toHaveLength(2);
+    expect(used()).toBe(4);
+    for (const entry of cache.store.values()) {
+      expect(await entry.clone().text()).not.toContain('Yahoo');
+    }
+  });
+
+  it('店名: 今日の上限を越えたら Yahoo! を使わずに探す', async () => {
+    const { fetch, calls } = fakeFetch(overlapping);
+    const { quota } = fakeQuota(0);
+    const shops = await searchByName({ fetch, cache: fakeCache(), yahooAppId: 'test-id', yahooQuota: quota }, [], 'さくら');
+    expect(calls.filter(isYahoo)).toHaveLength(0);
+    expect(shops.every((s) => sourceOf(s) === 'poi')).toBe(true);
   });
 });

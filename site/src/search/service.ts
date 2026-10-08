@@ -9,19 +9,25 @@ import {
   nameQueryVariants,
   normalizeShopName,
 } from './shop.ts';
+import { type YahooQuota, yahooAppIdFor } from '../yahoo-quota.ts';
 import { buildYahooNameUrl, buildYahooNearbyUrl, parseYahooLocal } from './yahoo.ts';
 
 export interface SearchDeps {
   fetch: typeof fetch;
-  /** 検索結果のため置き（Cache API）。テストでは Map で差し替える。 */
+  /** Yahoo! 以外の検索結果のため置き（Cache API）。テストでは Map で差し替える。 */
   cache: Pick<Cache, 'match' | 'put'>;
   yahooAppId?: string;
+  /** Yahoo! への1日の回数。無ければ数えない（テスト用）。 */
+  yahooQuota?: YahooQuota;
 }
 
 const userAgent = 'ramen-in-cho (https://github.com/aiandrox/ramen-in-cho)';
 const upstreamTimeoutMs = 10_000;
 
-/** 検索結果をためておく長さ。店はそう変わらないので1週間。どれかの検索が失敗したときは1日だけ。 */
+/**
+ * Yahoo! 以外（Overpass・OpenPOI）の検索結果をためておく長さ。店はそう変わらないので1週間。どれかの検索が失敗したときは1日だけ。
+ * Yahoo! の結果は利用条件（保存・キャッシュの禁止）のため ためず、毎回問い合わせて混ぜる（#373）。
+ */
 export const cacheSeconds = 7 * 24 * 60 * 60;
 export const partialCacheSeconds = 24 * 60 * 60;
 
@@ -49,57 +55,38 @@ async function attempt(search: () => Promise<FoundShop[]>): Promise<FoundShop[] 
   }
 }
 
-interface Upstream {
-  shops: FoundShop[];
-  complete: boolean;
+/** ため置く Yahoo! 以外の結果。OpenStreetMap と OpenPOI は優先の順を保つため分けて持つ。 */
+interface Cachable {
+  osm: FoundShop[];
+  poi: FoundShop[];
 }
 
-async function upstreamNearby(deps: SearchDeps, center: GeoPoint, radiusMeters: number): Promise<Upstream> {
-  const appId = deps.yahooAppId;
-  const [osm, yahoo, ...poi] = await Promise.all([
-    attempt(async () =>
-      parseOverpassResponse(
-        await getJson(deps, 'https://overpass-api.de/api/interpreter', {
-          method: 'POST',
-          headers: { 'content-type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({ data: buildOverpassQuery(center, radiusMeters) }).toString(),
-        }),
-      ),
-    ),
-    appId ? attempt(async () => parseYahooLocal(await getJson(deps, buildYahooNearbyUrl(center, radiusMeters, appId)))) : null,
-    ...openPoiKeywords.map((keyword) =>
-      attempt(async () => parseOpenPoiResponse(await getJson(deps, buildOpenPoiUrl(center, keyword, radiusMeters)))),
-    ),
-  ]);
-  const poiShops = mergeFoundShops([], poi.flatMap((shops) => shops ?? []));
-  if (osm === null && yahoo === null && poi.every((shops) => shops === null)) {
-    throw new Error('店の検索がすべて失敗しました');
-  }
-  return {
-    // OpenStreetMap の店を優先し（ID があるため）、次に Yahoo!、最後に OpenPOI。
-    shops: mergeFoundShops(osm ?? [], [...(yahoo ?? []), ...poiShops]),
-    complete: osm !== null && (yahoo !== null || !appId) && poi.every((shops) => shops !== null),
-  };
+interface Loaded extends Cachable {
+  /** どれか1つでも答えたか。どれも失敗したらためない。 */
+  any: boolean;
+  /** すべて答えたか（1週間ためる）。 */
+  complete: boolean;
 }
 
 const cacheUrl = (path: string, params: Record<string, string>) =>
   `https://cache.ramen-in-cho.internal/${path}?${new URLSearchParams(params)}`;
 
-/** ため置きにあればそれを、無ければ [load] して ため置く。 */
-async function cached(deps: SearchDeps, key: string, load: () => Promise<Upstream>): Promise<FoundShop[]> {
+/** ため置きにあればそれを、無ければ [load] して ため置く。どれも失敗したら null（ためない）。 */
+async function cached(deps: SearchDeps, key: string, load: () => Promise<Loaded>): Promise<Cachable | null> {
   const hit = await deps.cache.match(key);
-  if (hit) return (await hit.json()) as FoundShop[];
-  const { shops, complete } = await load();
+  if (hit) return (await hit.json()) as Cachable;
+  const { osm, poi, any, complete } = await load();
+  if (!any) return null;
   await deps.cache.put(
     key,
-    new Response(JSON.stringify(shops), {
+    new Response(JSON.stringify({ osm, poi } satisfies Cachable), {
       headers: {
         'content-type': 'application/json',
         'cache-control': `public, max-age=${complete ? cacheSeconds : partialCacheSeconds}`,
       },
     }),
   );
-  return shops;
+  return { osm, poi };
 }
 
 const curatedFound = (shop: CuratedShop): FoundShop => ({
@@ -121,15 +108,44 @@ export async function searchNearby(
   const lat = Math.round(center.latitude / cellDegrees);
   const lon = Math.round(center.longitude / cellDegrees);
   const cell = { latitude: lat * cellDegrees, longitude: lon * cellDegrees };
-  let found: FoundShop[];
-  try {
-    found = await cached(deps, cacheUrl('nearby/v1', { cell: `${lat},${lon}`, r: `${radiusMeters}` }), () =>
-      upstreamNearby(deps, cell, radiusMeters + cellMarginMeters),
-    );
-  } catch (e) {
+  const searchRadius = radiusMeters + cellMarginMeters;
+  const [stored, yahoo] = await Promise.all([
+    cached(deps, cacheUrl('nearby/v2', { cell: `${lat},${lon}`, r: `${radiusMeters}` }), async () => {
+      const [osm, ...poi] = await Promise.all([
+        attempt(async () =>
+          parseOverpassResponse(
+            await getJson(deps, 'https://overpass-api.de/api/interpreter', {
+              method: 'POST',
+              headers: { 'content-type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({ data: buildOverpassQuery(cell, searchRadius) }).toString(),
+            }),
+          ),
+        ),
+        ...openPoiKeywords.map((keyword) =>
+          attempt(async () => parseOpenPoiResponse(await getJson(deps, buildOpenPoiUrl(cell, keyword, searchRadius)))),
+        ),
+      ]);
+      return {
+        osm: osm ?? [],
+        poi: mergeFoundShops([], poi.flatMap((shops) => shops ?? [])),
+        any: osm !== null || poi.some((shops) => shops !== null),
+        complete: osm !== null && poi.every((shops) => shops !== null),
+      };
+    }),
+    (async () => {
+      const appId = await yahooAppIdFor(deps, 1);
+      return appId
+        ? // ためないので、マスではなく問い合わせの中心と半径で探す。
+          attempt(async () => parseYahooLocal(await getJson(deps, buildYahooNearbyUrl(center, radiusMeters, appId))))
+        : null;
+    })(),
+  ]);
+  if (stored === null && yahoo === null) {
     if (curatedNear.length > 0) return curatedNear;
-    throw e;
+    throw new Error('店の検索がすべて失敗しました');
   }
+  // OpenStreetMap の店を優先し（ID があるため）、次に Yahoo!、最後に OpenPOI。
+  const found = mergeFoundShops(stored?.osm ?? [], [...(yahoo ?? []), ...(stored?.poi ?? [])]);
   const inRange = found.filter(near);
   return mergeFoundShops(
     inRange.filter((s) => s.osmId),
@@ -173,36 +189,35 @@ export async function searchByName(
   // 先の検索には 0.1 度（約10km）に丸めた場所を渡してため置き、並びは最後に本当の場所からの近さで決める。
   const area = near ? `${Math.round(near.latitude * 10)},${Math.round(near.longitude * 10)}` : '';
   const anchor = near ? { latitude: Math.round(near.latitude * 10) / 10, longitude: Math.round(near.longitude * 10) / 10 } : undefined;
-  let found: FoundShop[];
-  try {
-    found = await cached(deps, cacheUrl('search/v2', { q: variants[0], area }), async () => {
-      const appId = deps.yahooAppId;
-      const [yahoo, poi] = await Promise.all([
-        appId
-          ? Promise.all(
-              variants.map((v) =>
-                attempt(async () => parseYahooLocal(await getJson(deps, buildYahooNameUrl(v, appId, anchor)))),
-              ),
-            )
-          : Promise.resolve([]),
-        Promise.all(
-          variants.map((v) =>
-            attempt(async () => parseOpenPoiNameResults(await getJson(deps, buildOpenPoiNameUrl(v, anchor)))),
-          ),
+  const [stored, yahoo] = await Promise.all([
+    cached(deps, cacheUrl('search/v3', { q: variants[0], area }), async () => {
+      const poi = await Promise.all(
+        variants.map((v) =>
+          attempt(async () => parseOpenPoiNameResults(await getJson(deps, buildOpenPoiNameUrl(v, anchor)))),
         ),
-      ]);
-      const all = [...yahoo, ...poi];
-      if (all.every((r) => r === null)) throw new Error('店名の検索がすべて失敗しました');
-      // 同じ店なら、ラーメン店の業種で絞れる Yahoo! のほうを残す。
+      );
       return {
-        shops: mergeFoundShops([], [...yahoo.flatMap((r) => r ?? []), ...poi.flatMap((r) => r ?? [])]),
-        complete: all.every((r) => r !== null),
+        osm: [],
+        poi: mergeFoundShops([], poi.flatMap((r) => r ?? [])),
+        any: poi.some((r) => r !== null),
+        complete: poi.every((r) => r !== null),
       };
-    });
-  } catch (e) {
+    }),
+    (async () => {
+      const appId = await yahooAppIdFor(deps, variants.length);
+      if (!appId) return null;
+      const results = await Promise.all(
+        variants.map((v) => attempt(async () => parseYahooLocal(await getJson(deps, buildYahooNameUrl(v, appId, anchor))))),
+      );
+      return results.every((r) => r === null) ? null : results.flatMap((r) => r ?? []);
+    })(),
+  ]);
+  if (stored === null && yahoo === null) {
     if (fromCurated.length > 0) return fromCurated;
-    throw e;
+    throw new Error('店名の検索がすべて失敗しました');
   }
+  // 同じ店なら、ラーメン店の業種で絞れる Yahoo! のほうを残す。
+  const found = mergeFoundShops([], [...(yahoo ?? []), ...(stored?.poi ?? [])]);
   const shops = mergeFoundShops(fromCurated, found);
   if (near) shops.sort((a, b) => distanceMeters(near, a) - distanceMeters(near, b));
   return shops;

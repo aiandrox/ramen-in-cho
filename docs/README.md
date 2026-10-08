@@ -15,6 +15,7 @@
 
 - [ストアへのリリース](release/README.md) — `scripts/release.sh` の使い方、ビルド番号とタグ、リリースノート、鍵の置き場所、ストアのプライバシーの回答
 - [ストアの掲載の下書き](release/store-listing.md) — アプリ名・説明文・キーワード・年齢区分・審査メモ・スクリーンショットの案
+- [Yahoo! への問い合わせの下書き](release/yahoo-inquiry.md) — YOLP の結果のキャッシュ・記録への保存・非商用かを確かめる文面（#373。送るのは aiandrox）
 
 同梱しているデータ:
 
