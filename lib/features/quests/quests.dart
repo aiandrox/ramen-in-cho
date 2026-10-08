@@ -439,6 +439,29 @@ class QuestProgress {
   int? get nextThreshold => isMaxLevel ? null : quest.thresholds[level];
 }
 
+/// 型の段の1つ。上がった段と、その段の数、その段に届いた1杯。
+class QuestLevelAttainment {
+  const QuestLevelAttainment({
+    required this.level,
+    required this.threshold,
+    required this.visit,
+  });
+
+  final int level;
+  final int threshold;
+  final ScoredVisit visit;
+}
+
+/// これまでに上がった段（古い順）。まだ届いていない段は含めない。拠点を決めて会得する秘伝では空。
+List<QuestLevelAttainment> questLevelHistory(QuestProgress progress) => [
+  for (final (i, visit) in progress.levelAchievedBy.indexed)
+    QuestLevelAttainment(
+      level: i + 1,
+      threshold: progress.quest.thresholds[i],
+      visit: visit,
+    ),
+];
+
 /// あるクエストが、あるレベルに届いたこと。
 class QuestLevelUp {
   const QuestLevelUp({required this.quest, required this.level});

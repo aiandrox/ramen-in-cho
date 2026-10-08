@@ -6,6 +6,7 @@ import '../../theme/even_grid.dart';
 import '../../theme/washi.dart';
 import '../scoring/scoring_providers.dart';
 import '../visit_detail/visit_detail_screen.dart';
+import 'quest_history_screen.dart';
 import 'quest_seal.dart';
 import 'quests.dart';
 import '../../theme/washi_buttons.dart';
@@ -94,46 +95,59 @@ class _QuestCard extends StatelessWidget {
         ? l10n.questMaxLevel
         : l10n.questCount(progress.current, quest.unit);
 
-    // 印・名前・数だけ。会得した日などは出さない。
+    // 印・名前・数だけ。押すと、これまでの段を見られる。
     return Card(
+      clipBehavior: Clip.antiAlias,
       elevation: 0,
       color: progress.isAchieved
           ? colors.surfaceContainerHigh
           : colors.surfaceContainerLow,
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
-        child: Row(
-          children: [
-            QuestSeal(quest: quest, level: progress.level, size: 44),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    quest.title,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontFamily: Washi.brush,
-                    ),
-                  ),
-                  Text(
-                    quest.description,
-                    style: textTheme.bodySmall?.copyWith(color: Washi.inkSoft),
-                  ),
-                ],
-              ),
+      child: InkWell(
+        onTap: () {
+          logAnalytics(context, AnalyticsEvents.featureOpened('quest_history'));
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => QuestHistoryScreen(questId: quest.id),
             ),
-            if (count != null) ...[
-              const SizedBox(width: 8),
-              Text(
-                count,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontFeatures: const [FontFeature.tabularFigures()],
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
+          child: Row(
+            children: [
+              QuestSeal(quest: quest, level: progress.level, size: 44),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      quest.title,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontFamily: Washi.brush,
+                      ),
+                    ),
+                    Text(
+                      quest.description,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Washi.inkSoft,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              if (count != null) ...[
+                const SizedBox(width: 8),
+                Text(
+                  count,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

@@ -32,6 +32,7 @@ import 'package:ramen_in_cho/features/records/photo_storage.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 import 'package:ramen_in_cho/features/review/year_review_list_screen.dart';
 import 'package:ramen_in_cho/features/review/year_review_screen.dart';
+import 'package:ramen_in_cho/features/quests/quest_history_screen.dart';
 import 'package:ramen_in_cho/features/scoring/rank_history_screen.dart';
 import 'package:ramen_in_cho/features/settings/settings_screen.dart';
 import 'package:ramen_in_cho/features/share/share_screen.dart';
@@ -351,6 +352,13 @@ final List<_Screen> _screens = [
   (
     name: '昇段の記録',
     home: const RankHistoryScreen(),
+    tab: null,
+    checkin: null,
+    visit: null,
+  ),
+  (
+    name: '型のこれまでの段',
+    home: const QuestHistoryScreen(questId: 'bowls'),
     tab: null,
     checkin: null,
     visit: null,

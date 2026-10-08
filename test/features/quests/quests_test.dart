@@ -399,4 +399,54 @@ void main() {
       expect(levelUps.map((l) => l.quest.id), isNot(contains('home_base')));
     });
   });
+
+  group('型のこれまでの段', () {
+    test('上がった段ごとに、段の数とその段に届いた1杯を古い順に返す', () {
+      final history = questLevelHistory(_progress('bowls', _bowls(12)));
+      expect(history.map((a) => a.level), [1, 2]);
+      expect(history.map((a) => a.threshold), [5, 10]);
+      expect(history.map((a) => a.visit.visit.eatenAt), [_day(4), _day(9)]);
+    });
+
+    test('4杯は段なし、5杯で1段目（境目）', () {
+      expect(questLevelHistory(_progress('bowls', _bowls(4))), isEmpty);
+      expect(
+        questLevelHistory(_progress('bowls', _bowls(5)))
+            .single
+            .visit
+            .visit
+            .eatenAt,
+        _day(4),
+      );
+    });
+
+    test('撤退は数えず、店の数の型は新しい店に届いた1杯をつける', () {
+      final entries = [
+        buildEntry(
+          shop: buildShop(id: 'a'),
+          eatenAt: _day(0),
+        ),
+        buildEntry(
+          shop: buildShop(id: 'a'),
+          eatenAt: _day(1),
+        ),
+        buildEntry(
+          shop: buildShop(id: 'b'),
+          eatenAt: _day(2),
+          result: VisitResult.retreated,
+        ),
+        buildEntry(
+          shop: buildShop(id: 'b'),
+          eatenAt: _day(3),
+        ),
+        buildEntry(
+          shop: buildShop(id: 'c'),
+          eatenAt: _day(4),
+        ),
+      ];
+      final history = questLevelHistory(_progress('shops', entries));
+      expect(history.single.threshold, 3);
+      expect(history.single.visit.visit.eatenAt, _day(4));
+    });
+  });
 }

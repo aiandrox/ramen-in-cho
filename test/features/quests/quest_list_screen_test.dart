@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ramen_in_cho/theme/washi_sheet.dart';
 
 import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
+import 'package:ramen_in_cho/features/quests/quest_history_screen.dart';
 import 'package:ramen_in_cho/features/quests/quest_list_screen.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
@@ -74,6 +75,47 @@ void main() {
     expect(find.text(ja.questSpotAchievedShop('shop')), findsOneWidget);
     expect(find.textContaining('2026/9/1'), findsNothing);
     expect(find.text(ja.questSpotOpenShop), findsOneWidget);
+  });
+
+  testWidgets('型のカードを押すと、上がった段と届いた1杯を出し、先の段は数を伏せる', (tester) async {
+    final shop = buildShop(id: 'shop', name: '麺屋テスト');
+    await pumpQuests(tester, [
+      for (var d = 1; d <= 10; d++)
+        buildEntry(shop: shop, eatenAt: DateTime(2026, 9, d, 12)),
+    ]);
+
+    await tester.tap(find.text('着丼の道'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QuestHistoryScreen), findsOneWidget);
+    expect(
+      find.text(ja.questHistoryLevel(daijiNumber(1), 5, '杯')),
+      findsOneWidget,
+    );
+    expect(
+      find.text(ja.questHistoryLevel(daijiNumber(2), 10, '杯')),
+      findsOneWidget,
+    );
+    expect(
+      find.text(ja.rankHistoryAchievedAt('2026/9/5', '麺屋テスト')),
+      findsOneWidget,
+    );
+    expect(find.text(ja.questHistoryCurrent(10, '杯')), findsOneWidget);
+    // 次の段は「？？」1つだけ。その数も、その先の段も出さない。
+    expect(find.text(ja.rankHistoryHidden), findsOneWidget);
+    for (final (level, count) in [(3, 30), (4, 50), (5, 100), (6, 200)]) {
+      expect(
+        find.text(ja.questHistoryLevel(daijiNumber(level), count, '杯')),
+        findsNothing,
+      );
+    }
+  });
+
+  testWidgets('段がまだ無い型は、まだ無いと出す', (tester) async {
+    await pumpQuests(tester, const []);
+    await tester.tap(find.text('開拓者'));
+    await tester.pumpAndSettle();
+    expect(find.text(ja.questHistoryNone), findsOneWidget);
   });
 
   testWidgets('秘伝の印は横幅いっぱいに同じ幅で並べる', (tester) async {

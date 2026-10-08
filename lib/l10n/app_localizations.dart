@@ -1186,6 +1186,24 @@ abstract class AppLocalizations {
   /// **'極み'**
   String get questMaxLevel;
 
+  /// No description provided for @questHistoryLevel.
+  ///
+  /// In ja, this message translates to:
+  /// **'{level}段　{count}{unit}'**
+  String questHistoryLevel(String level, int count, String unit);
+
+  /// No description provided for @questHistoryCurrent.
+  ///
+  /// In ja, this message translates to:
+  /// **'いま {count}{unit}'**
+  String questHistoryCurrent(int count, String unit);
+
+  /// No description provided for @questHistoryNone.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ段はありません。最初の段に届くと、ここに記されます'**
+  String get questHistoryNone;
+
   /// No description provided for @questCleared.
   ///
   /// In ja, this message translates to:
