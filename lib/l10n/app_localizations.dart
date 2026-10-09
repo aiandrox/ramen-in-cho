@@ -229,7 +229,7 @@ abstract class AppLocalizations {
   /// No description provided for @saveAndNext.
   ///
   /// In ja, this message translates to:
-  /// **'着丼！ 次へ'**
+  /// **'着丼して次へ'**
   String get saveAndNext;
 
   /// No description provided for @batchPosition.
@@ -1009,7 +1009,7 @@ abstract class AppLocalizations {
   /// No description provided for @pointsNewPrefecture.
   ///
   /// In ja, this message translates to:
-  /// **'初めての{name}'**
+  /// **'{name}に初上陸'**
   String pointsNewPrefecture(String name);
 
   /// No description provided for @pointsNewArea.
@@ -1461,6 +1461,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'空のままでもかまいません'**
   String get optionalHelper;
+
+  /// 願の窓の任意の欄の前に出す説明
+  ///
+  /// In ja, this message translates to:
+  /// **'きっかけ・ひとこと・リンクは空のままでもかまいません'**
+  String get wishOptionalNote;
 
   /// No description provided for @wishLinkOpenFailed.
   ///
@@ -1963,7 +1969,7 @@ abstract class AppLocalizations {
   /// No description provided for @journeyExpeditionName.
   ///
   /// In ja, this message translates to:
-  /// **'{month}月{day}日 {shop}へ遠征'**
+  /// **'{month}月{day}日の遠征 {shop}'**
   String journeyExpeditionName(int month, int day, String shop);
 
   /// No description provided for @memoryYearsAgo.
@@ -3373,7 +3379,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpShugyoTitle.
   ///
   /// In ja, this message translates to:
-  /// **'修行タブ'**
+  /// **'修行タブの段位・型と秘伝・記録・統計'**
   String get helpShugyoTitle;
 
   /// No description provided for @helpShugyoRank.

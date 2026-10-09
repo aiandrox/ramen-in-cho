@@ -76,7 +76,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get save => '着丼！';
 
   @override
-  String get saveAndNext => '着丼！ 次へ';
+  String get saveAndNext => '着丼して次へ';
 
   @override
   String batchPosition(int position, int total) {
@@ -514,7 +514,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pointsNewPrefecture(String name) {
-    return '初めての$name';
+    return '$nameに初上陸';
   }
 
   @override
@@ -784,6 +784,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get optionalHelper => '空のままでもかまいません';
+
+  @override
+  String get wishOptionalNote => 'きっかけ・ひとこと・リンクは空のままでもかまいません';
 
   @override
   String get wishLinkOpenFailed => 'リンクを開けませんでした';
@@ -1078,7 +1081,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String journeyExpeditionName(int month, int day, String shop) {
-    return '$month月$day日 $shopへ遠征';
+    return '$month月$day日の遠征 $shop';
   }
 
   @override
@@ -1896,7 +1899,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpHomeBase => 'ふだん暮らす駅や街を拠点にします。設定の「拠点」からいつでも変えられます。';
 
   @override
-  String get helpShugyoTitle => '修行タブ';
+  String get helpShugyoTitle => '修行タブの段位・型と秘伝・記録・統計';
 
   @override
   String get helpShugyoRank => '修行タブの上では、今の段位と次の段位までが見られます。タップすると昇段の記録が開きます。';
