@@ -199,7 +199,7 @@ abstract class AppLocalizations {
   /// No description provided for @retreatPickHint.
   ///
   /// In ja, this message translates to:
-  /// **'撤退した店をタップしてください（無ければ店名を入力）'**
+  /// **'撤退した店をタップしてください。無ければ店名を入力します'**
   String get retreatPickHint;
 
   /// No description provided for @retreatManualButton.
@@ -229,7 +229,7 @@ abstract class AppLocalizations {
   /// No description provided for @saveAndNext.
   ///
   /// In ja, this message translates to:
-  /// **'着丼！（次へ）'**
+  /// **'着丼して次へ'**
   String get saveAndNext;
 
   /// No description provided for @batchPosition.
@@ -325,7 +325,7 @@ abstract class AppLocalizations {
   /// No description provided for @shopPickHint.
   ///
   /// In ja, this message translates to:
-  /// **'候補をタップして店を選んでください（無ければ店名を入力）'**
+  /// **'候補をタップして店を選んでください。無ければ店名を入力します'**
   String get shopPickHint;
 
   /// No description provided for @shopSearchAfterPhoto.
@@ -583,7 +583,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteConfirmOthersKept.
   ///
   /// In ja, this message translates to:
-  /// **'この店のほかの記録（{count}件）は残ります。'**
+  /// **'この店のほかの記録{count}件は残ります。'**
   String deleteConfirmOthersKept(int count);
 
   /// No description provided for @deleteConfirmLastOfShop.
@@ -637,7 +637,7 @@ abstract class AppLocalizations {
   /// No description provided for @editLeaveDiscard.
   ///
   /// In ja, this message translates to:
-  /// **'戻る（変更を捨てる）'**
+  /// **'変更を捨てて戻る'**
   String get editLeaveDiscard;
 
   /// No description provided for @editLeaveContinue.
@@ -889,7 +889,7 @@ abstract class AppLocalizations {
   /// No description provided for @retreatMemoLabel.
   ///
   /// In ja, this message translates to:
-  /// **'メモ（任意）'**
+  /// **'メモ'**
   String get retreatMemoLabel;
 
   /// No description provided for @retreatConfirm.
@@ -1003,31 +1003,31 @@ abstract class AppLocalizations {
   /// No description provided for @pointsExpedition.
   ///
   /// In ja, this message translates to:
-  /// **'遠征（{km}km以上）'**
+  /// **'{km}km以上の遠征'**
   String pointsExpedition(int km);
 
   /// No description provided for @pointsNewPrefecture.
   ///
   /// In ja, this message translates to:
-  /// **'初めての都道府県（{name}）'**
+  /// **'{name}に初上陸'**
   String pointsNewPrefecture(String name);
 
   /// No description provided for @pointsNewArea.
   ///
   /// In ja, this message translates to:
-  /// **'初めての市区町村（{name}）'**
+  /// **'初めての{name}'**
   String pointsNewArea(String name);
 
   /// No description provided for @pointsRegular.
   ///
   /// In ja, this message translates to:
-  /// **'常連（この店で{count}杯目）'**
+  /// **'この店で{count}杯目の常連'**
   String pointsRegular(int count);
 
   /// No description provided for @pointsStreak.
   ///
   /// In ja, this message translates to:
-  /// **'連続記録（{weeks}週目）'**
+  /// **'{weeks}週連続'**
   String pointsStreak(int weeks);
 
   /// No description provided for @pointsFamous.
@@ -1405,7 +1405,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishMakeButton.
   ///
   /// In ja, this message translates to:
-  /// **'願を掛ける（行きたい）'**
+  /// **'願を掛ける'**
   String get wishMakeButton;
 
   /// No description provided for @wishAlready.
@@ -1423,7 +1423,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishTrigger.
   ///
   /// In ja, this message translates to:
-  /// **'きっかけ（任意）'**
+  /// **'きっかけ'**
   String get wishTrigger;
 
   /// No description provided for @wishTriggerHint.
@@ -1435,7 +1435,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishNote.
   ///
   /// In ja, this message translates to:
-  /// **'ひとこと（任意）'**
+  /// **'ひとこと'**
   String get wishNote;
 
   /// No description provided for @wishNoteHint.
@@ -1447,7 +1447,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishLink.
   ///
   /// In ja, this message translates to:
-  /// **'リンク（任意）'**
+  /// **'リンク'**
   String get wishLink;
 
   /// No description provided for @wishLinkHint.
@@ -1455,6 +1455,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'Google マップや YouTube の URL'**
   String get wishLinkHint;
+
+  /// 任意の入力欄の下に出す説明
+  ///
+  /// In ja, this message translates to:
+  /// **'空のままでもかまいません'**
+  String get optionalHelper;
+
+  /// 願の窓の任意の欄の前に出す説明
+  ///
+  /// In ja, this message translates to:
+  /// **'きっかけ・ひとこと・リンクは空のままでもかまいません'**
+  String get wishOptionalNote;
 
   /// No description provided for @wishLinkOpenFailed.
   ///
@@ -1465,7 +1477,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishPlaceNone.
   ///
   /// In ja, this message translates to:
-  /// **'場所: まだ決めていません（決めなくても掛けられます）'**
+  /// **'場所: まだ決めていません。決めなくても掛けられます'**
   String get wishPlaceNone;
 
   /// No description provided for @wishPlaceLooking.
@@ -1519,7 +1531,7 @@ abstract class AppLocalizations {
   /// No description provided for @wishFulfilledLine.
   ///
   /// In ja, this message translates to:
-  /// **'{date} 願成就（{days}日越し）'**
+  /// **'{date} {days}日越しの願成就'**
   String wishFulfilledLine(String date, int days);
 
   /// No description provided for @wishAdded.
@@ -1639,7 +1651,7 @@ abstract class AppLocalizations {
   /// No description provided for @shareNote.
   ///
   /// In ja, this message translates to:
-  /// **'店の場所（地図）は入りません。共有を押したときだけ、選んだ相手やアプリに送られます'**
+  /// **'店の場所や地図は入りません。共有を押したときだけ、選んだ相手やアプリに送られます'**
   String get shareNote;
 
   /// No description provided for @shareButton.
@@ -1735,7 +1747,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeBasePinLabel.
   ///
   /// In ja, this message translates to:
-  /// **'今の拠点（{name}）'**
+  /// **'今の拠点 {name}'**
   String homeBasePinLabel(String name);
 
   /// No description provided for @homeBaseTitle.
@@ -1795,7 +1807,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeBaseNameHint.
   ///
   /// In ja, this message translates to:
-  /// **'駅や街の名前など（例: 新宿、札幌）'**
+  /// **'駅や街の名前など。例: 新宿、札幌'**
   String get homeBaseNameHint;
 
   /// No description provided for @homeBaseDecide.
@@ -1861,7 +1873,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeBaseEditDate.
   ///
   /// In ja, this message translates to:
-  /// **'日付（この日から効きます）'**
+  /// **'効きはじめる日'**
   String get homeBaseEditDate;
 
   /// No description provided for @homeBaseEditName.
@@ -1921,7 +1933,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeBaseDeleteToPrevious.
   ///
   /// In ja, this message translates to:
-  /// **'{date}から後の記録は、ひとつ前の拠点（{previous}）から遠征かどうかを決め直します。'**
+  /// **'{date}から後の記録は、ひとつ前の拠点の{previous}から遠征かどうかを決め直します。'**
   String homeBaseDeleteToPrevious(String date, String previous);
 
   /// No description provided for @homeBaseDeleteToNone.
@@ -1957,7 +1969,7 @@ abstract class AppLocalizations {
   /// No description provided for @journeyExpeditionName.
   ///
   /// In ja, this message translates to:
-  /// **'{month}月{day}日の遠征（{shop}）'**
+  /// **'{month}月{day}日の遠征 {shop}'**
   String journeyExpeditionName(int month, int day, String shop);
 
   /// No description provided for @memoryYearsAgo.
@@ -2053,7 +2065,7 @@ abstract class AppLocalizations {
   /// No description provided for @shopLocate.
   ///
   /// In ja, this message translates to:
-  /// **'地図に載せる（店名で探す）'**
+  /// **'店名で探して地図に載せる'**
   String get shopLocate;
 
   /// No description provided for @shopLocated.
@@ -2239,7 +2251,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupImportNote.
   ///
   /// In ja, this message translates to:
-  /// **'保存しておいたファイルを選ぶと、このスマホに無い記録だけを足します。今ある記録は消えません。ファイル名は「ramen-in-cho-（日付）.zip」です'**
+  /// **'保存しておいたファイルを選ぶと、このスマホに無い記録だけを足します。今ある記録は消えません。ファイル名は「ramen-in-cho-日付.zip」です'**
   String get backupImportNote;
 
   /// No description provided for @backupExportFailed.
@@ -2257,7 +2269,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupImportDone.
   ///
   /// In ja, this message translates to:
-  /// **'{added}件の記録を戻しました（ファイルの記録 {total}件のうち、このスマホに無かったもの）'**
+  /// **'{added}件の記録を戻しました。ファイルにあった{total}件のうち、このスマホに無かった分です'**
   String backupImportDone(int added, int total);
 
   /// No description provided for @backupImportInvalid.
@@ -2275,7 +2287,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupFileType.
   ///
   /// In ja, this message translates to:
-  /// **'バックアップ（zip）'**
+  /// **'バックアップの zip'**
   String get backupFileType;
 
   /// No description provided for @statsBests.
@@ -2317,7 +2329,7 @@ abstract class AppLocalizations {
   /// No description provided for @bestDetail.
   ///
   /// In ja, this message translates to:
-  /// **'{shop}（{date}）'**
+  /// **'{date}に{shop}で'**
   String bestDetail(String shop, String date);
 
   /// No description provided for @statsShopRanks.
@@ -3367,7 +3379,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpShugyoTitle.
   ///
   /// In ja, this message translates to:
-  /// **'修行タブ（段位・型と秘伝・記録・統計）'**
+  /// **'修行タブの段位・型と秘伝・記録・統計'**
   String get helpShugyoTitle;
 
   /// No description provided for @helpShugyoRank.
@@ -3661,7 +3673,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationDebugTitle.
   ///
   /// In ja, this message translates to:
-  /// **'（開発用）予約中の通知'**
+  /// **'開発用: 予約中の通知'**
   String get notificationDebugTitle;
 
   /// No description provided for @notificationDebugNote.
@@ -3691,7 +3703,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationQuietNight.
   ///
   /// In ja, this message translates to:
-  /// **'夜（22時〜8時）は知らせない'**
+  /// **'夜22時〜8時は知らせない'**
   String get notificationQuietNight;
 
   /// No description provided for @notificationQuietNightNote.
@@ -3733,7 +3745,7 @@ abstract class AppLocalizations {
   /// No description provided for @locationAccessGranted.
   ///
   /// In ja, this message translates to:
-  /// **'使えます（アプリを使っている間だけ）。タップでスマホの設定を開く'**
+  /// **'アプリを使っている間だけ使えます。タップでスマホの設定を開く'**
   String get locationAccessGranted;
 
   /// No description provided for @locationAccessNotGranted.
@@ -3817,7 +3829,7 @@ abstract class AppLocalizations {
   /// No description provided for @contactMailBodyPlaceholder.
   ///
   /// In ja, this message translates to:
-  /// **'（この上に、困ったことやそのときの操作、こうしてほしいことを書いてください）'**
+  /// **'※この上に、困ったことやそのときの操作、こうしてほしいことを書いてください'**
   String get contactMailBodyPlaceholder;
 
   /// No description provided for @contactMailDiagnosticsNotice.

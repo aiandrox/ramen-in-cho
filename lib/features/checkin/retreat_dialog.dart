@@ -62,7 +62,10 @@ class _RetreatDialogState extends State<_RetreatDialog> {
             const SizedBox(height: 12),
             TextField(
               controller: _memoController,
-              decoration: InputDecoration(labelText: l10n.retreatMemoLabel),
+              decoration: InputDecoration(
+                labelText: l10n.retreatMemoLabel,
+                helperText: l10n.optionalHelper,
+              ),
             ),
           ],
         ),

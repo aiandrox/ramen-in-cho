@@ -339,6 +339,11 @@ class _WishDialogState extends ConsumerState<_WishDialog> {
               ),
             ],
             const SizedBox(height: 12),
+            Text(
+              l10n.wishOptionalNote,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 4),
             TextField(
               controller: _trigger,
               decoration: InputDecoration(
