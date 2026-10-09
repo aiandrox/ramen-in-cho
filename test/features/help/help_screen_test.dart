@@ -37,6 +37,8 @@ void main() {
     await tester.tap(find.text(topic.title(ja)));
     await tester.pumpAndSettle();
     expect(find.text(topic.pages.first.caption(ja)), findsOneWidget);
+    // 下のボタンの帯が画面いっぱいに広がって、絵の場所が無くならないこと。
+    expect(tester.getSize(find.byType(PageView)).height, greaterThan(600));
     expect(find.text(ja.helpPageCount(1, topic.pages.length)), findsOneWidget);
     expect(find.text(ja.helpPrev), findsNothing);
 
