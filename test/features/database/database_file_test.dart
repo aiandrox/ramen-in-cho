@@ -11,7 +11,10 @@ import 'package:ramen_in_cho/features/records/models.dart';
 import 'package:ramen_in_cho/features/records/record_repository.dart';
 
 /// drift 2.35.0・sqlite3 3.5.2 で作った、スキーマのバージョン13のデータベースのファイル。
-/// 作り直すときは `UPDATE_DB_FIXTURE=true flutter test` で、そのときのパッケージの版で作る。
+/// drift や sqlite3 を上げるときは、上げる前のコミットで
+/// `UPDATE_DB_FIXTURE=true flutter test test/features/database/database_file_test.dart`
+/// を実行して作り直し、この版の書き込みも直す（上げたあとに作り直すと、古い版との比べにならない）。
+/// スキーマのバージョンが上がっても、このファイルは消さずに残し、マイグレーションのあとの値を比べる。
 const _fixturePath = 'test/fixtures/database/ramen_in_cho_v13.sqlite';
 const _fixtureSchemaVersion = 13;
 
@@ -189,6 +192,14 @@ void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
 
   test('保存したデータベースのファイルを作り直す', () async {
+    final check = AppDatabase(NativeDatabase.memory());
+    final schemaVersion = check.schemaVersion;
+    await check.close();
+    expect(
+      schemaVersion,
+      _fixtureSchemaVersion,
+      reason: 'スキーマのバージョンが変わったときは、新しい名前のファイルを足し、古いファイルは残す',
+    );
     final file = File(_fixturePath);
     if (file.existsSync()) file.deleteSync();
     file.parent.createSync(recursive: true);
