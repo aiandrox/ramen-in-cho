@@ -100,6 +100,7 @@ Future<void> _loadFont(String family, String path) async {
 }
 
 /// [scene]を論理サイズ[size]の画面に描く。[render]なら写真も読み込んでから描く。
+/// [padding]は画面の上下の、時刻やホームバーに使われる余白（論理サイズ）。
 Future<void> pumpShot(
   WidgetTester tester,
   ShotWorld world,
@@ -109,9 +110,20 @@ Future<void> pumpShot(
   required String photo,
   required Directory documents,
   required bool render,
+  EdgeInsets padding = EdgeInsets.zero,
 }) async {
   tester.view.devicePixelRatio = 2;
   tester.view.physicalSize = size * 2;
+  if (padding != EdgeInsets.zero) {
+    // 時刻やホームバーの分の余白（ストアの画像で端末の枠を描くとき）。
+    final fake = FakeViewPadding(
+      top: padding.top * 2,
+      bottom: padding.bottom * 2,
+    );
+    tester.view
+      ..padding = fake
+      ..viewPadding = fake;
+  }
   addTearDown(tester.view.reset);
 
   final database = createTestDatabase();
