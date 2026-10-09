@@ -83,7 +83,7 @@ npx wrangler pages dev --binding APP_CHECK_ENFORCE=false   # App Check のトー
 npx wrangler pages deployment tail --project-name ramen-in-cho --format pretty
 ```
 
-wrangler は v4 で、Node 22 以上が要る。`npx wrangler` で `node_modules` の版が使われる（グローバルに入れた古い版は使わない）。
+Node は CI と同じ 24 を使う。vitest 5 は Node 25 では動かない。`npx wrangler` で `node_modules` の版が使われる（グローバルに入れた古い版は使わない）。
 
 ## 紹介ページの書体と絵
 

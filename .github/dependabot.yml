@@ -26,6 +26,10 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: "deps(site)"
+    # @types/node は CI と Site Deploy の Node（24）にそろえ、Node を上げるときに一緒に上げる。
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       site-minor-and-patch:
         update-types: [minor, patch]

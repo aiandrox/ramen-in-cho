@@ -52,7 +52,7 @@
 - **画面の文言では、かっこの補足を乱用しない。** 普通の文にできるならそうする。どうしても要るときだけ使う
 - **数字の書き方**: 物語や言葉として読む文（道中記・言葉・型と秘伝・見出し・称号・通知・案内）は漢数字、ひと目で読む値（修行点・距離・分・統計・進み具合・日付・時刻）はアラビア数字。文の中でも100を超える半端な数はアラビア数字（`proseNumber`）
 - **face-seal から持ち込まないもの**: Firebase の Remote Config、広告、課金、`google_fonts`（実行時にフォントを取りに通信するため）。Firebase のうち App Check（サーバーの API をアプリ以外から使わせないため）・Crashlytics（落ちたことに気づくため）・Analytics（機能を伸ばす・消す判断の材料にするため）だけは使う
-- 依存の更新は Dependabot（`.github/dependabot.yml`）が毎週月曜にまとめて PR を出す。自動ではマージせず、CI が通ったものを見て入れる。drift・image_picker・geolocator・firebase 系・flutter_map など記録・写真・権限・通信に関わるものは、変わる点を確かめてから入れる
+- 依存の更新は Dependabot（`.github/dependabot.yml`）が毎週月曜にまとめて PR を出す。自動ではマージせず、CI が通ったものを見て入れる。drift・image_picker・geolocator・firebase 系・flutter_map など記録・写真・権限・通信に関わるものは、変わる点を確かめてから入れる。`site/` の `@types/node` は CI の Node の版にそろえ、Node を上げるときに一緒に上げる
 - `flutter pub get` / `flutter test` のあとに `ios/Flutter/*.xcconfig` が変わったり `ios/Podfile` ができたりしたら、コミットに含めない
 - 画面と見た目の決まり: 朱は印だけに使い、ボタンなど画面の部品は藍（`Washi.ai`）。ボタンは役割ごとの札（`lib/theme/washi_buttons.dart`、見本 `docs/buttons/`）。下から出る窓は `lib/theme/washi_sheet.dart`、画面の下に固定するボタンは `SafeBottomBar`（新しい画面・窓は `test/features/layout/safe_area_audit_test.dart` に足す）。動きは祝う場面と振り返る場面だけ（`lib/theme/motion.dart`。OS の「動きを減らす」に従う。効果音は入れない）。ダークモードは作らない
 
