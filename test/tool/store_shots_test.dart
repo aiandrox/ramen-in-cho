@@ -436,14 +436,22 @@ final _trips = [
   ]),
 ];
 
-/// 画面の外に散らす、遠くの都道府県の印。
+/// 端末の周りに散らす、遠くの都道府県の印。京都は、iPad では画面の中に見えるので電話だけ。
 const _scatteredTrips = ['p-hokkaido', 'p-fukuoka', 'p-kyoto'];
+
+List<String> _scatteredFor(StoreDevice device) =>
+    device.isTablet ? _scatteredTrips.take(2).toList() : _scatteredTrips;
+
+final _tripShops = {
+  for (final trip in _trips)
+    trip.id: _shop(trip.id, trip.name, trip.lat, trip.lng),
+};
 
 List<VisitWithShop> _tripVisits() => [
   for (final trip in _trips)
     for (final (index, at) in trip.at.indexed)
       VisitWithShop(
-        shop: _shop(trip.id, trip.name, trip.lat, trip.lng),
+        shop: _tripShops[trip.id]!,
         visit: buildVisit(
           id: '${trip.id}-$index',
           shopId: trip.id,
@@ -457,9 +465,7 @@ List<VisitWithShop> _tripVisits() => [
 final _prefectureWorld = ShotWorld(
   visits: _tripVisits(),
   wishes: const [],
-  shops: [
-    for (final trip in _trips) _shop(trip.id, trip.name, trip.lat, trip.lng),
-  ],
+  shops: [..._tripShops.values],
   found: const [],
   homeBases: [
     buildHomeBase(
@@ -1120,14 +1126,16 @@ class _Composition extends StatelessWidget {
     final tablet = device.isTablet;
     final width = _fit(tablet ? 0.8 : 0.84, 0.9);
     final height = width * _aspect;
-    final unit = height / device.screen.height;
-    final deviceTop = tablet ? h * 0.03 - screen.anchor! * unit : below;
+    // 画面は枠の内側に、幅に合わせて描かれる（_DeviceFrame と同じ計算）。
+    final bezel = _DeviceFrame.bezelFor(device, width);
+    final unit = (width - bezel * 2) / device.screen.width;
+    final deviceTop = tablet ? h * 0.03 - bezel - screen.anchor! * unit : below;
     final zoom = screen.zoom!;
     final slipWidth = w * (tablet ? 0.6 : 0.72);
     final slipHeight = slipWidth * zoom.height / zoom.width;
     final slipBottom = tablet ? h - _captionHeight - h * 0.07 : h - h * 0.04;
     // 拡大した紙の上端を、画面の中の道中記の高さに合わせる。
-    final journalTop = deviceTop + zoom.top * unit;
+    final journalTop = deviceTop + bezel + zoom.top * unit;
     return [
       if (!tablet) _headline(top),
       _device(
@@ -1156,7 +1164,7 @@ class _Composition extends StatelessWidget {
   /// 7枚目: 都道府県の印帳をまっすぐ見せ、遠くの都道府県の印を周りに散らす。
   List<Widget> _prefecture(double top, double below) {
     final width = _fit(
-      device.isTablet ? 0.66 : 0.64,
+      device.isTablet ? 0.76 : 0.64,
       (h - below - h * 0.03) / h,
     );
     final height = width * _aspect;
@@ -1171,7 +1179,7 @@ class _Composition extends StatelessWidget {
     return [
       _headline(top),
       _device(screens.single, left: (w - width) / 2, top: below, width: width),
-      for (final (index, id) in _scatteredTrips.indexed)
+      for (final (index, id) in _scatteredFor(device).indexed)
         Positioned(
           left: spots[index].left,
           top: spots[index].top,
