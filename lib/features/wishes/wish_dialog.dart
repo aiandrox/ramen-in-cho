@@ -343,6 +343,7 @@ class _WishDialogState extends ConsumerState<_WishDialog> {
               controller: _trigger,
               decoration: InputDecoration(
                 labelText: l10n.wishTrigger,
+                helperText: l10n.optionalHelper,
                 hintText: l10n.wishTriggerHint,
               ),
             ),
@@ -351,6 +352,7 @@ class _WishDialogState extends ConsumerState<_WishDialog> {
               controller: _note,
               decoration: InputDecoration(
                 labelText: l10n.wishNote,
+                helperText: l10n.optionalHelper,
                 hintText: l10n.wishNoteHint,
               ),
             ),
@@ -360,6 +362,7 @@ class _WishDialogState extends ConsumerState<_WishDialog> {
               keyboardType: TextInputType.url,
               decoration: InputDecoration(
                 labelText: l10n.wishLink,
+                helperText: l10n.optionalHelper,
                 hintText: l10n.wishLinkHint,
               ),
             ),

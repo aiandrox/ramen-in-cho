@@ -61,7 +61,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get retreatPickTitle => '撤退した店を選ぶ';
 
   @override
-  String get retreatPickHint => '撤退した店をタップしてください（無ければ店名を入力）';
+  String get retreatPickHint => '撤退した店をタップしてください。無ければ店名を入力します';
 
   @override
   String get retreatManualButton => 'この店名で撤退を記録';
@@ -76,7 +76,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get save => '着丼！';
 
   @override
-  String get saveAndNext => '着丼！（次へ）';
+  String get saveAndNext => '着丼！ 次へ';
 
   @override
   String batchPosition(int position, int total) {
@@ -134,7 +134,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shopNoCandidates => '近くに候補が見つかりませんでした。店名を入力してください';
 
   @override
-  String get shopPickHint => '候補をタップして店を選んでください（無ければ店名を入力）';
+  String get shopPickHint => '候補をタップして店を選んでください。無ければ店名を入力します';
 
   @override
   String get shopSearchAfterPhoto => '写真を選ぶと、近くの店を探します';
@@ -272,7 +272,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String deleteConfirmOthersKept(int count) {
-    return 'この店のほかの記録（$count件）は残ります。';
+    return 'この店のほかの記録$count件は残ります。';
   }
 
   @override
@@ -300,7 +300,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editLeaveTitle => '変更を保存せずに戻りますか？';
 
   @override
-  String get editLeaveDiscard => '戻る（変更を捨てる）';
+  String get editLeaveDiscard => '変更を捨てて戻る';
 
   @override
   String get editLeaveContinue => '編集を続ける';
@@ -439,7 +439,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get retreatReasonNoTime => '時間切れ';
 
   @override
-  String get retreatMemoLabel => 'メモ（任意）';
+  String get retreatMemoLabel => 'メモ';
 
   @override
   String get retreatConfirm => '撤退を記録';
@@ -509,27 +509,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String pointsExpedition(int km) {
-    return '遠征（${km}km以上）';
+    return '${km}km以上の遠征';
   }
 
   @override
   String pointsNewPrefecture(String name) {
-    return '初めての都道府県（$name）';
+    return '初めての$name';
   }
 
   @override
   String pointsNewArea(String name) {
-    return '初めての市区町村（$name）';
+    return '初めての$name';
   }
 
   @override
   String pointsRegular(int count) {
-    return '常連（この店で$count杯目）';
+    return 'この店で$count杯目の常連';
   }
 
   @override
   String pointsStreak(int weeks) {
-    return '連続記録（$weeks週目）';
+    return '$weeks週連続';
   }
 
   @override
@@ -756,7 +756,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wishAddButton => '願を掛ける';
 
   @override
-  String get wishMakeButton => '願を掛ける（行きたい）';
+  String get wishMakeButton => '願を掛ける';
 
   @override
   String get wishAlready => 'この店には願を掛けています';
@@ -765,28 +765,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wishShopName => '店名';
 
   @override
-  String get wishTrigger => 'きっかけ（任意）';
+  String get wishTrigger => 'きっかけ';
 
   @override
   String get wishTriggerHint => '例: 同僚に聞いた・テレビで見た';
 
   @override
-  String get wishNote => 'ひとこと（任意）';
+  String get wishNote => 'ひとこと';
 
   @override
   String get wishNoteHint => '例: 限定の煮干しを食べたい';
 
   @override
-  String get wishLink => 'リンク（任意）';
+  String get wishLink => 'リンク';
 
   @override
   String get wishLinkHint => 'Google マップや YouTube の URL';
 
   @override
+  String get optionalHelper => '空のままでもかまいません';
+
+  @override
   String get wishLinkOpenFailed => 'リンクを開けませんでした';
 
   @override
-  String get wishPlaceNone => '場所: まだ決めていません（決めなくても掛けられます）';
+  String get wishPlaceNone => '場所: まだ決めていません。決めなくても掛けられます';
 
   @override
   String get wishPlaceLooking => '場所: 住所から調べています…';
@@ -816,7 +819,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String wishFulfilledLine(String date, int days) {
-    return '$date 願成就（$days日越し）';
+    return '$date $days日越しの願成就';
   }
 
   @override
@@ -887,7 +890,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get shareIncludePoints => '修行点を入れる';
 
   @override
-  String get shareNote => '店の場所（地図）は入りません。共有を押したときだけ、選んだ相手やアプリに送られます';
+  String get shareNote => '店の場所や地図は入りません。共有を押したときだけ、選んだ相手やアプリに送られます';
 
   @override
   String get shareButton => '共有する';
@@ -942,7 +945,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String homeBasePinLabel(String name) {
-    return '今の拠点（$name）';
+    return '今の拠点 $name';
   }
 
   @override
@@ -974,7 +977,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeBaseNameDefault => 'このあたり';
 
   @override
-  String get homeBaseNameHint => '駅や街の名前など（例: 新宿、札幌）';
+  String get homeBaseNameHint => '駅や街の名前など。例: 新宿、札幌';
 
   @override
   String get homeBaseDecide => '決める';
@@ -1012,7 +1015,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeBaseEditTitle => '拠点を直す';
 
   @override
-  String get homeBaseEditDate => '日付（この日から効きます）';
+  String get homeBaseEditDate => '効きはじめる日';
 
   @override
   String get homeBaseEditName => '呼び名';
@@ -1051,7 +1054,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String homeBaseDeleteToPrevious(String date, String previous) {
-    return '$dateから後の記録は、ひとつ前の拠点（$previous）から遠征かどうかを決め直します。';
+    return '$dateから後の記録は、ひとつ前の拠点の$previousから遠征かどうかを決め直します。';
   }
 
   @override
@@ -1075,7 +1078,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String journeyExpeditionName(int month, int day, String shop) {
-    return '$month月$day日の遠征（$shop）';
+    return '$month月$day日 $shopへ遠征';
   }
 
   @override
@@ -1134,7 +1137,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get shopLocate => '地図に載せる（店名で探す）';
+  String get shopLocate => '店名で探して地図に載せる';
 
   @override
   String get shopLocated => '地図に載せました';
@@ -1237,7 +1240,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get backupImportNote =>
-      '保存しておいたファイルを選ぶと、このスマホに無い記録だけを足します。今ある記録は消えません。ファイル名は「ramen-in-cho-（日付）.zip」です';
+      '保存しておいたファイルを選ぶと、このスマホに無い記録だけを足します。今ある記録は消えません。ファイル名は「ramen-in-cho-日付.zip」です';
 
   @override
   String get backupExportFailed => '保存できませんでした。もう一度お試しください';
@@ -1247,7 +1250,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String backupImportDone(int added, int total) {
-    return '$added件の記録を戻しました（ファイルの記録 $total件のうち、このスマホに無かったもの）';
+    return '$added件の記録を戻しました。ファイルにあった$total件のうち、このスマホに無かった分です';
   }
 
   @override
@@ -1257,7 +1260,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get backupImportFailed => '戻せませんでした。もう一度お試しください';
 
   @override
-  String get backupFileType => 'バックアップ（zip）';
+  String get backupFileType => 'バックアップの zip';
 
   @override
   String get statsBests => '自己ベスト';
@@ -1283,7 +1286,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String bestDetail(String shop, String date) {
-    return '$shop（$date）';
+    return '$dateに$shopで';
   }
 
   @override
@@ -1893,7 +1896,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get helpHomeBase => 'ふだん暮らす駅や街を拠点にします。設定の「拠点」からいつでも変えられます。';
 
   @override
-  String get helpShugyoTitle => '修行タブ（段位・型と秘伝・記録・統計）';
+  String get helpShugyoTitle => '修行タブ';
 
   @override
   String get helpShugyoRank => '修行タブの上では、今の段位と次の段位までが見られます。タップすると昇段の記録が開きます。';
@@ -2064,7 +2067,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get notificationDebugTitle => '（開発用）予約中の通知';
+  String get notificationDebugTitle => '開発用: 予約中の通知';
 
   @override
   String get notificationDebugNote => 'タップすると、その通知が5秒後に届きます';
@@ -2092,7 +2095,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get notificationQuietNight => '夜（22時〜8時）は知らせない';
+  String get notificationQuietNight => '夜22時〜8時は知らせない';
 
   @override
   String get notificationQuietNightNote => '夜にかかる知らせは、その日の21時か朝8時に動かします';
@@ -2113,7 +2116,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get locationSettings => '位置情報';
 
   @override
-  String get locationAccessGranted => '使えます（アプリを使っている間だけ）。タップでスマホの設定を開く';
+  String get locationAccessGranted => 'アプリを使っている間だけ使えます。タップでスマホの設定を開く';
 
   @override
   String get locationAccessNotGranted => 'まだ許可されていません。タップで許可する';
@@ -2161,7 +2164,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get contactMailBodyPlaceholder =>
-      '（この上に、困ったことやそのときの操作、こうしてほしいことを書いてください）';
+      '※この上に、困ったことやそのときの操作、こうしてほしいことを書いてください';
 
   @override
   String get contactMailDiagnosticsNotice => '以下は不具合を調べるための情報です。そのまま送ってください。';

@@ -49,6 +49,7 @@
 - 画面の変更がある PR には確認手順（どこをタップして何を見るか）を書く。スクリーンショットは撮れるときだけ付ける
 - **コメントは基本的に書かない。** 書くのは理由がコードから読み取れないときだけ、1〜3行で。経緯は PR の説明に書く
 - **画面に出す文言は `lib/l10n/app_ja.arb` に書く**（コードに直接書かない）。今は日本語だけ。変更したら `flutter gen-l10n` を実行する。例外: 型と秘伝の名前と条件は `lib/features/quests/quests.dart`、道中記の言い回しは `lib/features/journal/journal_phrases.dart`、師匠のひとこと・慰め・通知の本文などの言葉は `lib/features/words/words.dart` に直接書く
+- **画面の文言では、かっこの補足を乱用しない。** 普通の文にできるならそうする。どうしても要るときだけ使う
 - **数字の書き方**: 物語や言葉として読む文（道中記・言葉・型と秘伝・見出し・称号・通知・案内）は漢数字、ひと目で読む値（修行点・距離・分・統計・進み具合・日付・時刻）はアラビア数字。文の中でも100を超える半端な数はアラビア数字（`proseNumber`）
 - **face-seal から持ち込まないもの**: Firebase の Remote Config、広告、課金、`google_fonts`（実行時にフォントを取りに通信するため）。Firebase のうち App Check（サーバーの API をアプリ以外から使わせないため）・Crashlytics（落ちたことに気づくため）・Analytics（機能を伸ばす・消す判断の材料にするため）だけは使う
 - 依存の更新は Dependabot（`.github/dependabot.yml`）が毎週月曜にまとめて PR を出す。自動ではマージせず、CI が通ったものを見て入れる。drift・image_picker・geolocator・firebase 系・flutter_map など記録・写真・権限・通信に関わるものは、変わる点を確かめてから入れる
