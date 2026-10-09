@@ -103,6 +103,7 @@ class _HelpTopicScreenState extends State<HelpTopicScreen> {
                   ? const SizedBox.shrink()
                   : Align(
                       alignment: Alignment.centerLeft,
+                      heightFactor: 1,
                       child: FudeLink(
                         onPressed: () => _go(_page - 1),
                         child: Text(l10n.helpPrev),
@@ -117,6 +118,7 @@ class _HelpTopicScreenState extends State<HelpTopicScreen> {
             Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
+                heightFactor: 1,
                 child: last
                     ? SumiFuda(
                         onPressed: () => Navigator.of(context).pop(),
