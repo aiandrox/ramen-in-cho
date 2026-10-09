@@ -8,6 +8,9 @@ import 'package:path/path.dart' as p;
 
 import 'package:ramen_in_cho/features/home/app_tab.dart';
 import 'package:ramen_in_cho/features/inkan/inkan_stamp.dart';
+import 'package:ramen_in_cho/features/journal/journal_view.dart';
+import 'package:ramen_in_cho/features/prefecture/prefecture_book_screen.dart';
+import 'package:ramen_in_cho/features/prefecture/prefectures.dart';
 import 'package:ramen_in_cho/features/record/record_result_screen.dart';
 import 'package:ramen_in_cho/features/record/record_screen.dart';
 import 'package:ramen_in_cho/features/records/models.dart';
@@ -89,14 +92,15 @@ enum StoreDevice {
 }
 
 /// 並べる順の場面と、見出し・添え書き（store-listing.md と同じ文）。
-/// 前の3枚でアプリの要点を、後ろの3枚で機能を1つずつ見せる。
+/// 前の3枚でアプリの要点を、後ろの4枚で機能を1つずつ見せる。
 enum StoreShot {
   inchou('一杯ごとに、印を押す', '食べたラーメンが、印帳に並んでいく'),
   record('店内で、片手ですぐ記録', '撮って、店を選んで、着丼！'),
   result('並んだ時間が、修行点に', '行列も限定も遠征も、点になる'),
   shugyo('型と秘伝を、会得する', '通うほど段位が上がり、印が増える'),
   journey('歩いた道が、旅路になる', '食べた順に、店を地図でつなぐ'),
-  shop('一杯ごとに、道中記を綴る', '記録から、短い物語が生まれる');
+  shop('一杯ごとに、道中記を綴る', '記録から、短い物語が生まれる'),
+  prefecture('都道府県を、制覇せよ', '旅先の一杯で、四十七の印を集める');
 
   const StoreShot(this.caption, this.sub);
 
@@ -106,6 +110,9 @@ enum StoreShot {
   String fileFor(StoreDevice device) =>
       '$_dir/${device.name}/${index + 1}-$name.jpg';
 }
+
+/// Google Play に載せられる枚数（App Store は10枚まで）。
+const _playMaxShots = 8;
 
 const _featureGraphic = '$_dir/android/feature-graphic.jpg';
 const _featureSize = Size(1024, 500);
@@ -357,14 +364,151 @@ final _world = ShotWorld(
   here: _here,
 );
 
+/// 7枚目の都道府県の印帳に使う、各地で食べた架空の記録。店の位置だけ、都道府県が決まるよう
+/// 各地の街なかに置く（実在の店の場所ではない）。神奈川県の店は横浜のあたりにする。
+final _prefectures = PrefectureIndex.fromJson(
+  File(prefecturesAsset).readAsStringSync(),
+);
+
+typedef _Trip = ({
+  String id,
+  String name,
+  double lat,
+  double lng,
+  RamenStyle style,
+  List<DateTime> at,
+});
+
+_Trip _trip(
+  String id,
+  String name,
+  double lat,
+  double lng,
+  RamenStyle style,
+  List<DateTime> at,
+) => (id: id, name: name, lat: lat, lng: lng, style: style, at: at);
+
+DateTime _y(int year, int month, int day) => DateTime(year, month, day, 12, 30);
+
+final _trips = [
+  _trip('p-tokyo', '中華そば 青嵐', 35.69, 139.70, RamenStyle.shoyu, [
+    _y(2025, 4, 6),
+    _y(2025, 9, 14),
+    _y(2026, 3, 1),
+  ]),
+  _trip('p-kanagawa', '月白家', 35.466, 139.62, RamenStyle.iekei, [
+    _y(2025, 4, 20),
+    _y(2026, 6, 7),
+  ]),
+  _trip('p-saitama', '豚骨 星見屋', 35.86, 139.65, RamenStyle.tonkotsu, [
+    _y(2025, 5, 11),
+  ]),
+  _trip('p-chiba', 'つけ麺 しじま', 35.61, 140.11, RamenStyle.tsukemen, [
+    _y(2025, 6, 1),
+    _y(2026, 1, 12),
+  ]),
+  _trip('p-tochigi', '極太麺 雪見', 36.56, 139.88, RamenStyle.jiro, [
+    _y(2025, 7, 21),
+  ]),
+  _trip('p-ibaraki', '塩そば 凪', 36.37, 140.47, RamenStyle.shio, [
+    _y(2025, 10, 12),
+  ]),
+  _trip('p-hokkaido', '味噌らーめん 白樺', 43.055, 141.345, RamenStyle.miso, [
+    _y(2025, 8, 13),
+  ]),
+  _trip('p-miyagi', '中華そば 杜の月', 38.262, 140.875, RamenStyle.shoyu, [
+    _y(2025, 11, 3),
+  ]),
+  _trip('p-yamanashi', '煮干し 鈴音', 35.66, 138.57, RamenStyle.shoyu, [
+    _y(2026, 2, 11),
+  ]),
+  _trip('p-shizuoka', '油そば 小春', 34.975, 138.385, RamenStyle.shirunashi, [
+    _y(2026, 4, 29),
+  ]),
+  _trip('p-kyoto', '鶏そば 若竹', 35.005, 135.765, RamenStyle.shio, [
+    _y(2025, 12, 28),
+  ]),
+  _trip('p-osaka', '中華そば 白露', 34.69, 135.50, RamenStyle.shoyu, [
+    _y(2026, 5, 3),
+  ]),
+  _trip('p-fukuoka', '豚骨 宵月', 33.59, 130.40, RamenStyle.tonkotsu, [
+    _y(2026, 8, 15),
+  ]),
+];
+
+/// 端末の周りに散らす、遠くの都道府県の印。京都は、iPad では画面の中に見えるので電話だけ。
+const _scatteredTrips = ['p-hokkaido', 'p-fukuoka', 'p-kyoto'];
+
+List<String> _scatteredFor(StoreDevice device) =>
+    device.isTablet ? _scatteredTrips.take(2).toList() : _scatteredTrips;
+
+final _tripShops = {
+  for (final trip in _trips)
+    trip.id: _shop(trip.id, trip.name, trip.lat, trip.lng),
+};
+
+List<VisitWithShop> _tripVisits() => [
+  for (final trip in _trips)
+    for (final (index, at) in trip.at.indexed)
+      VisitWithShop(
+        shop: _tripShops[trip.id]!,
+        visit: buildVisit(
+          id: '${trip.id}-$index',
+          shopId: trip.id,
+          eatenAt: at,
+          style: trip.style,
+          rating: 4,
+        ),
+      ),
+];
+
+final _prefectureWorld = ShotWorld(
+  visits: _tripVisits(),
+  wishes: const [],
+  shops: [..._tripShops.values],
+  found: const [],
+  homeBases: [
+    buildHomeBase(
+      name: 'みどり台駅',
+      latitude: 35.466,
+      longitude: 139.62,
+      setAt: DateTime(2025),
+    ),
+  ],
+  now: _now,
+  here: const GeoPoint(35.466, 139.62),
+  prefectures: _prefectures,
+);
+
+final _prefectureScored = scoreVisits(
+  _prefectureWorld.visits,
+  homeBases: _prefectureWorld.homeBases,
+  prefectureOf: _prefectures.prefectureOf,
+);
+
+ScoredVisit _firstOfTrip(String id) =>
+    _prefectureScored.firstWhere((entry) => entry.visit.id == '$id-0');
+
 /// 端末の枠に入れる1つの画面。[dark]は画面の上下が暗い色か（時刻やホームバーを明るく描く）。
 /// [zoom]は、構図の中で拡大して見せる部分（論理座標）を返す。
 class _Screen {
-  const _Screen(this.scene, {this.dark = false, this.zoom});
+  const _Screen(
+    this.scene, {
+    this.dark = false,
+    this.zoom,
+    this.anchor,
+    this.world,
+  });
 
   final ShotScene scene;
+
+  /// 画面に出す記録。nullならふだんの架空の記録。
+  final ShotWorld? world;
   final bool dark;
   final Rect Function(WidgetTester tester)? zoom;
+
+  /// 構図で見せはじめる高さ（論理座標）。これより上は画像の外に出して隠してよい。
+  final double Function(WidgetTester tester)? anchor;
 }
 
 /// 1枚に使う画面（2台重ねる場面は2つ）。
@@ -439,6 +583,24 @@ List<_Screen> _screensFor(StoreShot shot) => switch (shot) {
           await settleShot(tester);
         },
       ),
+      zoom: (tester) => tester.getRect(find.byType(JournalView)).inflate(12),
+      // iPad では画面が縦に長く、印の並びより上にその一杯の写真が残るので、そこから上を隠す。
+      anchor: (tester) => tester.getRect(find.text(ja.shopStamps)).top - 16,
+    ),
+  ],
+  StoreShot.prefecture => [
+    _Screen(
+      ShotScene(
+        home: const PrefectureBookScreen(),
+        act: (tester) async {
+          // 北海道は周りに散らす印に任せ、印の多い関東を画面の真ん中に寄せる。
+          await Scrollable.ensureVisible(
+            tester.element(find.text(ja.prefectureBookRegionTohoku)),
+          );
+          await settleShot(tester);
+        },
+      ),
+      world: _prefectureWorld,
     ),
   ],
 };
@@ -501,6 +663,40 @@ void main() {
     }
   });
 
+  test('都道府県の印帳の記録は、関東を中心に離れた所も含む', () {
+    final prefectures = {
+      for (final trip in _trips)
+        trip.id: _prefectures.prefectureAt(trip.lat, trip.lng),
+    };
+    expect(prefectures.values, everyElement(isNotNull));
+    expect(prefectures.values.toSet(), hasLength(_trips.length));
+    expect(
+      prefectures.values,
+      containsAll(['東京都', '神奈川県', '北海道', '京都府', '福岡県']),
+    );
+    for (final id in _scatteredTrips) {
+      expect(_firstOfTrip(id).prefecture, prefectures[id], reason: id);
+    }
+  });
+
+  test('枚数はどのストアにも載せられる数で、store-listing.md の表と同じ', () {
+    expect(StoreShot.values.length, lessThanOrEqualTo(_playMaxShots));
+    final listing = File('docs/release/store-listing.md').readAsStringSync();
+    final last = StoreShot.values.last;
+    final count = StoreShot.values.length;
+    for (final device in StoreDevice.values) {
+      expect(
+        listing,
+        contains(
+          '`screenshots/${device.name}/1-inchou.jpg` 〜 '
+          '`$count-${last.name}.jpg`（$count枚）',
+        ),
+        reason: device.name,
+      );
+    }
+    expect(listing, contains('### 場面と見出し（$count枚。'));
+  });
+
   test('見出しと添え書きは store-listing.md の表と同じ', () {
     final listing = File('docs/release/store-listing.md').readAsStringSync();
     for (final shot in StoreShot.values) {
@@ -546,7 +742,7 @@ void main() {
           final boundary = GlobalKey();
           await pumpShot(
             tester,
-            _world,
+            screen.world ?? _world,
             screen.scene,
             boundary: boundary,
             size: device.screen,
@@ -563,7 +759,15 @@ void main() {
           final image = await tester.runAsync(
             () => captureShot(boundary, ratio),
           );
-          captured.add(_Captured(image!, ratio, dark: screen.dark, zoom: zoom));
+          captured.add(
+            _Captured(
+              image!,
+              ratio,
+              dark: screen.dark,
+              zoom: zoom,
+              anchor: screen.anchor?.call(tester),
+            ),
+          );
         }
 
         tester.view
@@ -626,12 +830,19 @@ void main() {
 
 /// 写した画面と、その倍率・拡大して見せる部分。
 class _Captured {
-  const _Captured(this.image, this.ratio, {required this.dark, this.zoom});
+  const _Captured(
+    this.image,
+    this.ratio, {
+    required this.dark,
+    this.zoom,
+    this.anchor,
+  });
 
   final ui.Image image;
   final double ratio;
   final bool dark;
   final Rect? zoom;
+  final double? anchor;
 }
 
 /// 1枚の構図。大きさはすべて画像の幅[w]・高さ[h]に対する割合で決める。
@@ -687,6 +898,7 @@ class _Composition extends StatelessWidget {
             StoreShot.shugyo => _shugyo(top, below),
             StoreShot.journey => _journey(),
             StoreShot.shop => _shop(top, below),
+            StoreShot.prefecture => _prefecture(top, below),
           },
         ),
       ),
@@ -907,32 +1119,75 @@ class _Composition extends StatelessWidget {
     ];
   }
 
-  /// 6枚目: 店のページを右に置き、その一杯の写真を左に添える。
+  /// 6枚目: 店のページを大きく置き、道中記の部分を拡大した紙を斜めに重ねる。写真は見せない。
+  /// 電話は端末の下を画像の外へ流す。iPad は印の並びより上（写真）を画像の上の外へ出し、見出しは下。
   List<Widget> _shop(double top, double below) {
-    final width = _fit(0.66, 0.72);
+    final screen = screens.single;
+    final tablet = device.isTablet;
+    final width = _fit(tablet ? 0.8 : 0.84, 0.9);
     final height = width * _aspect;
-    final print = w * (device.isTablet ? 0.34 : 0.42);
+    // 画面は枠の内側に、幅に合わせて描かれる（_DeviceFrame と同じ計算）。
+    final bezel = _DeviceFrame.bezelFor(device, width);
+    final unit = (width - bezel * 2) / device.screen.width;
+    final deviceTop = tablet ? h * 0.03 - bezel - screen.anchor! * unit : below;
+    final zoom = screen.zoom!;
+    final slipWidth = w * (tablet ? 0.6 : 0.72);
+    final slipHeight = slipWidth * zoom.height / zoom.width;
+    final slipBottom = tablet ? h - _captionHeight - h * 0.07 : h - h * 0.04;
+    // 拡大した紙の上端を、画面の中の道中記の高さに合わせる。
+    final journalTop = deviceTop + bezel + zoom.top * unit;
     return [
-      _headline(top),
+      if (!tablet) _headline(top),
       _device(
-        screens.single,
-        left: w - width - w * 0.05,
-        top: below,
+        screen,
+        left: w - width - w * 0.02,
+        top: deviceTop,
         width: width,
-        angle: 0.035,
+        angle: tablet ? 0.02 : 0.03,
       ),
       Positioned(
-        left: w * 0.04,
-        top: below + height * 0.68,
+        left: w * 0.03,
+        top: math.min(journalTop - height * 0.01, slipBottom - slipHeight),
         child: Transform.rotate(
-          angle: -0.08,
-          child: _Print(
-            photo: photos['shoyu'],
-            width: print,
-            caption: _kasumi.name,
+          angle: -0.035,
+          child: _PaperSlip(
+            screen: screen,
+            width: slipWidth,
+            height: slipHeight,
           ),
         ),
       ),
+      if (tablet) _headlineAtBottom(),
+    ];
+  }
+
+  /// 7枚目: 都道府県の印帳をまっすぐ見せ、遠くの都道府県の印を周りに散らす。
+  List<Widget> _prefecture(double top, double below) {
+    final width = _fit(
+      device.isTablet ? 0.76 : 0.64,
+      (h - below - h * 0.03) / h,
+    );
+    final height = width * _aspect;
+    final stamp = w * (device.isTablet ? 0.2 : 0.27);
+    // 端末にかからないよう、左右の余白から画像の外へはみ出させる。
+    final out = math.max(stamp * 0.42, stamp - ((w - width) / 2 - w * 0.015));
+    final spots = [
+      (left: -out, top: below + height * 0.3, angle: -0.2),
+      (left: w - stamp + out, top: below + height * 0.55, angle: 0.16),
+      (left: -out, top: below + height * 0.78, angle: 0.12),
+    ];
+    return [
+      _headline(top),
+      _device(screens.single, left: (w - width) / 2, top: below, width: width),
+      for (final (index, id) in _scatteredFor(device).indexed)
+        Positioned(
+          left: spots[index].left,
+          top: spots[index].top,
+          child: Transform.rotate(
+            angle: spots[index].angle,
+            child: InkanStamp(scored: _firstOfTrip(id), size: stamp),
+          ),
+        ),
     ];
   }
 }
@@ -1228,58 +1483,39 @@ class _CropPainter extends CustomPainter {
       image != oldDelegate.image || source != oldDelegate.source;
 }
 
-/// 白い縁の付いた、紙焼きの写真。下の余白に店名を書く。
-class _Print extends StatelessWidget {
-  const _Print({
-    required this.photo,
+/// 写した画面の一部を、和紙の紙片に刷ったように拡大する。
+class _PaperSlip extends StatelessWidget {
+  const _PaperSlip({
+    required this.screen,
     required this.width,
-    required this.caption,
+    required this.height,
   });
 
-  final ui.Image? photo;
+  final _Captured screen;
   final double width;
-  final String caption;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    final margin = width * 0.05;
-    final inner = width - margin * 2;
+    final margin = width * 0.035;
     return Container(
-      width: width,
-      padding: EdgeInsets.fromLTRB(margin, margin, margin, margin * 0.6),
+      width: width + margin * 2,
+      height: height + margin * 2,
+      padding: EdgeInsets.all(margin),
       decoration: BoxDecoration(
         color: Washi.page,
+        border: Border.all(color: Washi.line, width: width * 0.004),
         boxShadow: [
           BoxShadow(
-            color: Washi.ink.withValues(alpha: 0.35),
-            blurRadius: width * 0.06,
-            offset: Offset(0, width * 0.02),
+            color: Washi.ink.withValues(alpha: 0.32),
+            blurRadius: width * 0.05,
+            offset: Offset(0, width * 0.018),
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: inner,
-            height: inner,
-            child: RawImage(
-              image: photo,
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.high,
-            ),
-          ),
-          SizedBox(height: margin * 0.5),
-          Text(
-            caption,
-            style: TextStyle(
-              fontFamily: Washi.brush,
-              fontSize: width * 0.085,
-              color: Washi.ink,
-              height: 1.3,
-            ),
-          ),
-        ],
+      child: CustomPaint(
+        size: Size(width, height),
+        painter: _CropPainter(screen.image, screen.zoom! * screen.ratio),
       ),
     );
   }

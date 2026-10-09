@@ -16,6 +16,7 @@ import 'package:ramen_in_cho/features/home_base/home_base_repository.dart';
 import 'package:ramen_in_cho/features/map/washi_map.dart';
 import 'package:ramen_in_cho/features/notifications/notification_service.dart';
 import 'package:ramen_in_cho/features/onboarding/onboarding_store.dart';
+import 'package:ramen_in_cho/features/prefecture/prefectures.dart';
 import 'package:ramen_in_cho/features/record/photo_metadata.dart';
 import 'package:ramen_in_cho/features/record/photo_picker.dart';
 import 'package:ramen_in_cho/features/record/record_draft.dart';
@@ -51,6 +52,7 @@ class ShotWorld {
     required this.homeBases,
     required this.now,
     required this.here,
+    this.prefectures,
   });
 
   final List<VisitWithShop> visits;
@@ -60,6 +62,9 @@ class ShotWorld {
   final List<HomeBaseSetting> homeBases;
   final DateTime now;
   final GeoPoint here;
+
+  /// 店の位置から都道府県を引く境界。nullなら、どの店も都道府県なし。
+  final PrefectureIndex? prefectures;
 }
 
 class ShotScene {
@@ -229,6 +234,8 @@ Widget _app(
     ramenInChoApiProvider.overrideWithValue(_Api()),
     showOnboardingOnLaunchProvider.overrideWithValue(false),
     clockProvider.overrideWithValue(() => world.now),
+    if (world.prefectures case final prefectures?)
+      prefectureIndexProvider.overrideWithValue(prefectures),
   ],
   child: RepaintBoundary(
     key: boundary,
