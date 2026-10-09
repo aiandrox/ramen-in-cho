@@ -301,6 +301,7 @@ final _wishes = [
     trigger: '友だちのすすめ',
     note: '限定の濃厚が名物らしい',
     createdAt: DateTime(2026, 9, 12),
+    fulfilledVisitId: 'today',
   ),
   Wish(
     id: 'w2',
@@ -462,17 +463,15 @@ void main() {
   setUpAll(() async {
     documents = createTempDirectory();
     photo = p.join(documents.path, 'camera.jpg');
+    if (!_update) {
+      File(photo).writeAsBytesSync(const []);
+      return;
+    }
     for (final name in _photoNames) {
       final bytes = File(_sourcePhoto(name)).readAsBytesSync();
       final codec = await ui.instantiateImageCodec(bytes);
       photos[name] = (await codec.getNextFrame()).image;
-      if (_update) {
-        File(p.join(documents.path, _photoFor(name))).writeAsBytesSync(bytes);
-      }
-    }
-    if (!_update) {
-      File(photo).writeAsBytesSync(const []);
-      return;
+      File(p.join(documents.path, _photoFor(name))).writeAsBytesSync(bytes);
     }
     await loadShotFonts();
     File(_sourcePhoto('iekei')).copySync(photo);
@@ -557,7 +556,10 @@ void main() {
             padding: device.padding,
           );
           expect(tester.takeException(), isNull);
-          final zoom = screen.zoom?.call(tester);
+          // 画面の外は写らないので、拡大する部分は画面の中に収める。
+          final zoom = screen.zoom
+              ?.call(tester)
+              .intersect(Offset.zero & device.screen);
           final image = await tester.runAsync(
             () => captureShot(boundary, ratio),
           );
@@ -606,7 +608,7 @@ void main() {
         child: localizedApp(
           theme: buildAppTheme(),
           home: _FeatureGraphic(
-            photo: photos['iekei']!,
+            photo: photos['iekei'],
             stamps: [_today, _scoredOf('b23')],
           ),
         ),
@@ -680,7 +682,7 @@ class _Composition extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           children: switch (shot) {
             StoreShot.inchou => _inchou(top, below),
-            StoreShot.record => _record(top, below),
+            StoreShot.record => _record(top),
             StoreShot.result => _result(),
             StoreShot.shugyo => _shugyo(top, below),
             StoreShot.journey => _journey(),
@@ -735,7 +737,7 @@ class _Composition extends StatelessWidget {
 
   /// 1枚目: 大きな端末で印帳を見せ、横に大きな印を2つ浮かべる。
   List<Widget> _inchou(double top, double below) {
-    final width = _fit(0.8, 0.86);
+    final width = _fit(0.8, (h - below - h * 0.025) / h);
     final height = width * _aspect;
     final card = math.min(w * 0.36, h * 0.24);
     return [
@@ -764,7 +766,7 @@ class _Composition extends StatelessWidget {
   }
 
   /// 2枚目: 実写の一杯を上いっぱいに敷き、その上に記録画面を置く。
-  List<Widget> _record(double top, double below) {
+  List<Widget> _record(double top) {
     final width = _fit(0.66, 0.6);
     final height = width * _aspect;
     final photoHeight = h * 0.56;
@@ -925,7 +927,7 @@ class _Composition extends StatelessWidget {
         child: Transform.rotate(
           angle: -0.08,
           child: _Print(
-            photo: photos['shoyu']!,
+            photo: photos['shoyu'],
             width: print,
             caption: _kasumi.name,
           ),
@@ -1234,7 +1236,7 @@ class _Print extends StatelessWidget {
     required this.caption,
   });
 
-  final ui.Image photo;
+  final ui.Image? photo;
   final double width;
   final String caption;
 
@@ -1306,7 +1308,7 @@ Future<void> _writeJpeg(ui.Image image, String path) async {
 class _FeatureGraphic extends StatelessWidget {
   const _FeatureGraphic({required this.photo, required this.stamps});
 
-  final ui.Image photo;
+  final ui.Image? photo;
   final List<ScoredVisit> stamps;
 
   @override

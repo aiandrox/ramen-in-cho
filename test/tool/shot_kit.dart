@@ -117,7 +117,9 @@ Future<void> pumpShot(
   if (padding != EdgeInsets.zero) {
     // 時刻やホームバーの分の余白（ストアの画像で端末の枠を描くとき）。
     final fake = FakeViewPadding(
+      left: padding.left * 2,
       top: padding.top * 2,
+      right: padding.right * 2,
       bottom: padding.bottom * 2,
     );
     tester.view
